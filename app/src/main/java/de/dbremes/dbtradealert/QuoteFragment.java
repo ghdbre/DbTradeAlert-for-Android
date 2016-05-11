@@ -21,21 +21,17 @@ import java.util.List;
  * interface.
  */
 public class QuoteFragment extends Fragment {
-
-    // TODO: Customize parameters
-    private int mColumnCount = 1;
-
-    // TODO: Customize parameter argument names
-    private static final String ARG_COLUMN_COUNT = "column-count";
+    // Watchlist's position in ViewPager
+    private int mPosition = 0;
+    private static final String ARG_POSITION = "position";
 
     private OnListFragmentInteractionListener mListener;
 
-    // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static QuoteFragment newInstance(int columnCount) {
+    public static QuoteFragment newInstance(int position) {
         QuoteFragment fragment = new QuoteFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
+        args.putInt(ARG_POSITION, position);
         fragment.setArguments(args);
         return fragment;
     }
@@ -52,7 +48,7 @@ public class QuoteFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
+            mPosition = getArguments().getInt(ARG_POSITION);
         }
     }
 
@@ -65,11 +61,7 @@ public class QuoteFragment extends Fragment {
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
+            recyclerView.setLayoutManager(new LinearLayoutManager(context));
             recyclerView.setAdapter(new QuoteRecyclerViewAdapter(DummyContent.ITEMS, mListener));
         }
         return view;

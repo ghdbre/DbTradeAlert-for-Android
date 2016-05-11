@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import de.dbremes.dbtradealert.dummy.DummyContent;
 import de.dbremes.dbtradealert.dummy.DummyContent.DummyItem;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -62,7 +64,14 @@ public class QuoteFragment extends Fragment {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            recyclerView.setAdapter(new QuoteRecyclerViewAdapter(DummyContent.ITEMS, mListener));
+            List<String> symbols;
+            if (mPosition == 1) {
+                symbols = Arrays.asList("NESN.VX","NOVN.VX");
+            }
+            else {
+                symbols = Arrays.asList("BAYN.DE","SIE.DE");
+            }
+            recyclerView.setAdapter(new QuoteRecyclerViewAdapter(symbols, mListener));
         }
         return view;
     }
@@ -97,6 +106,6 @@ public class QuoteFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction(String item);
     }
 }

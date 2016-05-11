@@ -9,8 +9,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import de.dbremes.dbtradealert.dummy.DummyContent;
-import de.dbremes.dbtradealert.dummy.DummyContent.DummyItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;

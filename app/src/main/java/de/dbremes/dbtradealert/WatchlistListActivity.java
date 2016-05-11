@@ -18,8 +18,6 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
-import de.dbremes.dbtradealert.dummy.DummyContent;
-
 public class WatchlistListActivity extends AppCompatActivity
         implements QuoteFragment.OnListFragmentInteractionListener {
 

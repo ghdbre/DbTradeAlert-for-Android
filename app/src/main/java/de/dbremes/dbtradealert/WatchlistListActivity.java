@@ -18,7 +18,10 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
-public class WatchlistListActivity extends AppCompatActivity {
+import de.dbremes.dbtradealert.dummy.DummyContent;
+
+public class WatchlistListActivity extends AppCompatActivity
+        implements QuoteFragment.OnListFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -74,6 +77,11 @@ public class WatchlistListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -123,7 +131,7 @@ public class WatchlistListActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            return QuoteFragment.newInstance(position + 1);
         }
 
         @Override

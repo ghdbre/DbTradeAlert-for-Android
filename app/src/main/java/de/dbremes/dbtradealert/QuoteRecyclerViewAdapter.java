@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import de.dbremes.dbtradealert.ItemFragment.OnListFragmentInteractionListener;
+import de.dbremes.dbtradealert.QuoteFragment.OnListFragmentInteractionListener;
 import de.dbremes.dbtradealert.dummy.DummyContent.DummyItem;
 
 import java.util.List;
@@ -29,7 +29,7 @@ public class QuoteRecyclerViewAdapter extends RecyclerView.Adapter<QuoteRecycler
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_item, parent, false);
+                .inflate(R.layout.fragment_quote, parent, false);
         return new ViewHolder(view);
     }
 

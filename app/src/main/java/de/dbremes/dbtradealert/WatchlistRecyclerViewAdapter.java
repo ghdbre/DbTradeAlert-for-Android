@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import de.dbremes.dbtradealert.QuoteFragment.OnListFragmentInteractionListener;
+import de.dbremes.dbtradealert.WatchlistFragment.OnListFragmentInteractionListener;
 
 import java.util.List;
 
@@ -15,12 +15,12 @@ import java.util.List;
  * specified {@link OnListFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class QuoteRecyclerViewAdapter extends RecyclerView.Adapter<QuoteRecyclerViewAdapter.ViewHolder> {
+public class WatchlistRecyclerViewAdapter extends RecyclerView.Adapter<WatchlistRecyclerViewAdapter.ViewHolder> {
 
     private final List<String> mValues;
     private final OnListFragmentInteractionListener mListener;
 
-    public QuoteRecyclerViewAdapter(List<String> items, OnListFragmentInteractionListener listener) {
+    public WatchlistRecyclerViewAdapter(List<String> items, OnListFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
     }

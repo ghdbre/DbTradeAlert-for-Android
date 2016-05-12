@@ -17,8 +17,8 @@ public class WatchlistListPagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int position) {
         // getItem is called to instantiate the fragment for the given page.
-        // Return a QuoteFragment.
-        return QuoteFragment.newInstance(position + 1);
+        // Return a WatchlistFragment.
+        return WatchlistFragment.newInstance(position + 1);
     }
 
     @Override

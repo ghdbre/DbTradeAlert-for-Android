@@ -3,14 +3,12 @@ package de.dbremes.dbtradealert;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,7 +18,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
-public class QuoteFragment extends Fragment {
+public class WatchlistFragment extends Fragment {
     // Watchlist's position in ViewPager
     private int mPosition = 0;
     private static final String ARG_POSITION = "position";
@@ -28,8 +26,8 @@ public class QuoteFragment extends Fragment {
     private OnListFragmentInteractionListener mListener;
 
     @SuppressWarnings("unused")
-    public static QuoteFragment newInstance(int position) {
-        QuoteFragment fragment = new QuoteFragment();
+    public static WatchlistFragment newInstance(int position) {
+        WatchlistFragment fragment = new WatchlistFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_POSITION, position);
         fragment.setArguments(args);
@@ -40,7 +38,7 @@ public class QuoteFragment extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public QuoteFragment() {
+    public WatchlistFragment() {
     }
 
     @Override
@@ -55,7 +53,7 @@ public class QuoteFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_quote_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_watchlist, container, false);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -69,7 +67,7 @@ public class QuoteFragment extends Fragment {
             else {
                 symbols = Arrays.asList("BAYN.DE","SIE.DE");
             }
-            recyclerView.setAdapter(new QuoteRecyclerViewAdapter(symbols, mListener));
+            recyclerView.setAdapter(new WatchlistRecyclerViewAdapter(symbols, mListener));
         }
         return view;
     }

@@ -10,7 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 public class WatchlistListActivity extends AppCompatActivity
-        implements QuoteFragment.OnListFragmentInteractionListener {
+        implements WatchlistFragment.OnListFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide

@@ -10,5 +10,5 @@
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         app:layoutManager="LinearLayoutManager"
-        tools:context="de.dbremes.dbtradealert.QuoteFragment"
+        tools:context=".WatchlistFragment"
         tools:listitem="@layout/fragment_quote" />

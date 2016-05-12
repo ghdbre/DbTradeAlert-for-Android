@@ -20,16 +20,16 @@ import java.util.List;
  */
 public class WatchlistFragment extends Fragment {
     // Watchlist's position in ViewPager
-    private int mPosition = 0;
-    private static final String ARG_POSITION = "position";
+    private int mWatchlistPosition = 0;
+    private static final String ARG_WATCHLIST_POSITION = "watchlist_position";
 
     private OnListFragmentInteractionListener mListener;
 
     @SuppressWarnings("unused")
-    public static WatchlistFragment newInstance(int position) {
+    public static WatchlistFragment newInstance(int watchlistPosition) {
         WatchlistFragment fragment = new WatchlistFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_POSITION, position);
+        args.putInt(ARG_WATCHLIST_POSITION, watchlistPosition);
         fragment.setArguments(args);
         return fragment;
     }
@@ -46,7 +46,7 @@ public class WatchlistFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            mPosition = getArguments().getInt(ARG_POSITION);
+            mWatchlistPosition = getArguments().getInt(ARG_WATCHLIST_POSITION);
         }
     }
 
@@ -61,7 +61,7 @@ public class WatchlistFragment extends Fragment {
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             List<String> symbols;
-            if (mPosition == 1) {
+            if (mWatchlistPosition == 1) {
                 symbols = Arrays.asList("NESN.VX","NOVN.VX");
             }
             else {

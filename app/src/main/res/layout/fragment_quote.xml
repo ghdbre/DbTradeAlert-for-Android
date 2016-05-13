@@ -9,27 +9,30 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        tools:text="NESTLE N"
-        android:textAppearance="?android:attr/textAppearanceLarge" >
+        android:layout_alignParentStart="true"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        tools:text="NESTLE N" >
     </TextView>
 
     <TextView
         android:id="@+id/percentChangeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        tools:text="0.41 %"
-        android:textAppearance="?android:attr/textAppearanceLarge" >
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        tools:text="0.41 %" >
     </TextView>
 
     <TextView
         android:id="@+id/lastTradeDateTimeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@id/percentChangeTextView"
-        tools:text="10:24, 12.05.2016"
-        android:textAppearance="?android:attr/textAppearanceMedium" >
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        tools:text="10:24, 12.05.2016" >
     </TextView>
 
     <TextView
@@ -37,18 +40,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_below="@+id/stockNameTextView"
-        tools:text="NESN.VX"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        tools:text="NESN.VX" />
 
     <TextView
         android:id="@+id/percentChangeMinLowTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_below="@+id/symbolTextView"
-        tools:text="9.5% ML"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        tools:text="9.5% ML" />
 
     <TextView
         android:id="@+id/percentChangeMaxHighTextView"
@@ -56,29 +61,36 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/percentChangeMinLowTextView"
         android:layout_marginLeft="7dp"
+        android:layout_marginStart="7dp"
+        android:layout_toEndOf="@+id/percentChangeMinLowTextView"
         android:layout_toRightOf="@+id/percentChangeMinLowTextView"
-        tools:text="-4.9% MH"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        tools:text="-4.9% MH" />
 
     <TextView
         android:id="@+id/signalTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:layout_marginEnd="7dp"
         android:layout_marginRight="7dp"
         android:layout_toLeftOf="@+id/percentChangeTextView"
+        android:layout_toStartOf="@+id/percentChangeTextView"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         tools:text="U"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        tools:ignore="RelativeOverlap" />
 
     <TextView
         android:id="@+id/lastTradeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/percentChangeMaxHighTextView"
+        android:layout_marginEnd="7dp"
         android:layout_marginRight="7dp"
         android:layout_toLeftOf="@+id/lastTradeDateTimeTextView"
-        tools:text="72.50 CHF"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:layout_toStartOf="@+id/lastTradeDateTimeTextView"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        tools:text="72.50 CHF" />
 
     <TextView
         android:id="@+id/percentDailyVolumeTextView"
@@ -87,6 +99,8 @@
         android:layout_alignParentRight="true"
         android:layout_below="@id/lastTradeDateTimeTextView"
         android:layout_marginLeft="7dp"
-        tools:text="158.2% V"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:layout_marginStart="7dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_alignParentEnd="true"
+        tools:text="158.2% V" />
 </RelativeLayout>

@@ -9,8 +9,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import de.dbremes.dbtradealert.DbAccess.DbHelper;
+
 public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
+    private DbHelper dbHelper = null;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -31,6 +34,8 @@ public class WatchlistListActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_watchlist_list);
+
+        this.dbHelper =  new DbHelper(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

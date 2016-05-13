@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <TextView
         android:id="@+id/stockNameTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:text="NESTLE N"
+        tools:text="NESTLE N"
         android:textAppearance="?android:attr/textAppearanceLarge" >
     </TextView>
 
@@ -17,7 +18,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:text="0.41 %"
+        tools:text="0.41 %"
         android:textAppearance="?android:attr/textAppearanceLarge" >
     </TextView>
 
@@ -27,7 +28,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@id/percentChangeTextView"
-        android:text="10:24, 12.05.2016"
+        tools:text="10:24, 12.05.2016"
         android:textAppearance="?android:attr/textAppearanceMedium" >
     </TextView>
 
@@ -37,7 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/stockNameTextView"
-        android:text="NESN.VX"
+        tools:text="NESN.VX"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
@@ -46,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/symbolTextView"
-        android:text="9.5% ML"
+        tools:text="9.5% ML"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
@@ -56,7 +57,7 @@
         android:layout_alignBottom="@+id/percentChangeMinLowTextView"
         android:layout_marginLeft="7dp"
         android:layout_toRightOf="@+id/percentChangeMinLowTextView"
-        android:text="-4.9% MH"
+        tools:text="-4.9% MH"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
@@ -66,7 +67,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginRight="7dp"
         android:layout_toLeftOf="@+id/percentChangeTextView"
-        android:text="U"
+        tools:text="U"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
@@ -76,7 +77,7 @@
         android:layout_above="@+id/percentChangeMaxHighTextView"
         android:layout_marginRight="7dp"
         android:layout_toLeftOf="@+id/lastTradeDateTimeTextView"
-        android:text="72.50 CHF"
+        tools:text="72.50 CHF"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
@@ -86,6 +87,6 @@
         android:layout_alignParentRight="true"
         android:layout_below="@id/lastTradeDateTimeTextView"
         android:layout_marginLeft="7dp"
-        android:text="158.2% V"
+        tools:text="158.2% V"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 </RelativeLayout>

@@ -22,7 +22,7 @@ public class DbHelper extends SQLiteOpenHelper {
         // onCreate() will be called on 1st use of the database
         // this will use it for testing purposes:
         dummyDb = getWritableDatabase();
-    }
+    } // ctor()
 
     private void createQuoteTable(SQLiteDatabase db) {
         String columnDefinitions = (Quote.ASK + " REAL, ") +
@@ -46,7 +46,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String sql = String.format("CREATE TABLE %s (%s);",
                 Quote.TABLE, columnDefinitions);
         db.execSQL(sql);
-        Log.d(CLASS_NAME, "createQuoteTable: table created with SQL = " + sql);
+        Log.d(CLASS_NAME, "createQuoteTable created with SQL = " + sql);
     } // createQuoteTable()
 
     private void createSecuritiesInWatchListsTable(SQLiteDatabase db) {
@@ -59,7 +59,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 columnDefinitions);
         db.execSQL(sql);
         Log.d(CLASS_NAME,
-                "createSecuritiesInWatchListsTable: table created with SQL = "
+                "createSecuritiesInWatchListsTable created with SQL = "
                         + sql);
     } // createSecuritiesInWatchListsTable()
 
@@ -77,7 +77,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String sql = String.format("CREATE TABLE %s (%s);",
                 Security.TABLE, columnDefinitions);
         db.execSQL(sql);
-        Log.d(CLASS_NAME, "createSecurityTable: table created with SQL = " + sql);
+        Log.d(CLASS_NAME, "createSecurityTable created with SQL = " + sql);
     } // createSecurityTable()
 
     private void createTables(SQLiteDatabase db) {
@@ -93,7 +93,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String sql = String.format("CREATE TABLE %s (%s);",
                 Watchlist.TABLE, columnDefinitions);
         db.execSQL(sql);
-        Log.d(CLASS_NAME, "createWatchListTable: table created with SQL = " + sql);
+        Log.d(CLASS_NAME, "createWatchListTable created with SQL = " + sql);
     } // createWatchListTable()
 
     @Override

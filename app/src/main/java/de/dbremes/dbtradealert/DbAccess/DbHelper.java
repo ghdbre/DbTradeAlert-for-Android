@@ -81,10 +81,17 @@ public class DbHelper extends SQLiteOpenHelper {
     } // createSecurityTable()
 
     private void createTables(SQLiteDatabase db) {
-        createSecurityTable(db);
-        createWatchListTable(db);
-        createQuoteTable(db);
-        createSecuritiesInWatchListsTable(db);
+        try {
+            db.beginTransaction();
+            createSecurityTable(db);
+            createWatchListTable(db);
+            createQuoteTable(db);
+            createSecuritiesInWatchListsTable(db);
+            db.setTransactionSuccessful();
+            Log.d(DbHelper.CLASS_NAME, "createTables: success!");
+        } finally {
+            db.endTransaction();
+        }
     } // createTables()
 
     private void createWatchListTable(SQLiteDatabase db) {

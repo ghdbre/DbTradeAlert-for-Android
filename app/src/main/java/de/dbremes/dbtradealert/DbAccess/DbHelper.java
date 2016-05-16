@@ -7,6 +7,7 @@ import de.dbremes.dbtradealert.DbAccess.WatchlistContract.Watchlist;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -14,7 +15,9 @@ import android.util.Log;
 public class DbHelper extends SQLiteOpenHelper {
     private static final String CLASS_NAME = "DbHelper";
     private static final String DB_NAME = "dbtradealert.db";
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 1;
+    // strings for logging
+    private final static String CURSOR_COUNT_FORMAT = "%s: cursor.getCount() = %d";
 
     private SQLiteDatabase dummyDb;
 
@@ -301,18 +304,107 @@ public class DbHelper extends SQLiteOpenHelper {
         String sql = String.format("CREATE TABLE %s (%s);",
                 Watchlist.TABLE, columnDefinitions);
         db.execSQL(sql);
-        Log.d(CLASS_NAME, "createWatchListTable created with SQL = " + sql);
+        Log.d(DbHelper.CLASS_NAME, "createWatchListTable created with SQL = " + sql);
     } // createWatchListTable()
+
+    private long getWatchlistIdByPosition(int position) {
+        final String methodName = "getWatchlistIdByPosition";
+        int result = -1;
+        Cursor c = readAllWatchlists();
+        if (c.getCount() >= position) {
+            c.moveToPosition(position);
+            result = c.getInt(c.getColumnIndex(Watchlist.ID));
+        } else {
+            Log.w(DbHelper.CLASS_NAME, String.format(
+                    "%s: cannot move to position = %d; cursor.getCount() = %d",
+                    methodName, position, c.getCount()));
+        }
+        c.close();
+        return result;
+    } // getWatchlistIdByPosition()
+
+     private String insertSelectionArgs(String selection, String[] selectionArgs) {
+         final String methodName = "insertSelectionArgs";
+         String result = "";
+         StringBuilder sb = new StringBuilder();
+         String[] selectionArray = selection.split("\\?");
+         if (selectionArray.length != selectionArgs.length){
+            Log.w(DbHelper.CLASS_NAME,
+                    String.format("%s: selectionArray.length = %d, selectionArgs.length = %d; ",
+                            methodName, selectionArray.length, selectionArgs.length));
+         }
+         for (int i = 0; i < selectionArgs.length; i++) {
+             sb.append(selectionArray[i] + selectionArgs[i]);
+         }
+         if (selectionArray.length > selectionArgs.length) {
+             sb.append(selectionArray[selectionArray.length - 1]);
+         }
+         result = sb.toString();
+         return result;
+     } // insertSelectionArgs()
+
+    private void logSql(String methodName, String selection,
+                        String[] selectionArgs) {
+         Log.v(DbHelper.CLASS_NAME,
+         methodName + ": "
+         + insertSelectionArgs(selection, selectionArgs));
+    } // logSql()
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         createTables(db);
+        createSampleData(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion == 1 && newVersion == 2) {
-            createSampleData(db);
-        }
+
     }
+
+    public Cursor readAllQuotesForWatchlist(int uiPosition) {
+        final String methodName = "readAllQuotesForWatchlist";
+        Cursor cursor = null;
+        long watchlistId = getWatchlistIdByPosition(uiPosition - 1);
+        cursor = readAllQuotesForWatchlist(watchlistId);
+        return cursor;
+    } // readAllQuotesForWatchlist()
+
+    public Cursor readAllQuotesForWatchlist(long watchlistId) {
+        final String methodName = "readAllQuotesForWatchlist";
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT q.*, s." + Security.BASE_VALUE + ", s."
+                + Security.GENERATE_STOP_LOSS_SIGNAL + ", s."
+                + Security.LOWER_TARGET + ", s." + Security.MAX_HIGH
+                + ", s." + Security.UPPER_TARGET + "\nFROM "
+                + SecuritiesInWatchlists.TABLE + " siwl" + "\n\tINNER JOIN "
+                + Quote.TABLE + " q ON q." + Quote.SECURITY_ID
+                + " = " + "siwl." + SecuritiesInWatchlists.SECURITY_ID + "\n\tINNER JOIN "
+                + Security.TABLE + " s ON s." + Security.ID + " = " + "q."
+                + Quote.SECURITY_ID + "\nWHERE siwl."
+                + SecuritiesInWatchlists.WATCHLIST_ID + " = ?" + "\nORDER BY q."
+                + Quote.NAME + " ASC";
+        String[] selectionArgs = new String[] { String.valueOf(watchlistId) };
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(DbHelper.CLASS_NAME,
+                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName,
+                        cursor.getCount()));
+        return cursor;
+    } // readAllQuotesForWatchlist()
+
+    public Cursor readAllWatchlists() {
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = new String[] { Watchlist.ID, Watchlist.NAME };
+        String groupBy = null;
+        String having = null;
+        String orderBy = Watchlist.NAME;
+        String selection = null;
+        String[] selectionArgs = null;
+        String table = Watchlist.TABLE;
+        cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
+        return cursor;
+    } // readAllWatchlists()
+
 }

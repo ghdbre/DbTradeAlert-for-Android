@@ -1,17 +1,27 @@
 package de.dbremes.dbtradealert;
 
+import android.database.Cursor;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
+
+import de.dbremes.dbtradealert.DbAccess.DbHelper;
+import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
  * one of the watchlists.
  */
 public class WatchlistListPagerAdapter extends FragmentPagerAdapter {
+    // Logging tag can be at most 23 characters
+    private static final String CLASS_NAME = "WatchlistListPagerAd.";
 
-    public WatchlistListPagerAdapter(FragmentManager fm) {
+    private final DbHelper dbHelper;
+
+    public WatchlistListPagerAdapter(FragmentManager fm, DbHelper dbHelper) {
         super(fm);
+        this.dbHelper = dbHelper;
     }
 
     @Override
@@ -23,18 +33,30 @@ public class WatchlistListPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        // Show 2 total watchlists.
-        return 2;
-    }
+        int result = -1;
+        Cursor cursor = dbHelper.readAllWatchlists();
+        result = cursor.getCount();
+        cursor.close();
+        return result;
+    } // getCount()
 
     @Override
     public CharSequence getPageTitle(int position) {
-        switch (position) {
-            case 0:
-                return "CH Stocks";
-            case 1:
-                return "D Stocks";
+        String result = "";
+        final String methodName = "getPageTitle";
+        Log.v(CLASS_NAME,
+                String.format("%s: position = %d", methodName, position));
+        Cursor cursor = dbHelper.readAllWatchlists();
+        if (cursor.getCount() >= position) {
+            cursor.moveToPosition(position);
+            result = cursor.getString(cursor
+                    .getColumnIndex(WatchlistContract.Watchlist.NAME));
+        } else {
+            Log.w(CLASS_NAME, String.format(
+                    "%s: cannot move to position = %d; cursor.getCount() = %d",
+                    methodName, position, cursor.getCount()));
         }
-        return null;
-    }
+        cursor.close();
+        return result;
+    } // getPageTitle()
 }

@@ -1,6 +1,7 @@
 package de.dbremes.dbtradealert;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -9,8 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.Arrays;
-import java.util.List;
+import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
 /**
  * A fragment representing a list of Items.
@@ -19,8 +19,9 @@ import java.util.List;
  * interface.
  */
 public class WatchlistFragment extends Fragment {
+    private DbHelper dbHelper = null;
     // Watchlist's position in ViewPager
-    private int mWatchlistPosition = 0;
+    private int watchlistPosition = -1;
     private static final String ARG_WATCHLIST_POSITION = "watchlist_position";
 
     private OnListFragmentInteractionListener mListener;
@@ -46,7 +47,7 @@ public class WatchlistFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            mWatchlistPosition = getArguments().getInt(ARG_WATCHLIST_POSITION);
+            this.watchlistPosition = getArguments().getInt(ARG_WATCHLIST_POSITION);
         }
     }
 
@@ -60,14 +61,9 @@ public class WatchlistFragment extends Fragment {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            List<String> symbols;
-            if (mWatchlistPosition == 1) {
-                symbols = Arrays.asList("NESN.VX","NOVN.VX");
-            }
-            else {
-                symbols = Arrays.asList("BAYN.DE","SIE.DE");
-            }
-            recyclerView.setAdapter(new WatchlistRecyclerViewAdapter(symbols, mListener));
+            dbHelper = new DbHelper(context);
+            Cursor cursor = dbHelper.readAllQuotesForWatchlist(this.watchlistPosition);
+            recyclerView.setAdapter(new WatchlistRecyclerViewAdapter(cursor, mListener));
         }
         return view;
     }

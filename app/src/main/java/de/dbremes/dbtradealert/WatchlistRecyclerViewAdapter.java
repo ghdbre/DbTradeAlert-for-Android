@@ -1,29 +1,29 @@
 package de.dbremes.dbtradealert;
 
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import de.dbremes.dbtradealert.DbAccess.QuoteContract;
+import de.dbremes.dbtradealert.DbAccess.SecurityContract;
 import de.dbremes.dbtradealert.WatchlistFragment.OnListFragmentInteractionListener;
-
-import java.util.List;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link String} and makes a call to the
  * specified {@link OnListFragmentInteractionListener}.
- * TODO: Replace the implementation with code for your data type.
  */
 public class WatchlistRecyclerViewAdapter
         extends RecyclerView.Adapter<WatchlistRecyclerViewAdapter.ViewHolder> {
+    private static final String CLASS_NAME = "WatchlistRecyclerViewAdapter";
+    private final Cursor cursor;
+    private final OnListFragmentInteractionListener listener;
 
-    private final List<String> mSymbols;
-    private final OnListFragmentInteractionListener mListener;
-
-    public WatchlistRecyclerViewAdapter(List<String> symbols, OnListFragmentInteractionListener listener) {
-        mSymbols = symbols;
-        mListener = listener;
+    public WatchlistRecyclerViewAdapter(Cursor cursor, OnListFragmentInteractionListener listener) {
+        this.cursor = cursor;
+        this.listener = listener;
     }
 
     @Override
@@ -34,18 +34,29 @@ public class WatchlistRecyclerViewAdapter
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int quotePosition) {
-        holder.mSymbol = mSymbols.get(quotePosition);
-        holder.mLastTradeTextView.setText(Integer.toString(quotePosition));
-        holder.mSymbolTextView.setText(mSymbols.get(quotePosition));
-
-        holder.mView.setOnClickListener(new View.OnClickListener() {
+    public void onBindViewHolder(final ViewHolder viewHolder, int quotePosition) {
+        if (this.cursor.moveToPosition(quotePosition) == false) {
+            throw new IllegalStateException(
+                    String.format(
+                            "%s.%s: cannot move to position = %d; cursor.getCount() = %d",
+                            WatchlistRecyclerViewAdapter.CLASS_NAME, "onBindViewHolder",
+                            quotePosition, cursor.getCount()));
+        }
+        viewHolder.Symbol = cursor.getString(cursor.getColumnIndex(
+                SecurityContract.Security.SYMBOL));
+        viewHolder.SymbolTextView.setText(
+                cursor.getString(cursor.getColumnIndex(
+                        SecurityContract.Security.SYMBOL)));
+        viewHolder.LastTradeTextView.setText(
+                cursor.getString(cursor.getColumnIndex(
+                        QuoteContract.Quote.LAST_TRADE)));
+        viewHolder.View.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (null != mListener) {
+                if (listener != null) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onListFragmentInteraction(holder.mSymbol);
+                    listener.onListFragmentInteraction(viewHolder.Symbol);
                 }
             }
         });
@@ -53,25 +64,29 @@ public class WatchlistRecyclerViewAdapter
 
     @Override
     public int getItemCount() {
-        return mSymbols.size();
+        int result = 0;
+        if (this.cursor != null) {
+            result = cursor.getCount();
+        }
+        return result;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final TextView mLastTradeTextView;
-        public final TextView mSymbolTextView;
-        public String mSymbol;
+        public final TextView LastTradeTextView;
+        public String Symbol;
+        public final TextView SymbolTextView;
+        public final View View;
 
         public ViewHolder(View view) {
             super(view);
-            mView = view;
-            mLastTradeTextView = (TextView) view.findViewById(R.id.lastTradeTextView);
-            mSymbolTextView = (TextView) view.findViewById(R.id.symbolTextView);
+            this.View = view;
+            this.LastTradeTextView = (TextView) view.findViewById(R.id.lastTradeTextView);
+            this.SymbolTextView = (TextView) view.findViewById(R.id.symbolTextView);
         }
 
         @Override
         public String toString() {
-            return super.toString() + " '" + mSymbolTextView.getText() + "'";
+            return super.toString() + " '" + SymbolTextView.getText() + "'";
         }
     }
 }

@@ -1,5 +1,6 @@
 package de.dbremes.dbtradealert;
 
+import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -41,13 +42,13 @@ public class WatchlistListActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mWatchlistListPagerAdapter = new WatchlistListPagerAdapter(getSupportFragmentManager());
+        mWatchlistListPagerAdapter
+                = new WatchlistListPagerAdapter(getSupportFragmentManager(), dbHelper);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mWatchlistListPagerAdapter);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

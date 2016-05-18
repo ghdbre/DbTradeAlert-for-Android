@@ -1,12 +1,18 @@
 package de.dbremes.dbtradealert;
 
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Paint;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import de.dbremes.dbtradealert.DbAccess.QuoteContract;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract;
@@ -18,14 +24,33 @@ import de.dbremes.dbtradealert.WatchlistFragment.OnListFragmentInteractionListen
  */
 public class WatchlistRecyclerViewAdapter
         extends RecyclerView.Adapter<WatchlistRecyclerViewAdapter.ViewHolder> {
-    private static final String CLASS_NAME = "WatchlistRecyclerViewAdapter";
+    // Avoid warning "logging tag can be at most 23 characters ..."
+    private static final String CLASS_NAME = "WatchlistRec.ViewAd.";
     private final Cursor cursor;
     private final OnListFragmentInteractionListener listener;
 
     public WatchlistRecyclerViewAdapter(Cursor cursor, OnListFragmentInteractionListener listener) {
         this.cursor = cursor;
         this.listener = listener;
-    }
+    } // ctor()
+
+    private boolean isLastTradeOlderThanOneDay(Cursor cursor) {
+        boolean result = false;
+        int columnIndex = cursor.getColumnIndex(QuoteContract.Quote.LAST_TRADE_DATE_TIME);
+        String s = cursor.getString(columnIndex);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+        try {
+            Date lastTradeDateTime = format.parse(s);
+            Date oneDayAgo = new Date(System.currentTimeMillis() - (24 * 60 * 60 * 1000));
+            if (lastTradeDateTime.before(oneDayAgo)) {
+                result = true;
+            }
+        } catch (ParseException x) {
+            // Assume null for missing time stamp
+            Log.e(CLASS_NAME, "Exception caught", x);
+        }
+        return result;
+    } // isLastTradeOlderThanOneDay()
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -43,6 +68,7 @@ public class WatchlistRecyclerViewAdapter
                             WatchlistRecyclerViewAdapter.CLASS_NAME, "onBindViewHolder",
                             quotePosition, cursor.getCount()));
         }
+        boolean isLastTradeOlderThanOneDay = this.isLastTradeOlderThanOneDay(cursor);
         float lastTrade = cursor.getFloat(
                 cursor.getColumnIndex(QuoteContract.Quote.LAST_TRADE));
         float maxHigh = cursor.getFloat(
@@ -50,6 +76,12 @@ public class WatchlistRecyclerViewAdapter
         // LastTradeDateTimeTextView
         viewHolder.LastTradeDateTimeTextView.setText(cursor.getString(
                 cursor.getColumnIndex(QuoteContract.Quote.LAST_TRADE_DATE_TIME)));
+        if (isLastTradeOlderThanOneDay) {
+            viewHolder.LastTradeDateTimeTextView.setBackgroundResource(R.color.colorWarn);
+        } else {
+            viewHolder.LastTradeDateTimeTextView
+                    .setBackgroundColor(android.R.attr.editTextBackground);
+        }
         // LastTradeTextView
         String currency = cursor.getString(
                 cursor.getColumnIndex(QuoteContract.Quote.CURRENCY));
@@ -74,6 +106,12 @@ public class WatchlistRecyclerViewAdapter
             Float percentDailyVolume = (float) (volume * 100 / averageDailyVolume);
             viewHolder.PercentDailyVolumeTextView.setText(
                     String.format("%01.1f%% V", percentDailyVolume));
+            if (percentDailyVolume == 0) {
+                viewHolder.PercentDailyVolumeTextView.setBackgroundResource(R.color.colorWarn);
+            } else {
+                viewHolder.PercentDailyVolumeTextView
+                        .setBackgroundColor(android.R.attr.editTextBackground);
+            }
         }
         // endregion PercentDailyVolumeTextView
         // SecurityNameTextView
@@ -123,10 +161,20 @@ public class WatchlistRecyclerViewAdapter
             }
             if (isUpperTargetSignalTriggered) {
                 signalTextView.setText("U");
+                int resId = isLastTradeOlderThanOneDay ? R.color.colorWarn
+                        : R.color.colorWin;
+                signalTextView.setBackgroundResource(resId);
+            } else {
+                int resId = isLastTradeOlderThanOneDay ? R.color.colorWarn
+                        : R.color.colorLoss;
+                signalTextView.setBackgroundResource(resId);
             }
             signalTextView.setVisibility(View.VISIBLE);
-        } else if (isTrailingStopLossActive == false) {
-            signalTextView.setVisibility(View.GONE);
+        } else {
+            signalTextView.setBackgroundColor(android.R.attr.editTextBackground);
+            if (isTrailingStopLossActive == false) {
+                signalTextView.setVisibility(View.GONE);
+            }
         }
         // endregion SignalTextView
         // Symbol

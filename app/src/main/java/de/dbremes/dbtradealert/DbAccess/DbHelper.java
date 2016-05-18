@@ -43,7 +43,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 Quote.PERCENT_CHANGE + " REAL, " +
                 Quote.PREVIOUS_CLOSE + " REAL, " +
                 Quote.SECURITY_ID
-                + " INTEGER REFERENCES " + Security.TABLE + ", " +
+                + " INTEGER REFERENCES " + Security.TABLE + " NOT NULL, " +
                 Quote.STOCK_EXCHANGE_NAME + " TEXT, " +
                 Quote.SYMBOL + " TEXT, " +
                 Quote.VOLUME + " INTEGER";
@@ -55,63 +55,64 @@ public class DbHelper extends SQLiteOpenHelper {
 
     private void createSampleData(SQLiteDatabase db) {
         final String methodName = "createSampleData";
+        final String nullColumnHack = null;
         try {
             db.beginTransaction();
             // region Create sample security data
             // region - BAYN.DE
             ContentValues contentValues = new ContentValues();
-            contentValues.put(Security.BASE_DATE, (Byte) null);
-            contentValues.put(Security.BASE_VALUE, Float.NaN);
-            contentValues.put(Security.GENERATE_STOP_LOSS_SIGNAL, 0);
-            contentValues.put(Security.LOWER_TARGET, Float.NaN);
+            contentValues.put(Security.BASE_DATE, (String) null);
+            contentValues.put(Security.BASE_VALUE, (Float) null);
+            contentValues.put(Security.TRAILING_STOP_LOSS_PERCENTAGE, (Float) null);
+            contentValues.put(Security.LOWER_TARGET, (Float) null);
             contentValues.put(Security.MAX_HIGH, 138.34);
             contentValues.put(Security.MAX_HIGH_DATE, "2015-07-16T12:00");
             contentValues.put(Security.NOTES, "Sample stock");
             contentValues.put(Security.SYMBOL, "BAYN.DE");
-            contentValues.put(Security.UPPER_TARGET, 125);
-            long baydeSecurityID = db.insert(Security.TABLE, null, contentValues);
+            contentValues.put(Security.UPPER_TARGET, 96);
+            long baydeSecurityID = db.insert(Security.TABLE, nullColumnHack, contentValues);
             Log.v(DbHelper.CLASS_NAME, "Sample stock 'BAYN.DE' created");
             // endregion - BAYN.DE
             // region - NESN.VX
             contentValues.clear();
-            contentValues.put(Security.BASE_DATE, (Byte) null);
-            contentValues.put(Security.BASE_VALUE, Float.NaN);
-            contentValues.put(Security.GENERATE_STOP_LOSS_SIGNAL, 0);
-            contentValues.put(Security.LOWER_TARGET, Float.NaN);
+            contentValues.put(Security.BASE_DATE, (String) null);
+            contentValues.put(Security.BASE_VALUE, (Float) null);
+            contentValues.put(Security.TRAILING_STOP_LOSS_PERCENTAGE, 10);
+            contentValues.put(Security.LOWER_TARGET, (Float) null);
             contentValues.put(Security.MAX_HIGH, 76.95);
             contentValues.put(Security.MAX_HIGH_DATE, "2015-12-02T12:00");
             contentValues.put(Security.NOTES, "Sample stock");
             contentValues.put(Security.SYMBOL, "NESN.VX");
-            contentValues.put(Security.UPPER_TARGET, Float.NaN);
-            long nesnSecurityID = db.insert(Security.TABLE, null, contentValues);
+            contentValues.put(Security.UPPER_TARGET, (Float) null);
+            long nesnSecurityID = db.insert(Security.TABLE, nullColumnHack, contentValues);
             Log.v(DbHelper.CLASS_NAME, "Sample stock 'NESN.VX' created");
             // endregion - NESN.VX
             // region - NOVN.VX
             contentValues.clear();
             contentValues.put(Security.BASE_DATE, "2015-01-28T12:00");
             contentValues.put(Security.BASE_VALUE, 77.45);
-            contentValues.put(Security.GENERATE_STOP_LOSS_SIGNAL, 1);
+            contentValues.put(Security.TRAILING_STOP_LOSS_PERCENTAGE, 10);
             contentValues.put(Security.LOWER_TARGET, 65);
             contentValues.put(Security.MAX_HIGH, 102.30);
             contentValues.put(Security.MAX_HIGH_DATE, "2015-07-20T12:00");
             contentValues.put(Security.NOTES, "Sample stock");
             contentValues.put(Security.SYMBOL, "NOVN.VX");
-            contentValues.put(Security.UPPER_TARGET, Float.NaN);
-            long novnSecurityID = db.insert(Security.TABLE, null, contentValues);
+            contentValues.put(Security.UPPER_TARGET, (Float) null);
+            long novnSecurityID = db.insert(Security.TABLE, nullColumnHack, contentValues);
             Log.v(DbHelper.CLASS_NAME, "Sample stock 'NOVN.VX' created");
             // endregion - NOVN.VX
             // region - SIE.DE
             contentValues.clear();
             contentValues.put(Security.BASE_DATE, "2015-01-04T12:00");
             contentValues.put(Security.BASE_VALUE, 96.197);
-            contentValues.put(Security.GENERATE_STOP_LOSS_SIGNAL, 0);
-            contentValues.put(Security.LOWER_TARGET, Float.NaN);
+            contentValues.put(Security.TRAILING_STOP_LOSS_PERCENTAGE, (Float) null);
+            contentValues.put(Security.LOWER_TARGET, (Float) null);
             contentValues.put(Security.MAX_HIGH, 96.131);
             contentValues.put(Security.MAX_HIGH_DATE, "2015-04-26T12:00");
             contentValues.put(Security.NOTES, "Sample stock");
             contentValues.put(Security.SYMBOL, "SIE.DE");
             contentValues.put(Security.UPPER_TARGET, 100);
-            long siedeSecurityID = db.insert(Security.TABLE, null, contentValues);
+            long siedeSecurityID = db.insert(Security.TABLE, nullColumnHack, contentValues);
             Log.v(DbHelper.CLASS_NAME, "Sample stock 'SIE.DE' created");
             // endregion - SIE.DE
             // endregion Create sample security data
@@ -255,9 +256,9 @@ public class DbHelper extends SQLiteOpenHelper {
 
     private void createSecuritiesInWatchListsTable(SQLiteDatabase db) {
         String columnDefinitions = (SecuritiesInWatchlists.SECURITY_ID
-                + " INTEGER REFERENCES " + Security.TABLE + ", ") +
+                + " INTEGER REFERENCES " + Security.TABLE + " NOT NULL, ") +
                 SecuritiesInWatchlists.WATCHLIST_ID
-                + " INTEGER REFERENCES " + Watchlist.TABLE;
+                + " INTEGER REFERENCES " + Watchlist.TABLE  + " NOT NULL";
         String sql = String.format("CREATE TABLE %s (%s);",
                 SecuritiesInWatchlists.TABLE,
                 columnDefinitions);
@@ -270,7 +271,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private void createSecurityTable(SQLiteDatabase db) {
         String columnDefinitions = (Security.BASE_DATE + " TEXT, ") +
                 Security.BASE_VALUE + " REAL, " +
-                Security.GENERATE_STOP_LOSS_SIGNAL + " INTEGER, " +
+                Security.TRAILING_STOP_LOSS_PERCENTAGE + " REAL, " +
                 Security.ID + " INTEGER PRIMARY KEY, " +
                 Security.MAX_HIGH + " REAL, " +
                 Security.MAX_HIGH_DATE + " TEXT, " +
@@ -374,7 +375,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Cursor cursor = null;
         SQLiteDatabase db = this.getReadableDatabase();
         String sql = "SELECT q.*, s." + Security.BASE_VALUE + ", s."
-                + Security.GENERATE_STOP_LOSS_SIGNAL + ", s."
+                + Security.TRAILING_STOP_LOSS_PERCENTAGE + ", s."
                 + Security.LOWER_TARGET + ", s." + Security.MAX_HIGH
                 + ", s." + Security.UPPER_TARGET + "\nFROM "
                 + SecuritiesInWatchlists.TABLE + " siwl" + "\n\tINNER JOIN "

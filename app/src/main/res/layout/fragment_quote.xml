@@ -91,4 +91,11 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:layout_alignParentEnd="true"
         tools:text="158.2% V" />
+
+    <de.dbremes.dbtradealert.QuoteChartView
+        android:id="@+id/stockQuoteDetailGraphicalView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/percentDailyVolumeTextView" >
+    </de.dbremes.dbtradealert.QuoteChartView>
 </RelativeLayout>

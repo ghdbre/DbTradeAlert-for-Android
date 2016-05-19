@@ -28,7 +28,8 @@ public class WatchlistListPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         // getItem is called to instantiate the fragment for the given page.
         // Return a WatchlistFragment.
-        return WatchlistFragment.newInstance(position + 1);
+        long watchlistId = dbHelper.getWatchlistIdByPosition(position);
+        return WatchlistFragment.newInstance(watchlistId);
     }
 
     @Override

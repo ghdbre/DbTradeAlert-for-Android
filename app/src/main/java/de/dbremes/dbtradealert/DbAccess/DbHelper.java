@@ -308,7 +308,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d(DbHelper.CLASS_NAME, "createWatchListTable created with SQL = " + sql);
     } // createWatchListTable()
 
-    private long getWatchlistIdByPosition(int position) {
+    public long getWatchlistIdByPosition(int position) {
         final String methodName = "getWatchlistIdByPosition";
         int result = -1;
         Cursor c = readAllWatchlists();
@@ -324,16 +324,16 @@ public class DbHelper extends SQLiteOpenHelper {
         return result;
     } // getWatchlistIdByPosition()
 
-     private String insertSelectionArgs(String selection, String[] selectionArgs) {
+    private String insertSelectionArgs(String selection, String[] selectionArgs) {
          final String methodName = "insertSelectionArgs";
          String result = "";
          StringBuilder sb = new StringBuilder();
          String[] selectionArray = selection.split("\\?");
-         if (selectionArray.length != selectionArgs.length){
-            Log.w(DbHelper.CLASS_NAME,
-                    String.format("%s: selectionArray.length = %d, selectionArgs.length = %d; ",
-                            methodName, selectionArray.length, selectionArgs.length));
-         }
+//         if (selectionArray.length != selectionArgs.length){
+//            Log.w(DbHelper.CLASS_NAME,
+//                    String.format("%s: selectionArray.length = %d, selectionArgs.length = %d; ",
+//                            methodName, selectionArray.length, selectionArgs.length));
+//         }
          for (int i = 0; i < selectionArgs.length; i++) {
              sb.append(selectionArray[i] + selectionArgs[i]);
          }
@@ -361,14 +361,6 @@ public class DbHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
-
-    public Cursor readAllQuotesForWatchlist(int uiPosition) {
-        final String methodName = "readAllQuotesForWatchlist";
-        Cursor cursor = null;
-        long watchlistId = getWatchlistIdByPosition(uiPosition - 1);
-        cursor = readAllQuotesForWatchlist(watchlistId);
-        return cursor;
-    } // readAllQuotesForWatchlist()
 
     public Cursor readAllQuotesForWatchlist(long watchlistId) {
         final String methodName = "readAllQuotesForWatchlist";

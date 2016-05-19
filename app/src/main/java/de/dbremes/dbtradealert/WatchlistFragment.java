@@ -20,17 +20,16 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
  */
 public class WatchlistFragment extends Fragment {
     private DbHelper dbHelper = null;
-    // Watchlist's position in ViewPager
-    private int watchlistPosition = -1;
-    private static final String ARG_WATCHLIST_POSITION = "watchlist_position";
+    private long watchlistId = -1;
+    private static final String ARG_WATCHLIST_ID = "watchlist_id";
 
     private OnListFragmentInteractionListener mListener;
 
     @SuppressWarnings("unused")
-    public static WatchlistFragment newInstance(int watchlistPosition) {
+    public static WatchlistFragment newInstance(long watchlistId) {
         WatchlistFragment fragment = new WatchlistFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_WATCHLIST_POSITION, watchlistPosition);
+        args.putLong(ARG_WATCHLIST_ID, watchlistId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -47,7 +46,7 @@ public class WatchlistFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            this.watchlistPosition = getArguments().getInt(ARG_WATCHLIST_POSITION);
+            this.watchlistId = getArguments().getLong(ARG_WATCHLIST_ID);
         }
     }
 
@@ -62,7 +61,7 @@ public class WatchlistFragment extends Fragment {
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             dbHelper = new DbHelper(context);
-            Cursor cursor = dbHelper.readAllQuotesForWatchlist(this.watchlistPosition);
+            Cursor cursor = dbHelper.readAllQuotesForWatchlist(this.watchlistId);
             recyclerView.setAdapter(new WatchlistRecyclerViewAdapter(cursor, mListener));
         }
         return view;

@@ -81,7 +81,7 @@ public class QuoteChartView extends View {
         final String text = "GOOG goes up!";
         Rect boundsRect = new Rect();
         this.textPaint.getTextBounds(text, 0, text.length(), boundsRect);
-        canvas.drawText(text, 1, boundsRect.height() + 1, this.textPaint);
+        canvas.drawText(text, 1, -boundsRect.top + 1, this.textPaint);
         Log.v(CLASS_NAME, String.format(
                 "%s: canvas.Height = %d; canvas.Width = %d",
                 "onDraw", canvas.getHeight(), canvas.getWidth()));

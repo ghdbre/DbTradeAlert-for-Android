@@ -11,13 +11,13 @@ public final class SecurityContract {
         public static final String TABLE = "security";
         public static final String BASE_DATE = "base_date";
         public static final String BASE_VALUE = "base_value";
-        public final static String TRAILING_STOP_LOSS_PERCENTAGE = "trailing_stop_loss_percentage";
         public final static String ID = BaseColumns._ID;
         public final static String LOWER_TARGET = "lower_target";
         public final static String MAX_HIGH = "max_high";
         public final static String MAX_HIGH_DATE = "max_high_date";
         public final static String NOTES = "notes";
         public final static String SYMBOL = "symbol";
+        public final static String TRAILING_TARGET = "trailing_target";
         public final static String UPPER_TARGET = "upper_target";
     }
 }

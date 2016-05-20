@@ -1,6 +1,5 @@
 package de.dbremes.dbtradealert;
 
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Paint;
 import android.support.v7.widget.RecyclerView;
@@ -120,10 +119,10 @@ public class WatchlistRecyclerViewAdapter
                         QuoteContract.Quote.NAME)));
         // region SignalTextView
         TextView signalTextView = viewHolder.SignalTextView;
-        // If a trailing stop loss is active, show an underscore
-        boolean isTrailingStopLossActive = cursor.isNull(cursor.getColumnIndex(
-                SecurityContract.Security.TRAILING_STOP_LOSS_PERCENTAGE)) == false;
-        if (isTrailingStopLossActive) {
+        // If a trailing target is active, show an underscore
+        boolean isTrailingTargetActive = cursor.isNull(cursor.getColumnIndex(
+                SecurityContract.Security.TRAILING_TARGET)) == false;
+        if (isTrailingTargetActive) {
             signalTextView.setPaintFlags(signalTextView.getPaintFlags()
                     | Paint.UNDERLINE_TEXT_FLAG);
             signalTextView.setText(" ");
@@ -131,48 +130,48 @@ public class WatchlistRecyclerViewAdapter
             signalTextView.setPaintFlags(signalTextView.getPaintFlags()
                     & (~Paint.UNDERLINE_TEXT_FLAG));
         }
-        float trailingStopLossPercentage = cursor.getFloat(cursor.getColumnIndex(
-                SecurityContract.Security.TRAILING_STOP_LOSS_PERCENTAGE));
-        boolean isTrailingStopLossSignalTriggered
-                = isTrailingStopLossActive
-                && lastTrade <= maxHigh * (100 - trailingStopLossPercentage) / 100;
+        float trailingTargetPercentage = cursor.getFloat(cursor.getColumnIndex(
+                SecurityContract.Security.TRAILING_TARGET));
+        boolean isTrailingTargetReached
+                = isTrailingTargetActive
+                && lastTrade <= maxHigh * (100 - trailingTargetPercentage) / 100;
         // Lower target
         boolean isLowerTargetActive = cursor.isNull(cursor.getColumnIndex(
                 SecurityContract.Security.LOWER_TARGET)) == false;
         float lowerTarget = cursor.getFloat(
                 cursor.getColumnIndex(SecurityContract.Security.LOWER_TARGET));
-        boolean isLowerTargetSignalTriggered
-                = isLowerTargetActive && lowerTarget >= lastTrade;
+        boolean isLowerTargetReached = isLowerTargetActive && lowerTarget >= lastTrade;
         // Upper target
         boolean isUpperTargetActive = cursor.isNull(cursor.getColumnIndex(
                 SecurityContract.Security.UPPER_TARGET)) == false;
         float upperTarget
                 = cursor.getFloat(cursor.getColumnIndex(SecurityContract.Security.UPPER_TARGET));
-        boolean isUpperTargetSignalTriggered
-                = isUpperTargetActive && upperTarget <= lastTrade;
-        if (isLowerTargetSignalTriggered
-                || isTrailingStopLossSignalTriggered
-                || isUpperTargetSignalTriggered) {
-            if (isLowerTargetSignalTriggered) {
+        boolean isUpperTargetReached = isUpperTargetActive && upperTarget <= lastTrade;
+        if (isLowerTargetReached
+                || isTrailingTargetReached
+                || isUpperTargetReached) {
+            if (isLowerTargetReached) {
                 signalTextView.setText("L");
             }
-            if (isTrailingStopLossSignalTriggered) {
-                signalTextView.setText("S");
+            if (isTrailingTargetReached) {
+                signalTextView.setText("T");
             }
-            if (isUpperTargetSignalTriggered) {
+            if (isUpperTargetReached) {
                 signalTextView.setText("U");
-                int resId = isLastTradeOlderThanOneDay ? R.color.colorWarn
+                int resId = isLastTradeOlderThanOneDay
+                        ? R.color.colorWarn
                         : R.color.colorWin;
                 signalTextView.setBackgroundResource(resId);
             } else {
-                int resId = isLastTradeOlderThanOneDay ? R.color.colorWarn
+                int resId = isLastTradeOlderThanOneDay
+                        ? R.color.colorWarn
                         : R.color.colorLoss;
                 signalTextView.setBackgroundResource(resId);
             }
             signalTextView.setVisibility(View.VISIBLE);
         } else {
             signalTextView.setBackgroundColor(android.R.attr.editTextBackground);
-            if (isTrailingStopLossActive == false) {
+            if (isTrailingTargetActive == false) {
                 signalTextView.setVisibility(View.GONE);
             }
         }

@@ -9,12 +9,12 @@ public final class SecurityContract {
     // Inner class defines column names
     public static abstract class Security {
         public static final String TABLE = "security";
-        public static final String BASE_DATE = "base_date";
-        public static final String BASE_VALUE = "base_value";
+        public static final String BASE_PRICE = "base_price";
+        public static final String BASE_PRICE_DATE = "base_price_date";
         public final static String ID = BaseColumns._ID;
         public final static String LOWER_TARGET = "lower_target";
-        public final static String MAX_HIGH = "max_high";
-        public final static String MAX_HIGH_DATE = "max_high_date";
+        public final static String MAX_PRICE = "max_price";
+        public final static String MAX_PRICE_DATE = "max_price_date";
         public final static String NOTES = "notes";
         public final static String SYMBOL = "symbol";
         public final static String TRAILING_TARGET = "trailing_target";

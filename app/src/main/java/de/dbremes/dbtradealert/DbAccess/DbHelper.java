@@ -61,11 +61,11 @@ public class DbHelper extends SQLiteOpenHelper {
             // region Create sample security data
             // region - BAYN.DE
             ContentValues contentValues = new ContentValues();
-            contentValues.put(Security.BASE_DATE, (String) null);
-            contentValues.put(Security.BASE_VALUE, (Float) null);
+            contentValues.put(Security.BASE_PRICE_DATE, (String) null);
+            contentValues.put(Security.BASE_PRICE, (Float) null);
             contentValues.put(Security.LOWER_TARGET, (Float) null);
-            contentValues.put(Security.MAX_HIGH, 138.34);
-            contentValues.put(Security.MAX_HIGH_DATE, "2015-07-16T12:00");
+            contentValues.put(Security.MAX_PRICE, 138.34);
+            contentValues.put(Security.MAX_PRICE_DATE, "2015-07-16T12:00");
             contentValues.put(Security.NOTES, "Sample stock");
             contentValues.put(Security.SYMBOL, "BAYN.DE");
             contentValues.put(Security.TRAILING_TARGET, (Float) null);
@@ -75,11 +75,11 @@ public class DbHelper extends SQLiteOpenHelper {
             // endregion - BAYN.DE
             // region - NESN.VX
             contentValues.clear();
-            contentValues.put(Security.BASE_DATE, (String) null);
-            contentValues.put(Security.BASE_VALUE, (Float) null);
+            contentValues.put(Security.BASE_PRICE_DATE, (String) null);
+            contentValues.put(Security.BASE_PRICE, (Float) null);
             contentValues.put(Security.LOWER_TARGET, (Float) null);
-            contentValues.put(Security.MAX_HIGH, 76.95);
-            contentValues.put(Security.MAX_HIGH_DATE, "2015-12-02T12:00");
+            contentValues.put(Security.MAX_PRICE, 76.95);
+            contentValues.put(Security.MAX_PRICE_DATE, "2015-12-02T12:00");
             contentValues.put(Security.NOTES, "Sample stock");
             contentValues.put(Security.SYMBOL, "NESN.VX");
             contentValues.put(Security.TRAILING_TARGET, 10);
@@ -89,11 +89,11 @@ public class DbHelper extends SQLiteOpenHelper {
             // endregion - NESN.VX
             // region - NOVN.VX
             contentValues.clear();
-            contentValues.put(Security.BASE_DATE, "2015-01-28T12:00");
-            contentValues.put(Security.BASE_VALUE, 77.45);
+            contentValues.put(Security.BASE_PRICE_DATE, "2015-01-28T12:00");
+            contentValues.put(Security.BASE_PRICE, 77.45);
             contentValues.put(Security.LOWER_TARGET, 65);
-            contentValues.put(Security.MAX_HIGH, 102.30);
-            contentValues.put(Security.MAX_HIGH_DATE, "2015-07-20T12:00");
+            contentValues.put(Security.MAX_PRICE, 102.30);
+            contentValues.put(Security.MAX_PRICE_DATE, "2015-07-20T12:00");
             contentValues.put(Security.NOTES, "Sample stock");
             contentValues.put(Security.SYMBOL, "NOVN.VX");
             contentValues.put(Security.TRAILING_TARGET, 10);
@@ -103,11 +103,11 @@ public class DbHelper extends SQLiteOpenHelper {
             // endregion - NOVN.VX
             // region - SIE.DE
             contentValues.clear();
-            contentValues.put(Security.BASE_DATE, "2015-01-04T12:00");
-            contentValues.put(Security.BASE_VALUE, 96.197);
+            contentValues.put(Security.BASE_PRICE_DATE, "2015-01-04T12:00");
+            contentValues.put(Security.BASE_PRICE, 96.197);
             contentValues.put(Security.LOWER_TARGET, (Float) null);
-            contentValues.put(Security.MAX_HIGH, 96.131);
-            contentValues.put(Security.MAX_HIGH_DATE, "2015-04-26T12:00");
+            contentValues.put(Security.MAX_PRICE, 96.131);
+            contentValues.put(Security.MAX_PRICE_DATE, "2015-04-26T12:00");
             contentValues.put(Security.NOTES, "Sample stock");
             contentValues.put(Security.SYMBOL, "SIE.DE");
             contentValues.put(Security.TRAILING_TARGET, (Float) null);
@@ -269,11 +269,11 @@ public class DbHelper extends SQLiteOpenHelper {
     } // createSecuritiesInWatchListsTable()
 
     private void createSecurityTable(SQLiteDatabase db) {
-        String columnDefinitions = (Security.BASE_DATE + " TEXT, ") +
-                Security.BASE_VALUE + " REAL, " +
+        String columnDefinitions = (Security.BASE_PRICE_DATE + " TEXT, ") +
+                Security.BASE_PRICE + " REAL, " +
                 Security.ID + " INTEGER PRIMARY KEY, " +
-                Security.MAX_HIGH + " REAL, " +
-                Security.MAX_HIGH_DATE + " TEXT, " +
+                Security.MAX_PRICE + " REAL, " +
+                Security.MAX_PRICE_DATE + " TEXT, " +
                 Security.LOWER_TARGET + " REAL, " +
                 Security.NOTES + " TEXT, " +
                 Security.SYMBOL + " TEXT UNIQUE, " +
@@ -366,8 +366,8 @@ public class DbHelper extends SQLiteOpenHelper {
         final String methodName = "readAllQuotesForWatchlist";
         Cursor cursor = null;
         SQLiteDatabase db = this.getReadableDatabase();
-        String sql = "SELECT q.*, s." + Security.BASE_VALUE + ", s."
-                + Security.LOWER_TARGET + ", s." + Security.MAX_HIGH
+        String sql = "SELECT q.*, s." + Security.BASE_PRICE + ", s."
+                + Security.LOWER_TARGET + ", s." + Security.MAX_PRICE
                 + ", s." + Security.TRAILING_TARGET + ", s."
                 + Security.UPPER_TARGET + "\nFROM "
                 + SecuritiesInWatchlists.TABLE + " siwl" + "\n\tINNER JOIN "

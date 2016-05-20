@@ -70,8 +70,8 @@ public class WatchlistRecyclerViewAdapter
         boolean isLastTradeOlderThanOneDay = this.isLastTradeOlderThanOneDay(cursor);
         float lastTrade = cursor.getFloat(
                 cursor.getColumnIndex(QuoteContract.Quote.LAST_TRADE));
-        float maxHigh = cursor.getFloat(
-                cursor.getColumnIndex(SecurityContract.Security.MAX_HIGH));
+        float maxPrice = cursor.getFloat(
+                cursor.getColumnIndex(SecurityContract.Security.MAX_PRICE));
         // LastTradeDateTimeTextView
         viewHolder.LastTradeDateTimeTextView.setText(cursor.getString(
                 cursor.getColumnIndex(QuoteContract.Quote.LAST_TRADE_DATE_TIME)));
@@ -86,10 +86,10 @@ public class WatchlistRecyclerViewAdapter
                 cursor.getColumnIndex(QuoteContract.Quote.CURRENCY));
         viewHolder.LastTradeTextView.setText(
                 String.format("%01.2f %s", lastTrade, currency));
-        // PercentChangeMaxHighTextView
-        float percentChangeFromMaxHigh = (lastTrade - maxHigh) / maxHigh * 100;
+        // PercentChangeMaxPriceTextView
+        float percentChangeFromMaxPrice = (lastTrade - maxPrice) / maxPrice * 100;
         this.setPercentageText(
-                true, percentChangeFromMaxHigh, " MH", viewHolder.PercentChangeMaxHighTextView);
+                true, percentChangeFromMaxPrice, " MH", viewHolder.PercentChangeMaxPriceTextView);
         // PercentChangeTextView
         float percentChange = cursor.getFloat(
                 cursor.getColumnIndex(QuoteContract.Quote.PERCENT_CHANGE));
@@ -134,7 +134,7 @@ public class WatchlistRecyclerViewAdapter
                 SecurityContract.Security.TRAILING_TARGET));
         boolean isTrailingTargetReached
                 = isTrailingTargetActive
-                && lastTrade <= maxHigh * (100 - trailingTargetPercentage) / 100;
+                && lastTrade <= maxPrice * (100 - trailingTargetPercentage) / 100;
         // Lower target
         boolean isLowerTargetActive = cursor.isNull(cursor.getColumnIndex(
                 SecurityContract.Security.LOWER_TARGET)) == false;
@@ -213,7 +213,7 @@ public class WatchlistRecyclerViewAdapter
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final TextView LastTradeDateTimeTextView;
         public final TextView LastTradeTextView;
-        public final TextView PercentChangeMaxHighTextView;
+        public final TextView PercentChangeMaxPriceTextView;
         public final TextView PercentChangeTextView;
         public final TextView PercentDailyVolumeTextView;
         public final TextView SecurityNameTextView;
@@ -228,8 +228,8 @@ public class WatchlistRecyclerViewAdapter
             this.LastTradeDateTimeTextView
                     = (TextView) view.findViewById(R.id.lastTradeDateTimeTextView);
             this.LastTradeTextView = (TextView) view.findViewById(R.id.lastTradeTextView);
-            this.PercentChangeMaxHighTextView
-                    = (TextView) view.findViewById(R.id.percentChangeMaxHighTextView);
+            this.PercentChangeMaxPriceTextView
+                    = (TextView) view.findViewById(R.id.percentChangeMaxPriceTextView);
             this.PercentChangeTextView = (TextView) view.findViewById(R.id.percentChangeTextView);
             this.PercentDailyVolumeTextView
                     = (TextView) view.findViewById(R.id.percentDailyVolumeTextView);

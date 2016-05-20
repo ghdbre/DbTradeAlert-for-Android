@@ -25,7 +25,7 @@
     </TextView>
 
     <TextView
-        android:id="@+id/lastTradeDateTimeTextView"
+        android:id="@+id/lastPriceDateTimeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -69,14 +69,14 @@
         tools:ignore="RelativeOverlap" />
 
     <TextView
-        android:id="@+id/lastTradeTextView"
+        android:id="@+id/lastPriceTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/percentChangeMaxPriceTextView"
         android:layout_marginEnd="7dp"
         android:layout_marginRight="7dp"
-        android:layout_toLeftOf="@+id/lastTradeDateTimeTextView"
-        android:layout_toStartOf="@+id/lastTradeDateTimeTextView"
+        android:layout_toLeftOf="@+id/lastPriceDateTimeTextView"
+        android:layout_toStartOf="@+id/lastPriceDateTimeTextView"
         android:textAppearance="?android:attr/textAppearanceMedium"
         tools:text="72.50 CHF" />
 
@@ -85,7 +85,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_below="@id/lastTradeDateTimeTextView"
+        android:layout_below="@id/lastPriceDateTimeTextView"
         android:layout_marginLeft="7dp"
         android:layout_marginStart="7dp"
         android:textAppearance="?android:attr/textAppearanceSmall"

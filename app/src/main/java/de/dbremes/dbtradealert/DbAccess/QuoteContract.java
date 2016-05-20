@@ -16,8 +16,8 @@ public final class QuoteContract {
         public final static String DAYS_HIGH = "days_high";
         public final static String DAYS_LOW = "days_low";
         public final static String ID = BaseColumns._ID;
-        public final static String LAST_TRADE = "last_trade";
-        public final static String LAST_TRADE_DATE_TIME = "last_trade_date_time";
+        public final static String LAST_PRICE = "last_price";
+        public final static String LAST_PRICE_DATE_TIME = "last_price_date_time";
         public final static String NAME = "name";
         public final static String OPEN = "open";
         public final static String PERCENT_CHANGE = "percent_change";

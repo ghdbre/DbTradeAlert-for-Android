@@ -35,7 +35,7 @@ public class WatchlistRecyclerViewAdapter
 
     private boolean isLastTradeOlderThanOneDay(Cursor cursor) {
         boolean result = false;
-        int columnIndex = cursor.getColumnIndex(QuoteContract.Quote.LAST_TRADE_DATE_TIME);
+        int columnIndex = cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME);
         String s = cursor.getString(columnIndex);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
         try {
@@ -69,22 +69,22 @@ public class WatchlistRecyclerViewAdapter
         }
         boolean isLastTradeOlderThanOneDay = this.isLastTradeOlderThanOneDay(cursor);
         float lastTrade = cursor.getFloat(
-                cursor.getColumnIndex(QuoteContract.Quote.LAST_TRADE));
+                cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE));
         float maxPrice = cursor.getFloat(
                 cursor.getColumnIndex(SecurityContract.Security.MAX_PRICE));
-        // LastTradeDateTimeTextView
-        viewHolder.LastTradeDateTimeTextView.setText(cursor.getString(
-                cursor.getColumnIndex(QuoteContract.Quote.LAST_TRADE_DATE_TIME)));
+        // LastPriceDateTimeTextView
+        viewHolder.LastPriceDateTimeTextView.setText(cursor.getString(
+                cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME)));
         if (isLastTradeOlderThanOneDay) {
-            viewHolder.LastTradeDateTimeTextView.setBackgroundResource(R.color.colorWarn);
+            viewHolder.LastPriceDateTimeTextView.setBackgroundResource(R.color.colorWarn);
         } else {
-            viewHolder.LastTradeDateTimeTextView
+            viewHolder.LastPriceDateTimeTextView
                     .setBackgroundColor(android.R.attr.editTextBackground);
         }
-        // LastTradeTextView
+        // LastPriceTextView
         String currency = cursor.getString(
                 cursor.getColumnIndex(QuoteContract.Quote.CURRENCY));
-        viewHolder.LastTradeTextView.setText(
+        viewHolder.LastPriceTextView.setText(
                 String.format("%01.2f %s", lastTrade, currency));
         // PercentChangeMaxPriceTextView
         float percentChangeFromMaxPrice = (lastTrade - maxPrice) / maxPrice * 100;
@@ -211,8 +211,8 @@ public class WatchlistRecyclerViewAdapter
     } // setPercentageText()
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final TextView LastTradeDateTimeTextView;
-        public final TextView LastTradeTextView;
+        public final TextView LastPriceDateTimeTextView;
+        public final TextView LastPriceTextView;
         public final TextView PercentChangeMaxPriceTextView;
         public final TextView PercentChangeTextView;
         public final TextView PercentDailyVolumeTextView;
@@ -225,9 +225,9 @@ public class WatchlistRecyclerViewAdapter
         public ViewHolder(View view) {
             super(view);
             this.View = view;
-            this.LastTradeDateTimeTextView
-                    = (TextView) view.findViewById(R.id.lastTradeDateTimeTextView);
-            this.LastTradeTextView = (TextView) view.findViewById(R.id.lastTradeTextView);
+            this.LastPriceDateTimeTextView
+                    = (TextView) view.findViewById(R.id.lastPriceDateTimeTextView);
+            this.LastPriceTextView = (TextView) view.findViewById(R.id.lastPriceTextView);
             this.PercentChangeMaxPriceTextView
                     = (TextView) view.findViewById(R.id.percentChangeMaxPriceTextView);
             this.PercentChangeTextView = (TextView) view.findViewById(R.id.percentChangeTextView);

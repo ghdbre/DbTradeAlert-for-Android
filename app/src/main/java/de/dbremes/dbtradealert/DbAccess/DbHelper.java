@@ -36,8 +36,8 @@ public class DbHelper extends SQLiteOpenHelper {
                 Quote.DAYS_HIGH + " REAL, " +
                 Quote.DAYS_LOW + " REAL, " +
                 Quote.ID + " INTEGER PRIMARY KEY, " +
-                Quote.LAST_TRADE + " REAL, " +
-                Quote.LAST_TRADE_DATE_TIME + " TEXT, " +
+                Quote.LAST_PRICE + " REAL, " +
+                Quote.LAST_PRICE_DATE_TIME + " TEXT, " +
                 Quote.NAME + " TEXT, " +
                 Quote.OPEN + " REAL, " +
                 Quote.PERCENT_CHANGE + " REAL, " +
@@ -170,8 +170,8 @@ public class DbHelper extends SQLiteOpenHelper {
             contentValues.put(Quote.CURRENCY, "EUR");
             contentValues.put(Quote.DAYS_HIGH, 96.36);
             contentValues.put(Quote.DAYS_LOW, 93.83);
-            contentValues.put(Quote.LAST_TRADE, 96.14);
-            contentValues.put(Quote.LAST_TRADE_DATE_TIME, "2016-05-13T17:35");
+            contentValues.put(Quote.LAST_PRICE, 96.14);
+            contentValues.put(Quote.LAST_PRICE_DATE_TIME, "2016-05-13T17:35");
             contentValues.put(Quote.NAME, "Bayer AG");
             contentValues.put(Quote.OPEN, 94.50);
             contentValues.put(Quote.PERCENT_CHANGE, 1.04);
@@ -191,8 +191,8 @@ public class DbHelper extends SQLiteOpenHelper {
             contentValues.put(Quote.CURRENCY, "CHF");
             contentValues.put(Quote.DAYS_HIGH, 73.15);
             contentValues.put(Quote.DAYS_LOW, 71.95);
-            contentValues.put(Quote.LAST_TRADE, 73);
-            contentValues.put(Quote.LAST_TRADE_DATE_TIME, "2016-05-13T17:26");
+            contentValues.put(Quote.LAST_PRICE, 73);
+            contentValues.put(Quote.LAST_PRICE_DATE_TIME, "2016-05-13T17:26");
             contentValues.put(Quote.NAME, "Nestle N");
             contentValues.put(Quote.OPEN, 72.45);
             contentValues.put(Quote.PERCENT_CHANGE, 0.55);
@@ -212,8 +212,8 @@ public class DbHelper extends SQLiteOpenHelper {
             contentValues.put(Quote.CURRENCY, "CHF");
             contentValues.put(Quote.DAYS_HIGH, 73.50);
             contentValues.put(Quote.DAYS_LOW, 72.05);
-            contentValues.put(Quote.LAST_TRADE, 73.30);
-            contentValues.put(Quote.LAST_TRADE_DATE_TIME, "2016-05-13T17:31");
+            contentValues.put(Quote.LAST_PRICE, 73.30);
+            contentValues.put(Quote.LAST_PRICE_DATE_TIME, "2016-05-13T17:31");
             contentValues.put(Quote.NAME, "Novartis N");
             contentValues.put(Quote.OPEN, 72.30);
             contentValues.put(Quote.PERCENT_CHANGE, 0.96);
@@ -233,8 +233,8 @@ public class DbHelper extends SQLiteOpenHelper {
             contentValues.put(Quote.CURRENCY, "EUR");
             contentValues.put(Quote.DAYS_HIGH, 93.94);
             contentValues.put(Quote.DAYS_LOW, 91.89);
-            contentValues.put(Quote.LAST_TRADE, 93.60);
-            contentValues.put(Quote.LAST_TRADE_DATE_TIME, "2016-05-13T17:35");
+            contentValues.put(Quote.LAST_PRICE, 93.60);
+            contentValues.put(Quote.LAST_PRICE_DATE_TIME, "2016-05-13T17:35");
             contentValues.put(Quote.NAME, "Bayer AG");
             contentValues.put(Quote.OPEN, 92.10);
             contentValues.put(Quote.PERCENT_CHANGE, 0.39);

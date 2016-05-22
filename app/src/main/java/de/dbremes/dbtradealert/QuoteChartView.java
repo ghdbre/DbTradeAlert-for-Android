@@ -163,7 +163,10 @@ public class QuoteChartView extends View {
         super.onDraw(canvas);
         int width = getWidth();
         int currentY = this.paddingY;
-        // Upper chart shows quote data
+        // Upper chart shows quote data:
+        // - for lastPrice it's value is printed above the chart line
+        // - for all other prices a marker is printed below the chart line
+        // - spread marked with black rectangle on chart line
         drawPrice(canvas, currentY, this.lastPrice, "a", this.ask, width);
         drawPrice(canvas, currentY, this.lastPrice, "b", this.bid, width);
         drawPrice(canvas, currentY, this.lastPrice, "H", this.daysHigh, width);
@@ -172,7 +175,6 @@ public class QuoteChartView extends View {
         drawPrice(canvas, currentY, this.lastPrice, "O", this.open, width);
         int outputHeight
                 = drawPrice(canvas, currentY, this.lastPrice, "P", this.previousClose, width);
-        // Draw chart line
         int lineY = outputHeight / 2;
         canvas.drawLine(0, lineY, width, lineY, this.linePaint);
         if (this.ask != Float.NaN && this.bid != Float.NaN) {

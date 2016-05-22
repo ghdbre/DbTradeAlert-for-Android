@@ -33,6 +33,14 @@ public class WatchlistRecyclerViewAdapter
         this.listener = listener;
     } // ctor()
 
+    private Float readFloatRespectingNull(String columnName, Cursor cursor) {
+        Float result = Float.NaN;
+        if (this.cursor.isNull(cursor.getColumnIndex(columnName)) == false) {
+            result = cursor.getFloat(this.cursor.getColumnIndex(columnName));
+        }
+        return result;
+    }
+
     private boolean isLastTradeOlderThanOneDay(Cursor cursor) {
         boolean result = false;
         int columnIndex = cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME);
@@ -65,16 +73,21 @@ public class WatchlistRecyclerViewAdapter
                     String.format(
                             "%s.%s: cannot move to position = %d; cursor.getCount() = %d",
                             WatchlistRecyclerViewAdapter.CLASS_NAME, "onBindViewHolder",
-                            quotePosition, cursor.getCount()));
+                            quotePosition, this.cursor.getCount()));
         }
-        boolean isLastTradeOlderThanOneDay = this.isLastTradeOlderThanOneDay(cursor);
-        float lastTrade = cursor.getFloat(
-                cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE));
-        float maxPrice = cursor.getFloat(
-                cursor.getColumnIndex(SecurityContract.Security.MAX_PRICE));
+        boolean isLastTradeOlderThanOneDay = this.isLastTradeOlderThanOneDay(this.cursor);
+        // lastPrice is guaranteed to be not null because DbTradeAlert ignores data without
+        // lastPrice specified -> lastPrice can use float variable (small f).
+        // Other float values in the DB may be null. As cursor.getFloat() will return 0.0 for
+        // those we need to use Float variables (capital f), initialize them with Float.NaN
+        // and only copy the DB values if cursor.isNull() returns false for the respective field.
+        // The drawback of Float is additional boxing and garbage collection.
+        float lastPrice = this.cursor.getFloat(
+                this.cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE));
+        Float maxPrice = readFloatRespectingNull(SecurityContract.Security.MAX_PRICE, this.cursor);
         // LastPriceDateTimeTextView
-        viewHolder.LastPriceDateTimeTextView.setText(cursor.getString(
-                cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME)));
+        viewHolder.LastPriceDateTimeTextView.setText(this.cursor.getString(
+                this.cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME)));
         if (isLastTradeOlderThanOneDay) {
             viewHolder.LastPriceDateTimeTextView.setBackgroundResource(R.color.colorWarn);
         } else {
@@ -82,27 +95,35 @@ public class WatchlistRecyclerViewAdapter
                     .setBackgroundColor(android.R.attr.editTextBackground);
         }
         // LastPriceTextView
-        String currency = cursor.getString(
-                cursor.getColumnIndex(QuoteContract.Quote.CURRENCY));
+        String currency = this.cursor.getString(
+                this.cursor.getColumnIndex(QuoteContract.Quote.CURRENCY));
         viewHolder.LastPriceTextView.setText(
-                String.format("%01.2f %s", lastTrade, currency));
+                String.format("%01.2f %s", lastPrice, currency));
         // PercentChangeMaxPriceTextView
-        float percentChangeFromMaxPrice = (lastTrade - maxPrice) / maxPrice * 100;
-        this.setPercentageText(
-                true, percentChangeFromMaxPrice, " MH", viewHolder.PercentChangeMaxPriceTextView);
+        if (maxPrice != Float.NaN) {
+            float percentChangeFromMaxPrice = (lastPrice - maxPrice) / maxPrice * 100;
+            this.setPercentageText(true, percentChangeFromMaxPrice,
+                    " MH", viewHolder.PercentChangeMaxPriceTextView);
+        } else {
+            viewHolder.PercentChangeMaxPriceTextView.setText("- MH");
+        }
         // PercentChangeTextView
-        float percentChange = cursor.getFloat(
-                cursor.getColumnIndex(QuoteContract.Quote.PERCENT_CHANGE));
-        this.setPercentageText(false, percentChange, "", viewHolder.PercentChangeTextView);
+        Float percentChange
+                = readFloatRespectingNull(QuoteContract.Quote.PERCENT_CHANGE, this.cursor);
+        if (percentChange != Float.NaN) {
+            this.setPercentageText(false, percentChange, "", viewHolder.PercentChangeTextView);
+        } else {
+            viewHolder.PercentChangeTextView.setText("-");
+        }
         // region PercentDailyVolumeTextView
         int averageDailyVolumeColumnIndex
-                = cursor.getColumnIndex(QuoteContract.Quote.AVERAGE_DAILY_VOLUME);
-        long averageDailyVolume = cursor.getLong(averageDailyVolumeColumnIndex);
+                = this.cursor.getColumnIndex(QuoteContract.Quote.AVERAGE_DAILY_VOLUME);
+        long averageDailyVolume = this.cursor.getLong(averageDailyVolumeColumnIndex);
         // n/a for indices
         if (averageDailyVolume > 0) {
-            long volume = cursor.getLong(
-                    cursor.getColumnIndex(QuoteContract.Quote.VOLUME));
-            Float percentDailyVolume = (float) (volume * 100 / averageDailyVolume);
+            long volume = this.cursor.getLong(
+                    this.cursor.getColumnIndex(QuoteContract.Quote.VOLUME));
+            float percentDailyVolume = (float) (volume * 100 / averageDailyVolume);
             viewHolder.PercentDailyVolumeTextView.setText(
                     String.format("%01.1f%% V", percentDailyVolume));
             if (percentDailyVolume == 0) {
@@ -115,14 +136,14 @@ public class WatchlistRecyclerViewAdapter
         // endregion PercentDailyVolumeTextView
         // SecurityNameTextView
         viewHolder.SecurityNameTextView.setText(
-                cursor.getString(cursor.getColumnIndex(
+                this.cursor.getString(this.cursor.getColumnIndex(
                         QuoteContract.Quote.NAME)));
         // region SignalTextView
         TextView signalTextView = viewHolder.SignalTextView;
-        // If a trailing target is active, show an underscore
-        boolean isTrailingTargetActive = cursor.isNull(cursor.getColumnIndex(
-                SecurityContract.Security.TRAILING_TARGET)) == false;
-        if (isTrailingTargetActive) {
+        // If a trailing target is used, show an underscore
+        Float trailingTargetPercentage
+                = readFloatRespectingNull(SecurityContract.Security.TRAILING_TARGET, this.cursor);
+        if (trailingTargetPercentage != Float.NaN) {
             signalTextView.setPaintFlags(signalTextView.getPaintFlags()
                     | Paint.UNDERLINE_TEXT_FLAG);
             signalTextView.setText(" ");
@@ -130,23 +151,17 @@ public class WatchlistRecyclerViewAdapter
             signalTextView.setPaintFlags(signalTextView.getPaintFlags()
                     & (~Paint.UNDERLINE_TEXT_FLAG));
         }
-        float trailingTargetPercentage = cursor.getFloat(cursor.getColumnIndex(
-                SecurityContract.Security.TRAILING_TARGET));
         boolean isTrailingTargetReached
-                = isTrailingTargetActive
-                && lastTrade <= maxPrice * (100 - trailingTargetPercentage) / 100;
+                = trailingTargetPercentage != Float.NaN
+                && lastPrice <= maxPrice * (100 - trailingTargetPercentage) / 100;
         // Lower target
-        boolean isLowerTargetActive = cursor.isNull(cursor.getColumnIndex(
-                SecurityContract.Security.LOWER_TARGET)) == false;
-        float lowerTarget = cursor.getFloat(
-                cursor.getColumnIndex(SecurityContract.Security.LOWER_TARGET));
-        boolean isLowerTargetReached = isLowerTargetActive && lowerTarget >= lastTrade;
+        Float lowerTarget
+                = readFloatRespectingNull(SecurityContract.Security.LOWER_TARGET, this.cursor);
+        boolean isLowerTargetReached = lowerTarget != Float.NaN && lowerTarget >= lastPrice;
         // Upper target
-        boolean isUpperTargetActive = cursor.isNull(cursor.getColumnIndex(
-                SecurityContract.Security.UPPER_TARGET)) == false;
-        float upperTarget
-                = cursor.getFloat(cursor.getColumnIndex(SecurityContract.Security.UPPER_TARGET));
-        boolean isUpperTargetReached = isUpperTargetActive && upperTarget <= lastTrade;
+        Float upperTarget
+                = readFloatRespectingNull(SecurityContract.Security.UPPER_TARGET, this.cursor);
+        boolean isUpperTargetReached = upperTarget != Float.NaN && upperTarget <= lastPrice;
         if (isLowerTargetReached
                 || isTrailingTargetReached
                 || isUpperTargetReached) {
@@ -171,17 +186,17 @@ public class WatchlistRecyclerViewAdapter
             signalTextView.setVisibility(View.VISIBLE);
         } else {
             signalTextView.setBackgroundColor(android.R.attr.editTextBackground);
-            if (isTrailingTargetActive == false) {
+            if (trailingTargetPercentage == Float.NaN) {
                 signalTextView.setVisibility(View.GONE);
             }
         }
         // endregion SignalTextView
         // Symbol
-        viewHolder.Symbol = cursor.getString(
-                cursor.getColumnIndex(SecurityContract.Security.SYMBOL));
+        viewHolder.Symbol = this.cursor.getString(
+                this.cursor.getColumnIndex(SecurityContract.Security.SYMBOL));
         // SymbolTextView
-        viewHolder.SymbolTextView.setText(cursor.getString(
-                cursor.getColumnIndex(SecurityContract.Security.SYMBOL)));
+        viewHolder.SymbolTextView.setText(this.cursor.getString(
+                this.cursor.getColumnIndex(SecurityContract.Security.SYMBOL)));
         // setOnClickListener()
         viewHolder.View.setOnClickListener(new View.OnClickListener() {
             @Override

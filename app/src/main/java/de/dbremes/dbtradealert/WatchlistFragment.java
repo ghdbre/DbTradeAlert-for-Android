@@ -23,7 +23,7 @@ public class WatchlistFragment extends Fragment {
     private long watchlistId = -1;
     private static final String ARG_WATCHLIST_ID = "watchlist_id";
 
-    private OnListFragmentInteractionListener mListener;
+    private OnListFragmentInteractionListener listener;
 
     @SuppressWarnings("unused")
     public static WatchlistFragment newInstance(long watchlistId) {
@@ -62,7 +62,10 @@ public class WatchlistFragment extends Fragment {
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             dbHelper = new DbHelper(context);
             Cursor cursor = dbHelper.readAllQuotesForWatchlist(this.watchlistId);
-            recyclerView.setAdapter(new WatchlistRecyclerViewAdapter(cursor, mListener));
+            DbHelper.ExtremesInfo extremesInfo
+                    = dbHelper.getQuoteExtremesForWatchlist(this.watchlistId);
+            recyclerView.setAdapter(new WatchlistRecyclerViewAdapter(
+                    cursor, extremesInfo, this.listener));
         }
         return view;
     }
@@ -72,7 +75,7 @@ public class WatchlistFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
+            this.listener = (OnListFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnListFragmentInteractionListener");
@@ -82,7 +85,7 @@ public class WatchlistFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        this.listener = null;
     }
 
     /**

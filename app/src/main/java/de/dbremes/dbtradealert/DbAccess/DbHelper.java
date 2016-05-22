@@ -12,6 +12,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class DbHelper extends SQLiteOpenHelper {
     private static final String CLASS_NAME = "DbHelper";
     private static final String DB_NAME = "dbtradealert.db";
@@ -258,7 +262,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String columnDefinitions = (SecuritiesInWatchlists.SECURITY_ID
                 + " INTEGER REFERENCES " + Security.TABLE + " NOT NULL, ") +
                 SecuritiesInWatchlists.WATCHLIST_ID
-                + " INTEGER REFERENCES " + Watchlist.TABLE  + " NOT NULL";
+                + " INTEGER REFERENCES " + Watchlist.TABLE + " NOT NULL";
         String sql = String.format("CREATE TABLE %s (%s);",
                 SecuritiesInWatchlists.TABLE,
                 columnDefinitions);
@@ -308,6 +312,71 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d(DbHelper.CLASS_NAME, "createWatchListTable created with SQL = " + sql);
     } // createWatchListTable()
 
+    private ExtremesInfo getQuoteExtremesForQuoteCursor(Cursor cursor) {
+        List<ExtremesInfo> extremesInfos = new ArrayList<ExtremesInfo>();
+        List<String> columnNames = new ArrayList<String>();
+        Collections.addAll(columnNames, Quote.ASK, Quote.BID, Quote.DAYS_HIGH,
+                Quote.DAYS_LOW, Quote.OPEN, Quote.PREVIOUS_CLOSE);
+        // Record extremes for each datarow
+        while (cursor.moveToNext()) {
+            Float lastPrice = cursor.getFloat(
+                    cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE));
+            Float maxPrice = lastPrice;
+            Float minPrice = lastPrice;
+            Float currentPrice;
+            for (int columnIndex = 0; columnIndex < columnNames.size(); columnIndex++) {
+                currentPrice = cursor.getFloat(cursor.getColumnIndex(columnNames.get(columnIndex)));
+                if (currentPrice > maxPrice) {
+                    maxPrice = currentPrice;
+                } else if (currentPrice < minPrice) {
+                    minPrice = currentPrice;
+                }
+            }
+            extremesInfos.add(new ExtremesInfo(lastPrice, maxPrice, minPrice));
+        }
+        // Get extremes from datarows
+        Float maxPercent = 100f;
+        Float minPercent = 100f;
+        for (int i = 0; i < extremesInfos.size(); i++) {
+            if (extremesInfos.get(i).getMaxPercent() > maxPercent) {
+                maxPercent = extremesInfos.get(i).getMaxPercent();
+            }
+            if (extremesInfos.get(i).getMinPercent() < minPercent) {
+                minPercent = extremesInfos.get(i).getMinPercent();
+            }
+        }
+        return new ExtremesInfo(null, maxPercent, minPercent);
+    } // getQuoteExtremesForQuoteCursor()
+
+    public ExtremesInfo getQuoteExtremesForWatchlist(long watchlistId) {
+        final String methodName = "getQuoteExtremesForWatchlist";
+        // HAVING q.bid > 0 sorts out indices and the like
+        // GROUP BY w._id enables HAVING clause
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT q." + Quote.ASK
+                + ", q." + Quote.BID
+                + ", q." + Quote.DAYS_HIGH
+                + ", q." + Quote.DAYS_LOW
+                + ", q." + Quote.LAST_PRICE
+                + ", q." + Quote.OPEN
+                + ", q." + Quote.PREVIOUS_CLOSE
+                + "\nFROM " + Quote.TABLE + " q" + "\n\tINNER JOIN "
+                + SecuritiesInWatchlists.TABLE + " siwl"
+                + " ON siwl." + SecuritiesInWatchlists.SECURITY_ID
+                + " = q." + Quote.SECURITY_ID
+                + "\n\tINNER JOIN " + Watchlist.TABLE + " w"
+                + " ON w." + Watchlist.ID + " = siwl." + SecuritiesInWatchlists.WATCHLIST_ID
+                + "\nWHERE w." + Watchlist.ID + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(DbHelper.CLASS_NAME,
+                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName,
+                        cursor.getCount()));
+        return getQuoteExtremesForQuoteCursor(cursor);
+    } // getQuoteExtremesForWatchlist()
+
     public long getWatchlistIdByPosition(int position) {
         final String methodName = "getWatchlistIdByPosition";
         int result = -1;
@@ -325,30 +394,30 @@ public class DbHelper extends SQLiteOpenHelper {
     } // getWatchlistIdByPosition()
 
     private String insertSelectionArgs(String selection, String[] selectionArgs) {
-         final String methodName = "insertSelectionArgs";
-         String result = "";
-         StringBuilder sb = new StringBuilder();
-         String[] selectionArray = selection.split("\\?");
+        final String methodName = "insertSelectionArgs";
+        String result = "";
+        StringBuilder sb = new StringBuilder();
+        String[] selectionArray = selection.split("\\?");
 //         if (selectionArray.length != selectionArgs.length){
 //            Log.w(DbHelper.CLASS_NAME,
 //                    String.format("%s: selectionArray.length = %d, selectionArgs.length = %d; ",
 //                            methodName, selectionArray.length, selectionArgs.length));
 //         }
-         for (int i = 0; i < selectionArgs.length; i++) {
-             sb.append(selectionArray[i] + selectionArgs[i]);
-         }
-         if (selectionArray.length > selectionArgs.length) {
-             sb.append(selectionArray[selectionArray.length - 1]);
-         }
-         result = sb.toString();
-         return result;
-     } // insertSelectionArgs()
+        for (int i = 0; i < selectionArgs.length; i++) {
+            sb.append(selectionArray[i] + selectionArgs[i]);
+        }
+        if (selectionArray.length > selectionArgs.length) {
+            sb.append(selectionArray[selectionArray.length - 1]);
+        }
+        result = sb.toString();
+        return result;
+    } // insertSelectionArgs()
 
     private void logSql(String methodName, String selection,
                         String[] selectionArgs) {
-         Log.v(DbHelper.CLASS_NAME,
-         methodName + ": "
-         + insertSelectionArgs(selection, selectionArgs));
+        Log.v(DbHelper.CLASS_NAME,
+                methodName + ": "
+                        + insertSelectionArgs(selection, selectionArgs));
     } // logSql()
 
     @Override
@@ -377,7 +446,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 + Quote.SECURITY_ID + "\nWHERE siwl."
                 + SecuritiesInWatchlists.WATCHLIST_ID + " = ?" + "\nORDER BY q."
                 + Quote.NAME + " ASC";
-        String[] selectionArgs = new String[] { String.valueOf(watchlistId) };
+        String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
         logSql(methodName, sql, selectionArgs);
         cursor = db.rawQuery(sql, selectionArgs);
         Log.v(DbHelper.CLASS_NAME,
@@ -389,7 +458,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public Cursor readAllWatchlists() {
         Cursor cursor = null;
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = new String[] { Watchlist.ID, Watchlist.NAME };
+        String[] columns = new String[]{Watchlist.ID, Watchlist.NAME};
         String groupBy = null;
         String having = null;
         String orderBy = Watchlist.NAME;
@@ -400,4 +469,37 @@ public class DbHelper extends SQLiteOpenHelper {
         return cursor;
     } // readAllWatchlists()
 
+    /**
+     * ExtremesInfo holds information about the extremes of a quote or the signals of a security.
+     * If last price is null then maxValue and minValue are stored as the extremes.
+     * If last price is not null the extremes are calculated as percent of last price.
+     * Example:
+     * - last price = 100
+     * - maximum value = 110
+     * - minimum value = 90
+     * -> maxPercent = 110 and minPercent = 90
+     */
+    public final class ExtremesInfo {
+        private final Float maxPercent;
+        private final Float minPercent;
+
+        public ExtremesInfo(Float lastPrice, Float maxValue, Float minValue) {
+            if (lastPrice == null) {
+                this.maxPercent = maxValue;
+                this.minPercent = minValue;
+            } else {
+                this.maxPercent = maxValue * 100 / lastPrice;
+                this.minPercent = minValue * 100 / lastPrice;
+            }
+        }
+
+        public Float getMaxPercent() {
+            return maxPercent;
+        }
+
+        public Float getMinPercent() {
+            return minPercent;
+        }
+    } // class ExtremesInfo
 }
+

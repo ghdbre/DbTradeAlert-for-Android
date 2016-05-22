@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.QuoteContract;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract;
 import de.dbremes.dbtradealert.WatchlistFragment.OnListFragmentInteractionListener;
@@ -25,11 +26,14 @@ public class WatchlistRecyclerViewAdapter
         extends RecyclerView.Adapter<WatchlistRecyclerViewAdapter.ViewHolder> {
     // Avoid warning "logging tag can be at most 23 characters ..."
     private static final String CLASS_NAME = "WatchlistRec.ViewAd.";
+    private final DbHelper.ExtremesInfo extremesInfo;
     private final Cursor cursor;
     private final OnListFragmentInteractionListener listener;
 
-    public WatchlistRecyclerViewAdapter(Cursor cursor, OnListFragmentInteractionListener listener) {
+    public WatchlistRecyclerViewAdapter(Cursor cursor, DbHelper.ExtremesInfo extremesInfo,
+                                        OnListFragmentInteractionListener listener) {
         this.cursor = cursor;
+        this.extremesInfo = extremesInfo;
         this.listener = listener;
     } // ctor()
 
@@ -81,10 +85,9 @@ public class WatchlistRecyclerViewAdapter
         // Other float values in the DB may be null. As cursor.getFloat() will return 0.0 for
         // those we need to use Float variables (capital f), initialize them with Float.NaN
         // and only copy the DB values if cursor.isNull() returns false for the respective field.
-        // The drawback of Float is additional boxing and garbage collection.
+        // Drawbacks of Float are additional boxing and garbage collection.
         float lastPrice = this.cursor.getFloat(
                 this.cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE));
-        Float maxPrice = readFloatRespectingNull(SecurityContract.Security.MAX_PRICE, this.cursor);
         // LastPriceDateTimeTextView
         viewHolder.LastPriceDateTimeTextView.setText(this.cursor.getString(
                 this.cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME)));
@@ -100,6 +103,7 @@ public class WatchlistRecyclerViewAdapter
         viewHolder.LastPriceTextView.setText(
                 String.format("%01.2f %s", lastPrice, currency));
         // PercentChangeMaxPriceTextView
+        Float maxPrice = readFloatRespectingNull(SecurityContract.Security.MAX_PRICE, this.cursor);
         if (maxPrice != Float.NaN) {
             float percentChangeFromMaxPrice = (lastPrice - maxPrice) / maxPrice * 100;
             this.setPercentageText(true, percentChangeFromMaxPrice,
@@ -134,6 +138,24 @@ public class WatchlistRecyclerViewAdapter
             }
         }
         // endregion PercentDailyVolumeTextView
+        // region QuoteChartView
+        Float ask = readFloatRespectingNull(QuoteContract.Quote.ASK, this.cursor);
+        Float basePrice
+                = readFloatRespectingNull(SecurityContract.Security.BASE_PRICE, this.cursor);
+        Float bid = readFloatRespectingNull(QuoteContract.Quote.BID, this.cursor);
+        Float daysHigh = readFloatRespectingNull(QuoteContract.Quote.DAYS_HIGH, this.cursor);
+        Float daysLow = readFloatRespectingNull(QuoteContract.Quote.DAYS_LOW, this.cursor);
+        Float lowerTarget
+                = readFloatRespectingNull(SecurityContract.Security.LOWER_TARGET, this.cursor);
+        Float open = readFloatRespectingNull(QuoteContract.Quote.OPEN, this.cursor);
+        Float previousClose
+                = readFloatRespectingNull(QuoteContract.Quote.PREVIOUS_CLOSE, this.cursor);
+        Float upperTarget
+                = readFloatRespectingNull(SecurityContract.Security.UPPER_TARGET, this.cursor);
+        viewHolder.QuoteChartView.setValues(this.extremesInfo, ask, basePrice, bid,
+                daysHigh, daysLow, lastPrice, lowerTarget, maxPrice, open, previousClose,
+                upperTarget);
+        // endregion QuoteChartView
         // SecurityNameTextView
         viewHolder.SecurityNameTextView.setText(
                 this.cursor.getString(this.cursor.getColumnIndex(
@@ -146,7 +168,7 @@ public class WatchlistRecyclerViewAdapter
         if (trailingTargetPercentage != Float.NaN) {
             signalTextView.setPaintFlags(signalTextView.getPaintFlags()
                     | Paint.UNDERLINE_TEXT_FLAG);
-            signalTextView.setText(" ");
+            signalTextView.setText("  ");
         } else {
             signalTextView.setPaintFlags(signalTextView.getPaintFlags()
                     & (~Paint.UNDERLINE_TEXT_FLAG));
@@ -155,12 +177,8 @@ public class WatchlistRecyclerViewAdapter
                 = trailingTargetPercentage != Float.NaN
                 && lastPrice <= maxPrice * (100 - trailingTargetPercentage) / 100;
         // Lower target
-        Float lowerTarget
-                = readFloatRespectingNull(SecurityContract.Security.LOWER_TARGET, this.cursor);
         boolean isLowerTargetReached = lowerTarget != Float.NaN && lowerTarget >= lastPrice;
         // Upper target
-        Float upperTarget
-                = readFloatRespectingNull(SecurityContract.Security.UPPER_TARGET, this.cursor);
         boolean isUpperTargetReached = upperTarget != Float.NaN && upperTarget <= lastPrice;
         if (isLowerTargetReached
                 || isTrailingTargetReached
@@ -231,6 +249,7 @@ public class WatchlistRecyclerViewAdapter
         public final TextView PercentChangeMaxPriceTextView;
         public final TextView PercentChangeTextView;
         public final TextView PercentDailyVolumeTextView;
+        public final QuoteChartView QuoteChartView;
         public final TextView SecurityNameTextView;
         public final TextView SignalTextView;
         public String Symbol;
@@ -248,6 +267,7 @@ public class WatchlistRecyclerViewAdapter
             this.PercentChangeTextView = (TextView) view.findViewById(R.id.percentChangeTextView);
             this.PercentDailyVolumeTextView
                     = (TextView) view.findViewById(R.id.percentDailyVolumeTextView);
+            this.QuoteChartView = (QuoteChartView) view.findViewById(R.id.quoteChartView);
             this.SecurityNameTextView = (TextView) view.findViewById(R.id.securityNameTextView);
             this.SignalTextView = (TextView) view.findViewById(R.id.signalTextView);
             this.SymbolTextView = (TextView) view.findViewById(R.id.symbolTextView);

@@ -28,7 +28,7 @@ public class QuoteChartView extends View {
     private Float upperTarget;
     // region graphics objects
     private final int spreadMarkerHeight = 8;
-    private final int yPadding = 4;
+    private final int paddingY = 4;
     // avoid allocation of object during onDraw():
     private Rect boundsRectTemp = new Rect();
     private Paint linePaint = null;
@@ -72,7 +72,7 @@ public class QuoteChartView extends View {
                         currentX - this.boundsRectTemp.width() / 2,
                         currentY - this.boundsRectTemp.top, this.textPaint);
             }
-            result += -this.boundsRectTemp.top + 2 * this.yPadding;
+            result += -this.boundsRectTemp.top + 2 * this.paddingY;
             // Draw marker centered below chart line
             if (marker.isEmpty() == false) {
                 float markerWidth = this.textPaint.measureText(marker);
@@ -84,9 +84,9 @@ public class QuoteChartView extends View {
                     makerXPosition = width - markerWidth;
                 }
                 canvas.drawText(marker, makerXPosition,
-                        result - this.boundsRectTemp.top + this.yPadding, this.textPaint);
+                        result - this.boundsRectTemp.top + this.paddingY, this.textPaint);
             }
-            result += -this.boundsRectTemp.top + 2 * this.yPadding;
+            result += -this.boundsRectTemp.top + 2 * this.paddingY;
         }
         return result;
     } // drawPrice()
@@ -162,23 +162,23 @@ public class QuoteChartView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         int width = getWidth();
-        int currentY = this.yPadding;
-        int outputHeight;
-        // 1st chart shows quote data
+        int currentY = this.paddingY;
+        // Upper chart shows quote data
         drawPrice(canvas, currentY, this.lastPrice, "a", this.ask, width);
         drawPrice(canvas, currentY, this.lastPrice, "b", this.bid, width);
         drawPrice(canvas, currentY, this.lastPrice, "H", this.daysHigh, width);
         drawPrice(canvas, currentY, this.lastPrice, "L", this.daysLow, width);
         drawPrice(canvas, currentY, this.lastPrice, "", this.lastPrice, width);
         drawPrice(canvas, currentY, this.lastPrice, "O", this.open, width);
-        outputHeight = drawPrice(canvas, currentY, this.lastPrice, "P", this.previousClose, width);
+        int outputHeight
+                = drawPrice(canvas, currentY, this.lastPrice, "P", this.previousClose, width);
         // Draw chart line
         int lineY = outputHeight / 2;
         canvas.drawLine(0, lineY, width, lineY, this.linePaint);
-        if (ask != Float.NaN && bid != Float.NaN) {
-            markSpread(canvas, lineY, ask, bid, lastPrice, width);
+        if (this.ask != Float.NaN && this.bid != Float.NaN) {
+            markSpread(canvas, lineY, this.ask, this.bid, this.lastPrice, width);
         }
-        currentY += outputHeight + 2;
+        currentY += outputHeight + this.paddingY;
     } // onDraw()
 
     @Override

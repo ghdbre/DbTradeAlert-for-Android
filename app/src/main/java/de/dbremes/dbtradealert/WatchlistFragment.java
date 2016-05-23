@@ -62,10 +62,12 @@ public class WatchlistFragment extends Fragment {
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             dbHelper = new DbHelper(context);
             Cursor cursor = dbHelper.readAllQuotesForWatchlist(this.watchlistId);
-            DbHelper.ExtremesInfo extremesInfo
+            DbHelper.Extremes quoteExtremes
                     = dbHelper.getQuoteExtremesForWatchlist(this.watchlistId);
+            DbHelper.Extremes targetExtremes
+                    = dbHelper.getTargetExtremesForWatchlist(this.watchlistId);
             recyclerView.setAdapter(new WatchlistRecyclerViewAdapter(
-                    cursor, extremesInfo, this.listener));
+                    cursor, quoteExtremes, targetExtremes, this.listener));
         }
         return view;
     }

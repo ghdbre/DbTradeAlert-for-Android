@@ -26,24 +26,19 @@ public class WatchlistRecyclerViewAdapter
         extends RecyclerView.Adapter<WatchlistRecyclerViewAdapter.ViewHolder> {
     // Avoid warning "logging tag can be at most 23 characters ..."
     private static final String CLASS_NAME = "WatchlistRec.ViewAd.";
-    private final DbHelper.ExtremesInfo extremesInfo;
+    private final DbHelper.Extremes quoteExtremes;
+    private final DbHelper.Extremes targetExtremes;
     private final Cursor cursor;
     private final OnListFragmentInteractionListener listener;
 
-    public WatchlistRecyclerViewAdapter(Cursor cursor, DbHelper.ExtremesInfo extremesInfo,
-                                        OnListFragmentInteractionListener listener) {
+    public WatchlistRecyclerViewAdapter(
+            Cursor cursor, DbHelper.Extremes quoteExtremes, DbHelper.Extremes targetExtremes,
+            OnListFragmentInteractionListener listener) {
         this.cursor = cursor;
-        this.extremesInfo = extremesInfo;
+        this.quoteExtremes = quoteExtremes;
+        this.targetExtremes = targetExtremes;
         this.listener = listener;
     } // ctor()
-
-    private Float readFloatRespectingNull(String columnName, Cursor cursor) {
-        Float result = Float.NaN;
-        if (this.cursor.isNull(cursor.getColumnIndex(columnName)) == false) {
-            result = cursor.getFloat(this.cursor.getColumnIndex(columnName));
-        }
-        return result;
-    }
 
     private boolean isLastTradeOlderThanOneDay(Cursor cursor) {
         boolean result = false;
@@ -83,9 +78,11 @@ public class WatchlistRecyclerViewAdapter
         // lastPrice is guaranteed to be not null because DbTradeAlert ignores data without
         // lastPrice specified -> lastPrice can use float variable (small f).
         // Other float values in the DB may be null. As cursor.getFloat() will return 0.0 for
-        // those we need to use Float variables (capital f), initialize them with Float.NaN
+        // those we need to use Float variables (capital F), initialize them with Float.NaN
         // and only copy the DB values if cursor.isNull() returns false for the respective field.
         // Drawbacks of Float are additional boxing and garbage collection.
+        // Conditional formatting like background color needs to be reset when the condition
+        // isn't met because of Android's view reuse.
         float lastPrice = this.cursor.getFloat(
                 this.cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE));
         // LastPriceDateTimeTextView
@@ -103,8 +100,9 @@ public class WatchlistRecyclerViewAdapter
         viewHolder.LastPriceTextView.setText(
                 String.format("%01.2f %s", lastPrice, currency));
         // PercentChangeMaxPriceTextView
-        Float maxPrice = readFloatRespectingNull(SecurityContract.Security.MAX_PRICE, this.cursor);
-        if (maxPrice != Float.NaN) {
+        Float maxPrice
+                = Utils.readFloatRespectingNull(SecurityContract.Security.MAX_PRICE, this.cursor);
+        if (maxPrice.isNaN() == false) {
             float percentChangeFromMaxPrice = (lastPrice - maxPrice) / maxPrice * 100;
             this.setPercentageText(true, percentChangeFromMaxPrice,
                     " MH", viewHolder.PercentChangeMaxPriceTextView);
@@ -113,8 +111,8 @@ public class WatchlistRecyclerViewAdapter
         }
         // PercentChangeTextView
         Float percentChange
-                = readFloatRespectingNull(QuoteContract.Quote.PERCENT_CHANGE, this.cursor);
-        if (percentChange != Float.NaN) {
+                = Utils.readFloatRespectingNull(QuoteContract.Quote.PERCENT_CHANGE, this.cursor);
+        if (percentChange.isNaN() == false) {
             this.setPercentageText(false, percentChange, "", viewHolder.PercentChangeTextView);
         } else {
             viewHolder.PercentChangeTextView.setText("-");
@@ -139,22 +137,24 @@ public class WatchlistRecyclerViewAdapter
         }
         // endregion PercentDailyVolumeTextView
         // region QuoteChartView
-        Float ask = readFloatRespectingNull(QuoteContract.Quote.ASK, this.cursor);
+        Float ask = Utils.readFloatRespectingNull(QuoteContract.Quote.ASK, this.cursor);
         Float basePrice
-                = readFloatRespectingNull(SecurityContract.Security.BASE_PRICE, this.cursor);
-        Float bid = readFloatRespectingNull(QuoteContract.Quote.BID, this.cursor);
-        Float daysHigh = readFloatRespectingNull(QuoteContract.Quote.DAYS_HIGH, this.cursor);
-        Float daysLow = readFloatRespectingNull(QuoteContract.Quote.DAYS_LOW, this.cursor);
-        Float lowerTarget
-                = readFloatRespectingNull(SecurityContract.Security.LOWER_TARGET, this.cursor);
-        Float open = readFloatRespectingNull(QuoteContract.Quote.OPEN, this.cursor);
-        Float previousClose
-                = readFloatRespectingNull(QuoteContract.Quote.PREVIOUS_CLOSE, this.cursor);
-        Float upperTarget
-                = readFloatRespectingNull(SecurityContract.Security.UPPER_TARGET, this.cursor);
-        viewHolder.QuoteChartView.setValues(this.extremesInfo, ask, basePrice, bid,
-                daysHigh, daysLow, lastPrice, lowerTarget, maxPrice, open, previousClose,
-                upperTarget);
+                = Utils.readFloatRespectingNull(SecurityContract.Security.BASE_PRICE, this.cursor);
+        Float bid = Utils.readFloatRespectingNull(QuoteContract.Quote.BID, this.cursor);
+        Float daysHigh = Utils.readFloatRespectingNull(QuoteContract.Quote.DAYS_HIGH, this.cursor);
+        Float daysLow = Utils.readFloatRespectingNull(QuoteContract.Quote.DAYS_LOW, this.cursor);
+        Float lowerTarget = Utils.readFloatRespectingNull(
+                SecurityContract.Security.LOWER_TARGET, this.cursor);
+        Float open = Utils.readFloatRespectingNull(QuoteContract.Quote.OPEN, this.cursor);
+        Float previousClose = Utils.readFloatRespectingNull(
+                QuoteContract.Quote.PREVIOUS_CLOSE, this.cursor);
+        Float trailingTarget = Utils.readFloatRespectingNull(
+                SecurityContract.Security.TRAILING_TARGET, this.cursor);
+        Float upperTarget = Utils.readFloatRespectingNull(
+                SecurityContract.Security.UPPER_TARGET, this.cursor);
+        viewHolder.QuoteChartView.setValues(this.quoteExtremes, this.targetExtremes,
+                ask, basePrice, bid, daysHigh, daysLow, lastPrice, lowerTarget, maxPrice, open,
+                previousClose, trailingTarget, upperTarget);
         // endregion QuoteChartView
         // SecurityNameTextView
         viewHolder.SecurityNameTextView.setText(
@@ -163,23 +163,23 @@ public class WatchlistRecyclerViewAdapter
         // region SignalTextView
         TextView signalTextView = viewHolder.SignalTextView;
         // If a trailing target is used, show an underscore
-        Float trailingTargetPercentage
-                = readFloatRespectingNull(SecurityContract.Security.TRAILING_TARGET, this.cursor);
-        if (trailingTargetPercentage != Float.NaN) {
+        Float trailingTargetPercentage = Utils.readFloatRespectingNull(
+                SecurityContract.Security.TRAILING_TARGET, this.cursor);
+        if (trailingTargetPercentage.isNaN() == false) {
             signalTextView.setPaintFlags(signalTextView.getPaintFlags()
                     | Paint.UNDERLINE_TEXT_FLAG);
             signalTextView.setText("  ");
         } else {
             signalTextView.setPaintFlags(signalTextView.getPaintFlags()
-                    & (~Paint.UNDERLINE_TEXT_FLAG));
+                    & ~Paint.UNDERLINE_TEXT_FLAG);
         }
         boolean isTrailingTargetReached
-                = trailingTargetPercentage != Float.NaN
+                = trailingTargetPercentage.isNaN() == false
                 && lastPrice <= maxPrice * (100 - trailingTargetPercentage) / 100;
         // Lower target
-        boolean isLowerTargetReached = lowerTarget != Float.NaN && lowerTarget >= lastPrice;
+        boolean isLowerTargetReached = lowerTarget.isNaN() == false && lowerTarget >= lastPrice;
         // Upper target
-        boolean isUpperTargetReached = upperTarget != Float.NaN && upperTarget <= lastPrice;
+        boolean isUpperTargetReached = upperTarget.isNaN() == false && upperTarget <= lastPrice;
         if (isLowerTargetReached
                 || isTrailingTargetReached
                 || isUpperTargetReached) {
@@ -204,7 +204,7 @@ public class WatchlistRecyclerViewAdapter
             signalTextView.setVisibility(View.VISIBLE);
         } else {
             signalTextView.setBackgroundColor(android.R.attr.editTextBackground);
-            if (trailingTargetPercentage == Float.NaN) {
+            if (trailingTargetPercentage.isNaN()) {
                 signalTextView.setVisibility(View.GONE);
             }
         }
@@ -252,6 +252,7 @@ public class WatchlistRecyclerViewAdapter
         public final QuoteChartView QuoteChartView;
         public final TextView SecurityNameTextView;
         public final TextView SignalTextView;
+        // Symbol needed for View's onClickListener
         public String Symbol;
         public final TextView SymbolTextView;
         public final View View;

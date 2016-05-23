@@ -4,6 +4,7 @@ import de.dbremes.dbtradealert.DbAccess.QuoteContract.Quote;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract.Security;
 import de.dbremes.dbtradealert.DbAccess.SecuritiesInWatchlistsContract.SecuritiesInWatchlists;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract.Watchlist;
+import de.dbremes.dbtradealert.Utils;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -204,7 +205,7 @@ public class DbHelper extends SQLiteOpenHelper {
             contentValues.put(Quote.STOCK_EXCHANGE_NAME, "VTX");
             contentValues.put(Quote.SECURITY_ID, nesnSecurityID);
             contentValues.put(Quote.SYMBOL, "NESN.VX");
-            contentValues.put(Quote.VOLUME, 4678462);
+            contentValues.put(Quote.VOLUME, 596900);
             db.insert(Quote.TABLE, null, contentValues);
             Log.v(DbHelper.CLASS_NAME, "Sample quote for 'NESN.VX' created");
             // endregion - NESN.VX
@@ -239,7 +240,7 @@ public class DbHelper extends SQLiteOpenHelper {
             contentValues.put(Quote.DAYS_LOW, 91.89);
             contentValues.put(Quote.LAST_PRICE, 93.60);
             contentValues.put(Quote.LAST_PRICE_DATE_TIME, "2016-05-13T17:35");
-            contentValues.put(Quote.NAME, "Bayer AG");
+            contentValues.put(Quote.NAME, "Siemens AG");
             contentValues.put(Quote.OPEN, 92.10);
             contentValues.put(Quote.PERCENT_CHANGE, 0.39);
             contentValues.put(Quote.PREVIOUS_CLOSE, 93.24);
@@ -312,11 +313,16 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d(DbHelper.CLASS_NAME, "createWatchListTable created with SQL = " + sql);
     } // createWatchListTable()
 
-    private ExtremesInfo getQuoteExtremesForQuoteCursor(Cursor cursor) {
-        List<ExtremesInfo> extremesInfos = new ArrayList<ExtremesInfo>();
-        List<String> columnNames = new ArrayList<String>();
-        Collections.addAll(columnNames, Quote.ASK, Quote.BID, Quote.DAYS_HIGH,
-                Quote.DAYS_LOW, Quote.OPEN, Quote.PREVIOUS_CLOSE);
+    /**
+     * Returns the minimum and maximum value of all columns contained in columnNames
+     * from all records in cursor.
+     * Minimum and maximum value are expressed as percentage of Quote.LAST_PRICE and cursor must
+     * include this column as well as all columns in columnNames.
+     * If columnNames includes Security.TRAILING_TARGET cursor needs to additionally include
+     * Security.MAX_PRICE because the trailing target's current price is calculated from it.
+     */
+    private Extremes getExtremesForCursor(List<String> columnNames, Cursor cursor) {
+        List<Extremes> extremes = new ArrayList<Extremes>();
         // Record extremes for each datarow
         while (cursor.moveToNext()) {
             Float lastPrice = cursor.getFloat(
@@ -325,33 +331,44 @@ public class DbHelper extends SQLiteOpenHelper {
             Float minPrice = lastPrice;
             Float currentPrice;
             for (int columnIndex = 0; columnIndex < columnNames.size(); columnIndex++) {
-                currentPrice = cursor.getFloat(cursor.getColumnIndex(columnNames.get(columnIndex)));
-                if (currentPrice > maxPrice) {
+                if (columnNames.get(columnIndex) == Security.TRAILING_TARGET) {
+                    currentPrice = Float.NaN;
+                    Float trailingTarget
+                            = Utils.readFloatRespectingNull(columnNames.get(columnIndex), cursor);
+                    if (trailingTarget.isNaN() == false) {
+                        Float max = Utils.readFloatRespectingNull(Security.MAX_PRICE, cursor);
+                        if (max.isNaN() == false) {
+                            currentPrice = max - max * trailingTarget / 100;
+                        }
+                    }
+                } else {
+                    currentPrice
+                            = Utils.readFloatRespectingNull(columnNames.get(columnIndex), cursor);
+                }
+                if (currentPrice.isNaN() == false && currentPrice > maxPrice) {
                     maxPrice = currentPrice;
-                } else if (currentPrice < minPrice) {
+                } else if (currentPrice.isNaN() == false && currentPrice < minPrice) {
                     minPrice = currentPrice;
                 }
             }
-            extremesInfos.add(new ExtremesInfo(lastPrice, maxPrice, minPrice));
+            extremes.add(new Extremes(lastPrice, maxPrice, minPrice));
         }
-        // Get extremes from datarows
+        // Get extremes from recorded extremes
         Float maxPercent = 100f;
         Float minPercent = 100f;
-        for (int i = 0; i < extremesInfos.size(); i++) {
-            if (extremesInfos.get(i).getMaxPercent() > maxPercent) {
-                maxPercent = extremesInfos.get(i).getMaxPercent();
+        for (int i = 0; i < extremes.size(); i++) {
+            if (extremes.get(i).getMaxPercent() > maxPercent) {
+                maxPercent = extremes.get(i).getMaxPercent();
             }
-            if (extremesInfos.get(i).getMinPercent() < minPercent) {
-                minPercent = extremesInfos.get(i).getMinPercent();
+            if (extremes.get(i).getMinPercent() < minPercent) {
+                minPercent = extremes.get(i).getMinPercent();
             }
         }
-        return new ExtremesInfo(null, maxPercent, minPercent);
-    } // getQuoteExtremesForQuoteCursor()
+        return new Extremes(null, maxPercent, minPercent);
+    } // getExtremesForCursor()
 
-    public ExtremesInfo getQuoteExtremesForWatchlist(long watchlistId) {
+    public Extremes getQuoteExtremesForWatchlist(long watchlistId) {
         final String methodName = "getQuoteExtremesForWatchlist";
-        // HAVING q.bid > 0 sorts out indices and the like
-        // GROUP BY w._id enables HAVING clause
         Cursor cursor = null;
         SQLiteDatabase db = this.getReadableDatabase();
         String sql = "SELECT q." + Quote.ASK
@@ -374,8 +391,43 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.v(DbHelper.CLASS_NAME,
                 String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName,
                         cursor.getCount()));
-        return getQuoteExtremesForQuoteCursor(cursor);
+        List<String> columnNames = new ArrayList<String>();
+        Collections.addAll(columnNames, Quote.ASK, Quote.BID, Quote.DAYS_HIGH,
+                Quote.DAYS_LOW, Quote.OPEN, Quote.PREVIOUS_CLOSE);
+        return getExtremesForCursor(columnNames, cursor);
     } // getQuoteExtremesForWatchlist()
+
+    public Extremes getTargetExtremesForWatchlist(long watchlistId) {
+        final String methodName = "getTargetExtremesForWatchlist";
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT q." + Quote.LAST_PRICE
+                + ", s." + Security.BASE_PRICE
+                + ", s." + Security.LOWER_TARGET
+                + ", s." + Security.MAX_PRICE
+                + ", s." + Security.TRAILING_TARGET
+                + ", s." + Security.UPPER_TARGET
+                + "\nFROM " + Quote.TABLE + " q" + "\n\tINNER JOIN "
+                + Security.TABLE + " s"
+                + " ON s." + Security.ID + " = q." + Quote.SECURITY_ID
+                + "\n\tINNER JOIN "
+                + SecuritiesInWatchlists.TABLE + " siwl"
+                + " ON siwl." + SecuritiesInWatchlists.SECURITY_ID
+                + " = q." + Quote.SECURITY_ID
+                + "\n\tINNER JOIN " + Watchlist.TABLE + " w"
+                + " ON w." + Watchlist.ID + " = siwl." + SecuritiesInWatchlists.WATCHLIST_ID
+                + "\nWHERE w." + Watchlist.ID + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(DbHelper.CLASS_NAME,
+                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName,
+                        cursor.getCount()));
+        List<String> columnNames = new ArrayList<String>();
+        Collections.addAll(columnNames, Quote.LAST_PRICE, Security.BASE_PRICE,
+                Security.LOWER_TARGET, Security.TRAILING_TARGET, Security.UPPER_TARGET);
+        return getExtremesForCursor(columnNames, cursor);
+    } // getTargetExtremesForWatchlist()
 
     public long getWatchlistIdByPosition(int position) {
         final String methodName = "getWatchlistIdByPosition";
@@ -470,20 +522,20 @@ public class DbHelper extends SQLiteOpenHelper {
     } // readAllWatchlists()
 
     /**
-     * ExtremesInfo holds information about the extremes of a quote or the signals of a security.
-     * If last price is null then maxValue and minValue are stored as the extremes.
-     * If last price is not null the extremes are calculated as percent of last price.
+     * Extremes holds information about the extremes of a quote or the signals of a security.
+     * If lastPrice is null then maxValue and minValue are stored as the extremes.
+     * If lastPrice is not null the extremes are calculated as percent of last price.
      * Example:
      * - last price = 100
      * - maximum value = 110
      * - minimum value = 90
      * -> maxPercent = 110 and minPercent = 90
      */
-    public final class ExtremesInfo {
+    public final class Extremes {
         private final Float maxPercent;
         private final Float minPercent;
 
-        public ExtremesInfo(Float lastPrice, Float maxValue, Float minValue) {
+        public Extremes(Float lastPrice, Float maxValue, Float minValue) {
             if (lastPrice == null) {
                 this.maxPercent = maxValue;
                 this.minPercent = minValue;
@@ -500,6 +552,6 @@ public class DbHelper extends SQLiteOpenHelper {
         public Float getMinPercent() {
             return minPercent;
         }
-    } // class ExtremesInfo
+    } // class Extremes
 }
 

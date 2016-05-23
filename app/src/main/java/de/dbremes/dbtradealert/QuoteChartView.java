@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
@@ -14,7 +15,8 @@ public class QuoteChartView extends View {
     // region private fields
     private static final String CLASS_NAME = "QuoteChartView";
     private static final String naMarker = "-";
-    private DbHelper.ExtremesInfo extremesInfo;
+    private DbHelper.Extremes quoteExtremes;
+    private DbHelper.Extremes targetExtremes;
     private Float ask;
     private Float basePrice;
     private Float bid;
@@ -25,6 +27,7 @@ public class QuoteChartView extends View {
     private Float maxPrice;
     private Float open;
     private Float previousClose;
+    private Float trailingTarget;
     private Float upperTarget;
     // region graphics objects
     private final int spreadMarkerHeight = 8;
@@ -32,7 +35,9 @@ public class QuoteChartView extends View {
     // avoid allocation of object during onDraw():
     private Rect boundsRectTemp = new Rect();
     private Paint linePaint = null;
+    private Paint lossPaint = null;
     private Paint textPaint = null;
+    private Paint winPaint = null;
     // endregion graphics objects
     // endregion private fields
 
@@ -56,44 +61,54 @@ public class QuoteChartView extends View {
     }
     // endregion ctors
 
-    private int drawPrice(Canvas canvas,
+    private int drawPrice(Canvas canvas, DbHelper.Extremes extremes,
                           int currentY, float lastPrice, String marker, Float price, int width) {
-        int result = 0;
+        // boundsRectTemp.top is < 0 because measured from font's base line
+        int originalCurrentY = currentY;
         String valueString = "";
-        if (price != Float.NaN) {
+        if (price.isNaN() == false) {
+            // Draw prices or their markers centered on their percentage of lastTrade
             float percent = getPercent(lastPrice, price);
-            float currentX = getXPositionFromPercentage(percent, width);
-            // Draw lastPrice centered above chart line
+            float currentX = getXPositionFromPercentage(extremes, percent, width);
+            // Draw lastPrice above chart line
             valueString = String.format("%01.2f", price);
             this.textPaint.getTextBounds(
                     valueString, 0, valueString.length(), this.boundsRectTemp);
             if (price == lastPrice) {
+                float priceWidth = this.boundsRectTemp.width();
+                float priceXPosition = currentX - priceWidth / 2;
+                priceXPosition = ensureTextIsNotCutOff(priceXPosition, priceWidth, width);
                 canvas.drawText(valueString,
-                        currentX - this.boundsRectTemp.width() / 2,
-                        currentY - this.boundsRectTemp.top, this.textPaint);
+                        priceXPosition, currentY - this.boundsRectTemp.top, this.textPaint);
             }
-            result += -this.boundsRectTemp.top + 2 * this.paddingY;
-            // Draw marker centered below chart line
+            currentY += -this.boundsRectTemp.top + 2 * this.paddingY;
+            // Draw marker below chart line
             if (marker.isEmpty() == false) {
                 float markerWidth = this.textPaint.measureText(marker);
-                float makerXPosition = currentX - markerWidth / 2;
-                // Avoid marker getting cut off
-                if (makerXPosition < 0) {
-                    makerXPosition = 0;
-                } else if (makerXPosition > width - markerWidth) {
-                    makerXPosition = width - markerWidth;
-                }
-                canvas.drawText(marker, makerXPosition,
-                        result - this.boundsRectTemp.top + this.paddingY, this.textPaint);
+                float markerXPosition = currentX - markerWidth / 2;
+                markerXPosition = ensureTextIsNotCutOff(markerXPosition, markerWidth, width);
+                canvas.drawText(marker, markerXPosition,
+                        currentY - this.boundsRectTemp.top + this.paddingY, this.textPaint);
             }
-            result += -this.boundsRectTemp.top + 2 * this.paddingY;
+            currentY += -this.boundsRectTemp.top + 2 * this.paddingY;
+        }
+        // Return height of output
+        return currentY - originalCurrentY;
+    } // drawPrice()
+
+    private float ensureTextIsNotCutOff(float textXPosition, float textWidth, int width) {
+        float result = textXPosition;
+        if (result - textWidth < 0) {
+            result = 0;
+        } else if (result > width - textWidth) {
+            result = width - textWidth;
         }
         return result;
-    } // drawPrice()
+    } // ensureTextIsNotCutOff()
 
     private int getMeasureHeight(int heightMeasureSpec) {
         int resultingHeight;
-        int desiredHeight = 100;
+        int desiredHeight = 150;
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         if (heightMode == MeasureSpec.EXACTLY) {
@@ -132,10 +147,9 @@ public class QuoteChartView extends View {
         return result;
     } // getPercent()
 
-    private float getXPositionFromPercentage(float percent, int width) {
-        float result =
-                (percent - this.extremesInfo.getMinPercent()) * width
-                        / (this.extremesInfo.getMaxPercent() - this.extremesInfo.getMinPercent());
+    private float getXPositionFromPercentage(DbHelper.Extremes extremes, float percent, int width) {
+        float result = (percent - extremes.getMinPercent()) * width
+                / (extremes.getMaxPercent() - extremes.getMinPercent());
         return result;
     } // getXPositionFromPercentage()
 
@@ -143,20 +157,26 @@ public class QuoteChartView extends View {
         this.linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.linePaint.setColor(Color.BLACK);
         this.linePaint.setStrokeWidth(2);
+        this.lossPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        this.lossPaint.setColor(Color.RED);
+        this.lossPaint.setStrokeWidth(2);
         this.textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.textPaint.setColor(Color.BLACK);
         this.textPaint.setTextSize(30);
+        this.winPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        this.winPaint.setColor(Color.GREEN);
+        this.winPaint.setStrokeWidth(2);
     } // init()
 
-    private void markSpread(Canvas canvas,
-                            int lineY, Float ask, Float bid, float lastPrice, int width) {
+    private void markArea(Canvas canvas, DbHelper.Extremes extremes,
+                          int lineY, Float ask, Float bid, float lastPrice, Paint paint, int width) {
         float askPercent = getPercent(lastPrice, ask);
-        float askPosition = this.getXPositionFromPercentage(askPercent, width);
+        float askPosition = this.getXPositionFromPercentage(extremes, askPercent, width);
         float bidPercent = getPercent(lastPrice, bid);
-        float bidPosition = this.getXPositionFromPercentage(bidPercent, width);
+        float bidPosition = this.getXPositionFromPercentage(extremes, bidPercent, width);
         canvas.drawRect(bidPosition, lineY - this.spreadMarkerHeight / 2,
-                askPosition, lineY + this.spreadMarkerHeight / 2, this.linePaint);
-    } // markSpread()
+                askPosition, lineY + this.spreadMarkerHeight / 2, paint);
+    } // markArea()
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -167,20 +187,48 @@ public class QuoteChartView extends View {
         // - for lastPrice it's value is printed above the chart line
         // - for all other prices a marker is printed below the chart line
         // - spread marked with black rectangle on chart line
-        drawPrice(canvas, currentY, this.lastPrice, "a", this.ask, width);
-        drawPrice(canvas, currentY, this.lastPrice, "b", this.bid, width);
-        drawPrice(canvas, currentY, this.lastPrice, "H", this.daysHigh, width);
-        drawPrice(canvas, currentY, this.lastPrice, "L", this.daysLow, width);
-        drawPrice(canvas, currentY, this.lastPrice, "", this.lastPrice, width);
-        drawPrice(canvas, currentY, this.lastPrice, "O", this.open, width);
-        int outputHeight
-                = drawPrice(canvas, currentY, this.lastPrice, "P", this.previousClose, width);
+        drawPrice(canvas, this.quoteExtremes, currentY, this.lastPrice, "a", this.ask, width);
+        drawPrice(canvas, this.quoteExtremes, currentY, this.lastPrice, "b", this.bid, width);
+        drawPrice(canvas, this.quoteExtremes, currentY, this.lastPrice, "H", this.daysHigh, width);
+        drawPrice(canvas, this.quoteExtremes, currentY, this.lastPrice, "L", this.daysLow, width);
+        int outputHeight = drawPrice(
+                canvas, this.quoteExtremes, currentY, this.lastPrice, "", this.lastPrice, width);
+        drawPrice(canvas, this.quoteExtremes, currentY, this.lastPrice, "O", this.open, width);
+        drawPrice(canvas,
+                this.quoteExtremes, currentY, this.lastPrice, "P", this.previousClose, width);
         int lineY = outputHeight / 2;
         canvas.drawLine(0, lineY, width, lineY, this.linePaint);
-        if (this.ask != Float.NaN && this.bid != Float.NaN) {
-            markSpread(canvas, lineY, this.ask, this.bid, this.lastPrice, width);
+        if (this.ask.isNaN() == false && this.bid.isNaN() == false) {
+            markArea(canvas, this.quoteExtremes, lineY, this.ask, this.bid,
+                    this.lastPrice, this.linePaint, width);
         }
         currentY += outputHeight + this.paddingY;
+        // Lower chart shows target data:
+        // - Prices shown like in upper chart
+        // - difference between basePrice and lastPrice is marked with green / red rectangle
+        drawPrice(canvas, this.targetExtremes, currentY,
+                this.lastPrice, "B", this.basePrice, width);
+        outputHeight = drawPrice(canvas, this.targetExtremes, currentY,
+                this.lastPrice, "", this.lastPrice, width);
+        drawPrice(canvas, this.targetExtremes, currentY,
+                this.lastPrice, "L", this.lowerTarget, width);
+        drawPrice(canvas, this.targetExtremes, currentY,
+                this.lastPrice, "T", this.trailingTarget, width);
+        drawPrice(canvas, this.targetExtremes, currentY,
+                this.lastPrice, "U", this.upperTarget, width);
+        lineY = currentY + outputHeight / 2;
+        canvas.drawLine(0, lineY, width, lineY, this.linePaint);
+        if (this.basePrice.isNaN() == false) {
+            Paint paint;
+            if (this.basePrice < this.lastPrice) {
+                paint = this.winPaint;
+            } else {
+                paint = this.lossPaint;
+            }
+            markArea(canvas, this.targetExtremes, lineY,
+                    this.basePrice, this.lastPrice, this.lastPrice, paint, width);
+            // TODO performance
+        }
     } // onDraw()
 
     @Override
@@ -190,10 +238,13 @@ public class QuoteChartView extends View {
         setMeasuredDimension(measuredWidth, measuredHeight);
     } // onMeasure()
 
-    public void setValues(DbHelper.ExtremesInfo extremesInfo, Float ask, Float basePrice, Float bid,
+    public void setValues(DbHelper.Extremes quoteExtremes, DbHelper.Extremes targetExtremes,
+                          Float ask, Float basePrice, Float bid,
                           Float daysHigh, Float daysLow, Float lastPrice, Float lowerTarget,
-                          Float maxPrice, Float open, Float previousClose, Float upperTarget) {
-        this.extremesInfo = extremesInfo;
+                          Float maxPrice, Float open, Float previousClose,
+                          Float trailingTarget, Float upperTarget) {
+        this.quoteExtremes = quoteExtremes;
+        this.targetExtremes = targetExtremes;
         this.ask = ask;
         this.basePrice = basePrice;
         this.bid = bid;
@@ -204,6 +255,7 @@ public class QuoteChartView extends View {
         this.maxPrice = maxPrice;
         this.open = open;
         this.previousClose = previousClose;
+        this.trailingTarget = trailingTarget;
         this.upperTarget = upperTarget;
     } // setValues()
 }

@@ -181,6 +181,10 @@ public class QuoteChartView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        if (isInEditMode()) {
+            return;
+        }
+
         int width = getWidth();
         int currentY = this.paddingY;
         // Upper chart shows quote data:

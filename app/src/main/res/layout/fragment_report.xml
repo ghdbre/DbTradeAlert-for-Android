@@ -92,10 +92,10 @@
         android:layout_alignParentEnd="true"
         tools:text="158.2% V" />
 
-    <de.dbremes.dbtradealert.QuoteChartView
-        android:id="@+id/quoteChartView"
+    <de.dbremes.dbtradealert.ReportChartView
+        android:id="@+id/reportChartView"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/percentDailyVolumeTextView" >
-    </de.dbremes.dbtradealert.QuoteChartView>
+    </de.dbremes.dbtradealert.ReportChartView>
 </RelativeLayout>

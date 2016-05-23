@@ -522,7 +522,7 @@ public class DbHelper extends SQLiteOpenHelper {
     } // readAllWatchlists()
 
     /**
-     * Extremes holds information about the extremes of a quote or the signals of a security.
+     * Extremes holds information about the extremes of a quote or the targets of a security.
      * If lastPrice is null then maxValue and minValue are stored as the extremes.
      * If lastPrice is not null the extremes are calculated as percent of last price.
      * Example:

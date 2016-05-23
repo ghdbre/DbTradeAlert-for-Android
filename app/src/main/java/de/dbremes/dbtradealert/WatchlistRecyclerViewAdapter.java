@@ -61,18 +61,18 @@ public class WatchlistRecyclerViewAdapter
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_quote, parent, false);
+                .inflate(R.layout.fragment_report, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder viewHolder, int quotePosition) {
-        if (this.cursor.moveToPosition(quotePosition) == false) {
+    public void onBindViewHolder(final ViewHolder viewHolder, int reportPosition) {
+        if (this.cursor.moveToPosition(reportPosition) == false) {
             throw new IllegalStateException(
                     String.format(
                             "%s.%s: cannot move to position = %d; cursor.getCount() = %d",
                             WatchlistRecyclerViewAdapter.CLASS_NAME, "onBindViewHolder",
-                            quotePosition, this.cursor.getCount()));
+                            reportPosition, this.cursor.getCount()));
         }
         boolean isLastTradeOlderThanOneDay = this.isLastTradeOlderThanOneDay(this.cursor);
         // lastPrice is guaranteed to be not null because DbTradeAlert ignores data without
@@ -136,7 +136,7 @@ public class WatchlistRecyclerViewAdapter
             }
         }
         // endregion PercentDailyVolumeTextView
-        // region QuoteChartView
+        // region ReportChartView
         Float ask = Utils.readFloatRespectingNull(QuoteContract.Quote.ASK, this.cursor);
         Float basePrice
                 = Utils.readFloatRespectingNull(SecurityContract.Security.BASE_PRICE, this.cursor);
@@ -152,10 +152,10 @@ public class WatchlistRecyclerViewAdapter
                 SecurityContract.Security.TRAILING_TARGET, this.cursor);
         Float upperTarget = Utils.readFloatRespectingNull(
                 SecurityContract.Security.UPPER_TARGET, this.cursor);
-        viewHolder.QuoteChartView.setValues(this.quoteExtremes, this.targetExtremes,
+        viewHolder.ReportChartView.setValues(this.quoteExtremes, this.targetExtremes,
                 ask, basePrice, bid, daysHigh, daysLow, lastPrice, lowerTarget, maxPrice, open,
                 previousClose, trailingTarget, upperTarget);
-        // endregion QuoteChartView
+        // endregion ReportChartView
         // SecurityNameTextView
         viewHolder.SecurityNameTextView.setText(
                 this.cursor.getString(this.cursor.getColumnIndex(
@@ -249,7 +249,7 @@ public class WatchlistRecyclerViewAdapter
         public final TextView PercentChangeMaxPriceTextView;
         public final TextView PercentChangeTextView;
         public final TextView PercentDailyVolumeTextView;
-        public final QuoteChartView QuoteChartView;
+        public final ReportChartView ReportChartView;
         public final TextView SecurityNameTextView;
         public final TextView SignalTextView;
         // Symbol needed for View's onClickListener
@@ -268,7 +268,7 @@ public class WatchlistRecyclerViewAdapter
             this.PercentChangeTextView = (TextView) view.findViewById(R.id.percentChangeTextView);
             this.PercentDailyVolumeTextView
                     = (TextView) view.findViewById(R.id.percentDailyVolumeTextView);
-            this.QuoteChartView = (QuoteChartView) view.findViewById(R.id.quoteChartView);
+            this.ReportChartView = (ReportChartView) view.findViewById(R.id.reportChartView);
             this.SecurityNameTextView = (TextView) view.findViewById(R.id.securityNameTextView);
             this.SignalTextView = (TextView) view.findViewById(R.id.signalTextView);
             this.SymbolTextView = (TextView) view.findViewById(R.id.symbolTextView);

@@ -11,12 +11,13 @@ import android.view.View;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
-public class QuoteChartView extends View {
+public class ReportChartView extends View {
     // region private fields
-    private static final String CLASS_NAME = "QuoteChartView";
+    private static final String CLASS_NAME = "ReportChartView";
     private static final String naMarker = "-";
     private DbHelper.Extremes quoteExtremes;
     private DbHelper.Extremes targetExtremes;
+    // region quote data
     private Float ask;
     private Float basePrice;
     private Float bid;
@@ -29,6 +30,7 @@ public class QuoteChartView extends View {
     private Float previousClose;
     private Float trailingTarget;
     private Float upperTarget;
+    // endregion quote data
     // region graphics objects
     private final int spreadMarkerHeight = 8;
     private final int paddingY = 4;
@@ -43,19 +45,19 @@ public class QuoteChartView extends View {
 
     // region ctors
     // Constructor required for in-code creation
-    public QuoteChartView(Context context) {
+    public ReportChartView(Context context) {
         super(context);
         init();
     }
 
     // Constructor required for inflation from resource file
-    public QuoteChartView(Context context, AttributeSet attrs) {
+    public ReportChartView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
     // Constructor called by subclasses
-    public QuoteChartView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ReportChartView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }

@@ -40,12 +40,11 @@ public class WatchlistListActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
+        // Create the adapter that will return a fragment for each watchlist of the activity.
         mWatchlistListPagerAdapter
                 = new WatchlistListPagerAdapter(getSupportFragmentManager(), dbHelper);
 
-        // Set up the ViewPager with the sections adapter.
+        // Set up the ViewPager with the watchlist adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mWatchlistListPagerAdapter);
     }

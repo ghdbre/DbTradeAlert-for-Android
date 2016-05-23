@@ -11,4 +11,4 @@
         android:layout_marginRight="16dp"
         app:layoutManager="LinearLayoutManager"
         tools:context=".WatchlistFragment"
-        tools:listitem="@layout/fragment_quote" />
+        tools:listitem="@layout/fragment_report" />

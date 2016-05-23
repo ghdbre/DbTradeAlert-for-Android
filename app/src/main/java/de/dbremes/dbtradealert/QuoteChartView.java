@@ -219,15 +219,21 @@ public class QuoteChartView extends View {
         lineY = currentY + outputHeight / 2;
         canvas.drawLine(0, lineY, width, lineY, this.linePaint);
         if (this.basePrice.isNaN() == false) {
+            // Show performance
+            Float performance = (this.lastPrice - this.basePrice) * 100 / this.basePrice;
             Paint paint;
-            if (this.basePrice < this.lastPrice) {
+            if (performance > 0) {
                 paint = this.winPaint;
             } else {
                 paint = this.lossPaint;
             }
             markArea(canvas, this.targetExtremes, lineY,
                     this.basePrice, this.lastPrice, this.lastPrice, paint, width);
-            // TODO performance
+            String performanceString = String.format("%01.2f%%", performance);
+            this.textPaint.getTextBounds(performanceString, 0,
+                    performanceString.length(), this.boundsRectTemp);
+            int centerX = (width - this.boundsRectTemp.width()) / 2;
+            canvas.drawText(performanceString, centerX, lineY - 4, this.textPaint);
         }
     } // onDraw()
 

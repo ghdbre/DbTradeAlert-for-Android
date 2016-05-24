@@ -69,7 +69,7 @@ public class ReportChartView extends View {
         int originalCurrentY = currentY;
         String valueString = "";
         if (price.isNaN() == false) {
-            // Draw prices or their markers centered on their percentage of lastTrade
+            // Draw prices or their markers centered on their percentage of lastPrice
             float percent = getPercent(lastPrice, price);
             float currentX = getXPositionFromPercentage(extremes, percent, width);
             // Draw lastPrice above chart line

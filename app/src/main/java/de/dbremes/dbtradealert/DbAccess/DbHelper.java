@@ -24,13 +24,8 @@ public class DbHelper extends SQLiteOpenHelper {
     // strings for logging
     private final static String CURSOR_COUNT_FORMAT = "%s: cursor.getCount() = %d";
 
-    private SQLiteDatabase dummyDb;
-
     public DbHelper(Context context) {
         super(context, DbHelper.DB_NAME, null, DbHelper.DB_VERSION);
-        // onCreate() will be called on 1st use of the database
-        // this will use it for testing purposes:
-        dummyDb = getWritableDatabase();
     } // ctor()
 
     private void createQuoteTable(SQLiteDatabase db) {

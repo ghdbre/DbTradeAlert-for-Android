@@ -99,15 +99,15 @@ public class WatchlistRecyclerViewAdapter
                 this.cursor.getColumnIndex(QuoteContract.Quote.CURRENCY));
         viewHolder.LastPriceTextView.setText(
                 String.format("%01.2f %s", lastPrice, currency));
-        // PercentChangeMaxPriceTextView
+        // PercentChangeFromMaxPriceTextView
         Float maxPrice
                 = Utils.readFloatRespectingNull(SecurityContract.Security.MAX_PRICE, this.cursor);
         if (maxPrice.isNaN() == false) {
             float percentChangeFromMaxPrice = (lastPrice - maxPrice) / maxPrice * 100;
             this.setPercentageText(true, percentChangeFromMaxPrice,
-                    " MH", viewHolder.PercentChangeMaxPriceTextView);
+                    " MH", viewHolder.PercentChangeFromMaxPriceTextView);
         } else {
-            viewHolder.PercentChangeMaxPriceTextView.setText("- MH");
+            viewHolder.PercentChangeFromMaxPriceTextView.setText("- MH");
         }
         // PercentChangeTextView
         Float percentChange
@@ -246,7 +246,7 @@ public class WatchlistRecyclerViewAdapter
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final TextView LastPriceDateTimeTextView;
         public final TextView LastPriceTextView;
-        public final TextView PercentChangeMaxPriceTextView;
+        public final TextView PercentChangeFromMaxPriceTextView;
         public final TextView PercentChangeTextView;
         public final TextView PercentDailyVolumeTextView;
         public final ReportChartView ReportChartView;
@@ -263,8 +263,8 @@ public class WatchlistRecyclerViewAdapter
             this.LastPriceDateTimeTextView
                     = (TextView) view.findViewById(R.id.lastPriceDateTimeTextView);
             this.LastPriceTextView = (TextView) view.findViewById(R.id.lastPriceTextView);
-            this.PercentChangeMaxPriceTextView
-                    = (TextView) view.findViewById(R.id.percentChangeMaxPriceTextView);
+            this.PercentChangeFromMaxPriceTextView
+                    = (TextView) view.findViewById(R.id.percentChangeFromMaxPriceTextView);
             this.PercentChangeTextView = (TextView) view.findViewById(R.id.percentChangeTextView);
             this.PercentDailyVolumeTextView
                     = (TextView) view.findViewById(R.id.percentDailyVolumeTextView);

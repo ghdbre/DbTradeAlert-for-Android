@@ -27,12 +27,13 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
         this.context = params[0];
         String baseUrl = "http://download.finance.yahoo.com/d/quotes.csv";
         String url = baseUrl + "?f=" + DbHelper.FormatParameter + "&s=" + getSymbolParameterValue();
-        String quotes = "";
+        String quoteCsv = "";
         try {
             if (isConnected()) {
-                quotes = downloadQuotes(url);
-                Log.d(CLASS_NAME, "quotes=" + quotes);
-                // TODO: store quotes and update UI
+                quoteCsv = downloadQuotes(url);
+                DbHelper dbHelper = new DbHelper(this.context);
+                dbHelper.createOrUpdateQuotes(quoteCsv);
+                // TODO: and update UI
             } else {
                 // TODO: inform user
             }

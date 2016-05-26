@@ -13,16 +13,24 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DbHelper extends SQLiteOpenHelper {
     private static final String CLASS_NAME = "DbHelper";
+    public final static String DATE_TIME_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm";
     private static final String DB_NAME = "dbtradealert.db";
     private static final int DB_VERSION = 1;
+    private static final String EXCEPTION_CAUGHT = "Exception caught";
     // strings for logging
     private final static String CURSOR_COUNT_FORMAT = "%s: cursor.getCount() = %d";
+    private final static String INSERT_RESULT_FORMAT = "%s: result of db.insert() into %s: %d";
+    private final static String UPDATE_RESULT_FORMAT = "%s: result of db.update() for %s: %d";
 
     // region Format parameter values
     // API for Yahoo Finance (see e.g. http://brusdeylins.info/projects/yahoo-finance-api/):
@@ -56,10 +64,95 @@ public class DbHelper extends SQLiteOpenHelper {
     // commas which will trip up parseFromQuoteCsvRow()
     // endregion
     public final static String FormatParameter = "aa2bc4d1ghl1nopp2st1vx";
+    // NewItemId is used as a temporary ID until the database has stored the item
+    // and issued an ID for it
+    public final static long NewItemId = -1l;
 
     public DbHelper(Context context) {
         super(context, DbHelper.DB_NAME, null, DbHelper.DB_VERSION);
     } // ctor()
+
+    public void createOrUpdateQuotes(String quoteCsv) {
+        final String methodName = "createOrUpdateQuotes";
+        Log.v(CLASS_NAME, String.format("%s: quoteCsv = %s", methodName, quoteCsv));
+        // region Example
+        // Calling http://download.finance.yahoo.com/d/quotes.csv?s=BAYN.DE+NESN.VX+NOVN.VX+SIE.DE&f=aa2bc4d1ghl1nopp2st1vx
+        // gets back a .csv file like structure with 4 lines like this:
+        // 86.63,3076949,86.61,"EUR","5/26/2016",86.30,87.15,86.61,"BAYER N",87.00,87.15,"-0.62%","BAYN.DE","1:50pm",1701114,"GER"
+        // 73.90,5109651,73.85,"CHF","5/26/2016",73.30,73.90,73.85,"NESTLE N",73.30,73.40,"+0.61%","NESN.VX","1:48pm",1932311,"VTX"
+        // 79.25,5067592,79.15,"CHF","5/26/2016",78.80,79.40,79.20,"NOVARTIS N",79.25,78.90,"+0.38%","NOVN.VX","1:45pm",1935580,"VTX"
+        // 97.48,2100289,97.47,"EUR","5/26/2016",97.01,97.95,97.48,"SIEMENS N",97.13,97.12,"+0.37%","SIE.DE","1:50pm",813006,"GER"
+        // Split lines and parse each according to FormatParameter
+        // This will break if values include commas, see FormatParameter!
+        // endregion Example
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.beginTransaction();
+            String quoteCsvRow = null;
+            String[] quoteCsvRows = quoteCsv.split("\r?\n|\r");
+            for (int i = 0; i < quoteCsvRows.length; i++) {
+                quoteCsvRow = quoteCsvRows[i];
+                String[] values = quoteCsvRow.split(",");
+                // Delete any surrounding quotes
+                for (int j = 0; j < values.length; j++) {
+                    values[j] = values[j].replace("\"", "");
+                }
+                // Extract values (ordered by index of column in quoteCsv based on FormatParameter)
+                Float ask = getFloatFromString(values[0]); // a
+                Integer averageDailyVolume = getIntegerFromString(values[1]); // a2
+                Float bid = getFloatFromString(values[2]); // b
+                String currency = values[3]; // c4
+                String lastTradeDateTime
+                        = getDataTimeStringFromStrings(values[4], values[13]); // d1, t1
+                Float daysLow = getFloatFromString(values[5]); // g
+                Float daysHigh = getFloatFromString(values[6]); // h
+                Float lastTrade = getFloatFromString(values[7]); // l1
+                String name = values[8]; // n
+                Float open = getFloatFromString(values[9]); // 0
+                Float previousClose = getFloatFromString(values[10]); // p
+                Float percentChange = getFloatFromPercentString(values[11]); // p2
+                String symbol = values[12]; // s
+                Integer volume = getIntegerFromString(values[14]); // v
+                String stockExchangeName = values[15]; // x
+                long securityId = getSecurityIdFromSymbol(db, symbol);
+                // Store values (ordered alphabetically)
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(Quote.ASK, ask);
+                contentValues.put(Quote.AVERAGE_DAILY_VOLUME, averageDailyVolume);
+                contentValues.put(Quote.BID, bid);
+                contentValues.put(Quote.CURRENCY, currency);
+                contentValues.put(Quote.DAYS_HIGH, daysHigh);
+                contentValues.put(Quote.DAYS_LOW, daysLow);
+                contentValues.put(Quote.LAST_PRICE, lastTrade);
+                contentValues.put(Quote.LAST_PRICE_DATE_TIME, lastTradeDateTime);
+                contentValues.put(Quote.NAME, name);
+                contentValues.put(Quote.OPEN, open);
+                contentValues.put(Quote.PERCENT_CHANGE, percentChange);
+                contentValues.put(Quote.STOCK_EXCHANGE_NAME, stockExchangeName);
+                contentValues.put(Quote.PREVIOUS_CLOSE, previousClose);
+                contentValues.put(Quote.SECURITY_ID, securityId);
+                contentValues.put(Quote.SYMBOL, symbol);
+                contentValues.put(Quote.VOLUME, volume);
+                Long quoteId = getQuoteIdFromSymbol(db, symbol);
+                if (quoteId != NewItemId) {
+                    int updateResult = db.update(Quote.TABLE,
+                            contentValues, Quote.ID + " = ?",
+                            new String[] { quoteId.toString() });
+                    Log.d(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                            methodName, Quote.TABLE, updateResult));
+                } else {
+                    Long insertResult = db.insert(Quote.TABLE,
+                            null, contentValues);
+                    Log.d(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                            methodName, Quote.TABLE, insertResult));
+                }
+            }
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + ": success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // createOrUpdateStockQuote()
 
     private void createQuoteTable(SQLiteDatabase db) {
         String columnDefinitions = (Quote.ASK + " REAL, ") +
@@ -395,6 +488,75 @@ public class DbHelper extends SQLiteOpenHelper {
         return new Extremes(null, maxPercent, minPercent);
     } // getExtremesForCursor()
 
+    private String getDataTimeStringFromStrings(String lastTradeDateString,
+                                                   String lastTradeTimeString) {
+        String lastTradeDateTimeString = null;
+        Date lastTradeDate = null; // d1
+        Date lastTradeTime = null; // t1
+        if (lastTradeDateString.compareTo("N/A") != 0) {
+            // Step 1: calculate lastTradeDate
+            // It seems timezone matches the app's timezone so no conversion needed
+            // lastTradeDateString is formatted as US date, e.g. 5/26/2016
+            SimpleDateFormat lastTradeDateFormat = new SimpleDateFormat("MM/dd/yyyy");
+            try {
+                lastTradeDate = lastTradeDateFormat.parse(lastTradeDateString);
+            } catch (ParseException e) {
+                Log.e(CLASS_NAME, EXCEPTION_CAUGHT, e);
+            }
+            // Step 2: calculate lastTradeTime
+            // SimpleDateFormat can't handle missing space between time and am / pm
+            lastTradeTimeString = lastTradeTimeString.replace("am", " am").replace("pm", " pm");
+            // lastTradeDate is in 12 hour format, e.g. 1:50pm
+            // Need to specify Locale.US to avoid ParseException on am / pm part when that isn't
+            // used in the default locale
+            SimpleDateFormat lastTradeTimeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
+            try {
+                lastTradeTime = lastTradeTimeFormat.parse(lastTradeTimeString);
+            } catch (ParseException e) {
+                Log.e(CLASS_NAME, EXCEPTION_CAUGHT, e);
+            }
+        }
+        // Step 3: combine lastTradeDate and lastTradeTime
+        if (lastTradeDate != null && lastTradeTime != null) {
+            // not using Calendar class for performance reasons
+            @SuppressWarnings("deprecation")
+            Date lastTradeDateTime = new Date(lastTradeDate.getTime()
+                    + lastTradeTime.getHours() * 60 * 60 * 1000
+                    + lastTradeTime.getMinutes() * 60 * 1000);
+            // Convert to international format
+            SimpleDateFormat dateTimeFormat = new SimpleDateFormat(DATE_TIME_FORMAT_STRING);
+            lastTradeDateTimeString = dateTimeFormat.format(lastTradeDateTime);
+        }
+        return lastTradeDateTimeString;
+    } // getDataTimeStringFromStrings()
+
+    private Float getFloatFromPercentString(String s) {
+        s = s.replace("%", "");
+        return getFloatFromString(s);
+    } // getFloatFromPercentString()
+
+    private Float getFloatFromString(String s) {
+        Float result = Float.NaN;
+        try {
+            result = Float.parseFloat(s);
+        } catch (NumberFormatException x) {
+            // Probably empty string or "n/a" - return Float.NaN;
+            Log.e(CLASS_NAME, EXCEPTION_CAUGHT, x);
+        }
+        return result;
+    } // getFloatFromString()
+
+    private Integer getIntegerFromString(String s) {
+        Integer result = null;
+        try {
+            result = Integer.parseInt(s);
+        } catch (NumberFormatException x) {
+            // Probably empty string or "n/a" - return null;
+            Log.e(CLASS_NAME, EXCEPTION_CAUGHT, x);
+        }
+        return result;
+    } // getIntegerFromString()
+
     public Extremes getQuoteExtremesForWatchlist(long watchlistId) {
         final String methodName = "getQuoteExtremesForWatchlist";
         Cursor cursor = null;
@@ -424,6 +586,46 @@ public class DbHelper extends SQLiteOpenHelper {
                 Quote.DAYS_LOW, Quote.OPEN, Quote.PREVIOUS_CLOSE);
         return getExtremesForCursor(columnNames, cursor);
     } // getQuoteExtremesForWatchlist()
+
+    private Long getQuoteIdFromSymbol(SQLiteDatabase db, String symbol) {
+        Long result = NewItemId;
+        String table = Quote.TABLE;
+        String[] columns = new String[] { Quote.ID };
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
+        String selection = Quote.SYMBOL + " = ?";
+        String[] selectionArgs = new String[] { symbol };
+        Cursor cursor = db.query(
+                table, columns, selection, selectionArgs, groupBy, having, orderBy);
+        if (cursor.moveToFirst()) {
+            result = cursor.getLong(0);
+        }
+        cursor.close();
+        return result;
+    } // getQuoteIdFromSymbol()
+
+    private Long getSecurityIdFromSymbol(SQLiteDatabase db, String symbol) {
+        final String methodName = "getSecurityIdFromSymbol";
+        Long securityId = NewItemId;
+        String table = Security.TABLE;
+        String[] columns = new String[] { Security.ID };
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
+        String selection = Security.SYMBOL + " = ?";
+        String[] selectionArgs = new String[] { symbol };
+        Cursor cursor = db.query(
+                table, columns, selection, selectionArgs, groupBy, having, orderBy);
+        if (cursor.moveToFirst()) {
+            securityId = cursor.getLong(0);
+        } else {
+            Log.d(CLASS_NAME, String.format(
+                    "%s: couldn't get securityId for symbol = %s", methodName, symbol));
+        }
+        cursor.close();
+        return securityId;
+    } // getSecurityIdFromSymbol()
 
     public Extremes getTargetExtremesForWatchlist(long watchlistId) {
         final String methodName = "getTargetExtremesForWatchlist";

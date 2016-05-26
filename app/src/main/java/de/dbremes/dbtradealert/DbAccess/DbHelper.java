@@ -58,12 +58,12 @@ public class DbHelper extends SQLiteOpenHelper {
     // t1=Last Trade Time (13)
     // v, v0, v6=Volume (14)
     // x, x0=Stock Exchange (15)
-    // (n) = index of column in resulting .csv based on FormatParameter
+    // (n) = index of column in resulting .csv based on QuoteDownloadFormatParameter
     // watch out for parameters like b6 (Bid Size)!
     // They might return groups of numbers separated by
     // commas which will trip up parseFromQuoteCsvRow()
     // endregion
-    public final static String FormatParameter = "aa2bc4d1ghl1nopp2st1vx";
+    public final static String QuoteDownloadFormatParameter = "aa2bc4d1ghl1nopp2st1vx";
     // NewItemId is used as a temporary ID until the database has stored the item
     // and issued an ID for it
     public final static long NewItemId = -1l;
@@ -82,8 +82,8 @@ public class DbHelper extends SQLiteOpenHelper {
         // 73.90,5109651,73.85,"CHF","5/26/2016",73.30,73.90,73.85,"NESTLE N",73.30,73.40,"+0.61%","NESN.VX","1:48pm",1932311,"VTX"
         // 79.25,5067592,79.15,"CHF","5/26/2016",78.80,79.40,79.20,"NOVARTIS N",79.25,78.90,"+0.38%","NOVN.VX","1:45pm",1935580,"VTX"
         // 97.48,2100289,97.47,"EUR","5/26/2016",97.01,97.95,97.48,"SIEMENS N",97.13,97.12,"+0.37%","SIE.DE","1:50pm",813006,"GER"
-        // Split lines and parse each according to FormatParameter
-        // This will break if values include commas, see FormatParameter!
+        // Split lines and parse each according to QuoteDownloadFormatParameter
+        // This will break if values include commas, see QuoteDownloadFormatParameter!
         // endregion Example
         SQLiteDatabase db = this.getWritableDatabase();
         try {
@@ -97,7 +97,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 for (int j = 0; j < values.length; j++) {
                     values[j] = values[j].replace("\"", "");
                 }
-                // Extract values (ordered by index of column in quoteCsv based on FormatParameter)
+                // Extract values (ordered by index of column in quoteCsv based on QuoteDownloadFormatParameter)
                 Float ask = getFloatFromString(values[0]); // a
                 Integer averageDailyVolume = getIntegerFromString(values[1]); // a2
                 Float bid = getFloatFromString(values[2]); // b
@@ -737,7 +737,7 @@ public class DbHelper extends SQLiteOpenHelper {
         return cursor;
     } // readAllQuotesForWatchlist()
 
-    public Cursor readAllStockSymbols() {
+    public Cursor readAllSecuritySymbols() {
         Cursor cursor = null;
         SQLiteDatabase db = this.getReadableDatabase();
         String[] columns = new String[] { Security.SYMBOL };
@@ -749,7 +749,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String table = Security.TABLE;
         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         return cursor;
-    } // readAllStockSymbols()
+    } // readAllSecuritySymbols()
 
     public Cursor readAllWatchlists() {
         Cursor cursor = null;

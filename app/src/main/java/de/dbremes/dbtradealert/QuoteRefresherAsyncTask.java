@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +25,7 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
     protected Void doInBackground(Context... params) {
         this.context = params[0];
         String baseUrl = "http://download.finance.yahoo.com/d/quotes.csv";
-        String url = baseUrl + "?f=" + DbHelper.FormatParameter + "&s=" + getSymbolParameterValue();
+        String url = baseUrl + "?f=" + DbHelper.QuoteDownloadFormatParameter + "&s=" + getSymbolParameterValue();
         String quoteCsv = "";
         try {
             if (isConnected()) {
@@ -86,7 +85,7 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
     private String getSymbolParameterValue() {
         String result = "";
         DbHelper dbHelper = new DbHelper(this.context);
-        Cursor cursor = dbHelper.readAllStockSymbols();
+        Cursor cursor = dbHelper.readAllSecuritySymbols();
         StringBuilder sb = new StringBuilder();
         while (cursor.moveToNext()) {
             sb.append(cursor.getString(0) + "+");

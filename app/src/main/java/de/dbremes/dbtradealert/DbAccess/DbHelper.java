@@ -24,6 +24,39 @@ public class DbHelper extends SQLiteOpenHelper {
     // strings for logging
     private final static String CURSOR_COUNT_FORMAT = "%s: cursor.getCount() = %d";
 
+    // region Format parameter values
+    // API for Yahoo Finance (see e.g. http://brusdeylins.info/projects/yahoo-finance-api/):
+    // a=Ask (0)
+    // a2=Average Daily Volume (1)
+    // b=Bid (2)
+    // c=Change / Percent change
+    // c1, c0, c6, c7=Change
+    // c4=Currency (3)
+    // d1=Last Trade Date (4)
+    // g, g0=Day’s Low (5)
+    // h, h0=Day’s High (6)
+    // j6=Percent Change From 52-week Low
+    // k5=Percent Change From 52-week High
+    // l1=Last Trade (7)
+    // m, m0=Day’s Range
+    // m6=Percent Change From 200-day Moving Average
+    // m8=Percent Change From 50-day Moving Average
+    // n=Name (8)
+    // o, o0=Open (9)
+    // p, p0, p8=Previous Close (10)
+    // p2, p4=Change in Percent (11)
+    // s=Symbol (12)
+    // s7=Short Ratio
+    // t1=Last Trade Time (13)
+    // v, v0, v6=Volume (14)
+    // x, x0=Stock Exchange (15)
+    // (n) = index of column in resulting .csv based on FormatParameter
+    // watch out for parameters like b6 (Bid Size)!
+    // They might return groups of numbers separated by
+    // commas which will trip up parseFromQuoteCsvRow()
+    // endregion
+    public final static String FormatParameter = "aa2bc4d1ghl1nopp2st1vx";
+
     public DbHelper(Context context) {
         super(context, DbHelper.DB_NAME, null, DbHelper.DB_VERSION);
     } // ctor()
@@ -501,6 +534,20 @@ public class DbHelper extends SQLiteOpenHelper {
                         cursor.getCount()));
         return cursor;
     } // readAllQuotesForWatchlist()
+
+    public Cursor readAllStockSymbols() {
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = new String[] { Security.SYMBOL };
+        String groupBy = null;
+        String having = null;
+        String orderBy = Security.SYMBOL;
+        String selection = null;
+        String[] selectionArgs = null;
+        String table = Security.TABLE;
+        cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
+        return cursor;
+    } // readAllStockSymbols()
 
     public Cursor readAllWatchlists() {
         Cursor cursor = null;

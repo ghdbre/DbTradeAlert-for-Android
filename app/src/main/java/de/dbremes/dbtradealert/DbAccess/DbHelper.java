@@ -77,7 +77,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.v(CLASS_NAME, String.format("%s: quoteCsv = %s", methodName, quoteCsv));
         // region Example
         // Calling http://download.finance.yahoo.com/d/quotes.csv?s=BAYN.DE+NESN.VX+NOVN.VX+SIE.DE&f=aa2bc4d1ghl1nopp2st1vx
-        // gets back a .csv file like structure with 4 lines like this:
+        // gets back a csv file with 4 lines like this:
         // 85.50,3118324,85.47,"EUR","5/27/2016",85.23,85.93,85.49,"BAYER N",85.65,85.65,"-0.19%","BAYN.DE","10:40am",799639,"GER"
         // 74.45,5109847,74.40,"CHF","5/27/2016",73.85,74.50,74.40,"NESTLE N",74.05,74.25,"+0.20%","NESN.VX","10:40am",1360058,"VTX"
         // 79.55,5053093,79.50,"CHF","5/27/2016",79.20,79.80,79.50,"NOVARTIS N",79.30,79.35,"+0.19%","NOVN.VX","10:40am",1263633,"VTX"

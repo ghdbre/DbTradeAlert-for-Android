@@ -250,7 +250,7 @@ public class ReportChartView extends View {
             performanceTextPaint.getTextBounds(performanceString, 0,
                     performanceString.length(), this.boundsRectTemp);
             int centerX = (width - this.boundsRectTemp.width()) / 2;
-            canvas.drawText(performanceString, centerX, lineY - 4, performanceTextPaint);
+            canvas.drawText(performanceString, centerX, lineY - 8, performanceTextPaint);
         }
     } // onDraw()
 

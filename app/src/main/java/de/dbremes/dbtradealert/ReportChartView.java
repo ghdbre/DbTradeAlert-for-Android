@@ -179,13 +179,17 @@ public class ReportChartView extends View {
     } // init()
 
     private void markArea(Canvas canvas, DbHelper.Extremes extremes,
-                          int lineY, Float ask, Float bid, float lastPrice, Paint paint, int width) {
-        float askPercent = getPercent(lastPrice, ask);
-        float askPosition = this.getXPositionFromPercentage(extremes, askPercent, width);
-        float bidPercent = getPercent(lastPrice, bid);
-        float bidPosition = this.getXPositionFromPercentage(extremes, bidPercent, width);
-        canvas.drawRect(bidPosition, lineY - this.spreadMarkerHeight / 2,
-                askPosition, lineY + this.spreadMarkerHeight / 2, paint);
+                          int lineY, Float price1, Float price2,
+                          float lastPrice, Paint paint, int width) {
+        float percent1 = getPercent(lastPrice, price1);
+        float position1 = this.getXPositionFromPercentage(extremes, percent1, width);
+        float percent2 = getPercent(lastPrice, price2);
+        float position2 = this.getXPositionFromPercentage(extremes, percent2, width);
+        // drawRect() draws nothing if left > right
+        float left = Math.min(position1, position2);
+        float right = Math.max(position1, position2);
+        canvas.drawRect(left, lineY - this.spreadMarkerHeight / 2,
+                right, lineY + this.spreadMarkerHeight / 2, paint);
     } // markArea()
 
     @Override

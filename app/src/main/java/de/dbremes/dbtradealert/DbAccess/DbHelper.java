@@ -78,10 +78,10 @@ public class DbHelper extends SQLiteOpenHelper {
         // region Example
         // Calling http://download.finance.yahoo.com/d/quotes.csv?s=BAYN.DE+NESN.VX+NOVN.VX+SIE.DE&f=aa2bc4d1ghl1nopp2st1vx
         // gets back a .csv file like structure with 4 lines like this:
-        // 86.63,3076949,86.61,"EUR","5/26/2016",86.30,87.15,86.61,"BAYER N",87.00,87.15,"-0.62%","BAYN.DE","1:50pm",1701114,"GER"
-        // 73.90,5109651,73.85,"CHF","5/26/2016",73.30,73.90,73.85,"NESTLE N",73.30,73.40,"+0.61%","NESN.VX","1:48pm",1932311,"VTX"
-        // 79.25,5067592,79.15,"CHF","5/26/2016",78.80,79.40,79.20,"NOVARTIS N",79.25,78.90,"+0.38%","NOVN.VX","1:45pm",1935580,"VTX"
-        // 97.48,2100289,97.47,"EUR","5/26/2016",97.01,97.95,97.48,"SIEMENS N",97.13,97.12,"+0.37%","SIE.DE","1:50pm",813006,"GER"
+        // 85.50,3118324,85.47,"EUR","5/27/2016",85.23,85.93,85.49,"BAYER N",85.65,85.65,"-0.19%","BAYN.DE","10:40am",799639,"GER"
+        // 74.45,5109847,74.40,"CHF","5/27/2016",73.85,74.50,74.40,"NESTLE N",74.05,74.25,"+0.20%","NESN.VX","10:40am",1360058,"VTX"
+        // 79.55,5053093,79.50,"CHF","5/27/2016",79.20,79.80,79.50,"NOVARTIS N",79.30,79.35,"+0.19%","NOVN.VX","10:40am",1263633,"VTX"
+        // 97.80,2098357,97.79,"EUR","5/27/2016",97.25,97.94,97.80,"SIEMENS N",97.44,97.70,"+0.10%","SIE.DE","10:40am",308498,"GER"
         // Split lines and parse each according to QuoteDownloadFormatParameter
         // This will break if values include commas, see QuoteDownloadFormatParameter!
         // endregion Example

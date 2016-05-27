@@ -1,10 +1,12 @@
 package de.dbremes.dbtradealert;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,20 +21,25 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
 public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
     private static final String CLASS_NAME = "QuoteRefresherAsyncTask";
+    public static final String BROADCAST_ACTION_NAME = "QuoteRefresherAction";
+    public static final String BROADCAST_EXTRA_NAME = "Message";
+    public static final String BROADCAST_EXTRA_REFRESH_COMPLETED = "Refresh completed";
     private Context context;
 
     @Override
     protected Void doInBackground(Context... params) {
         this.context = params[0];
         String baseUrl = "http://download.finance.yahoo.com/d/quotes.csv";
-        String url = baseUrl + "?f=" + DbHelper.QuoteDownloadFormatParameter + "&s=" + getSymbolParameterValue();
+        String url = baseUrl
+                + "?f=" + DbHelper.QuoteDownloadFormatParameter
+                + "&s=" + getSymbolParameterValue();
         String quoteCsv = "";
         try {
             if (isConnected()) {
                 quoteCsv = downloadQuotes(url);
                 DbHelper dbHelper = new DbHelper(this.context);
                 dbHelper.createOrUpdateQuotes(quoteCsv);
-                // TODO: and update UI
+                sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
             } else {
                 // TODO: inform user
             }
@@ -111,5 +118,11 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return (networkInfo != null && networkInfo.isConnected());
     } // isConnected()
+
+    private void sendLocalBroadcast(String message) {
+        Intent intent = new Intent(BROADCAST_ACTION_NAME);
+        intent.putExtra(BROADCAST_EXTRA_NAME, message);
+        LocalBroadcastManager.getInstance(this.context).sendBroadcast(intent);
+    } // sendLocalBroadcast()
 
 } // class QuoteRefresherAsyncTask

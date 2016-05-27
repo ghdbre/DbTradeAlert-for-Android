@@ -1,13 +1,17 @@
 package de.dbremes.dbtradealert;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.database.Cursor;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -15,6 +19,7 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
 public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
+    private static final String CLASS_NAME = "WatchlistListActivity";
     private DbHelper dbHelper = null;
 
     /**
@@ -31,6 +36,20 @@ public class WatchlistListActivity extends AppCompatActivity
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+
+    private BroadcastReceiver quoteRefresherMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra(QuoteRefresherAsyncTask.BROADCAST_EXTRA_NAME);
+            if (QuoteRefresherAsyncTask.BROADCAST_EXTRA_REFRESH_COMPLETED.equals(message))
+            {
+                Log.d("BroadcastReceiver",
+                        "quoteRefresherMessageReceiver triggered UI update");
+            }
+            Log.d("BroadcastReceiver",
+                    "quoteRefresherMessageReceiver message = '" + message + "'");
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +77,11 @@ public class WatchlistListActivity extends AppCompatActivity
     }
 
     @Override
+    public void onListFragmentInteraction(String item) {
+
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -78,8 +102,17 @@ public class WatchlistListActivity extends AppCompatActivity
     }
 
     @Override
-    public void onListFragmentInteraction(String item) {
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(quoteRefresherMessageReceiver);
+        Log.d(CLASS_NAME, "onPause(): quoteRefresherMessageReceiver unregistered");
+        super.onPause();
+    } // onPause()
 
-    }
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(quoteRefresherMessageReceiver,
+                new IntentFilter(QuoteRefresherAsyncTask.BROADCAST_ACTION_NAME));
+        Log.d(CLASS_NAME, "onResume(): quoteRefresherMessageReceiver registered");
+    } // onResume()
 }

@@ -22,6 +22,7 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
     private static final String CLASS_NAME = "QuoteRefresherAsyncTask";
     public static final String BROADCAST_ACTION_NAME = "QuoteRefresherAction";
+    public static final String BROADCAST_EXTRA_ERROR = "Error: ";
     public static final String BROADCAST_EXTRA_NAME = "Message";
     public static final String BROADCAST_EXTRA_REFRESH_COMPLETED = "Refresh completed";
     private Context context;
@@ -39,9 +40,8 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
                 quoteCsv = downloadQuotes(url);
                 DbHelper dbHelper = new DbHelper(this.context);
                 dbHelper.createOrUpdateQuotes(quoteCsv);
-                sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
             } else {
-                // TODO: inform user
+                sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "no Internet!");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,7 +66,8 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
                 inputStream = conn.getInputStream();
                 result = getStringFromStream(inputStream);
             } else {
-                // TODO: inform user
+                sendLocalBroadcast(BROADCAST_EXTRA_ERROR
+                        + "download failed (response code " + responseCode + ")!");
             }
         } finally {
             if (inputStream != null) {
@@ -118,6 +119,11 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return (networkInfo != null && networkInfo.isConnected());
     } // isConnected()
+
+    @Override
+    protected void onPostExecute(Void result) {
+        sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
+    } // onPostExecute()
 
     private void sendLocalBroadcast(String message) {
         Intent intent = new Intent(BROADCAST_ACTION_NAME);

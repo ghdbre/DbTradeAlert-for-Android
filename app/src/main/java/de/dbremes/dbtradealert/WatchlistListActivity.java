@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
@@ -41,10 +42,12 @@ public class WatchlistListActivity extends AppCompatActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra(QuoteRefresherAsyncTask.BROADCAST_EXTRA_NAME);
-            if (QuoteRefresherAsyncTask.BROADCAST_EXTRA_REFRESH_COMPLETED.equals(message))
-            {
+            if (message.equals(QuoteRefresherAsyncTask.BROADCAST_EXTRA_REFRESH_COMPLETED)) {
                 Log.d("BroadcastReceiver",
                         "quoteRefresherMessageReceiver triggered UI update");
+            }
+            else if (message.startsWith(QuoteRefresherAsyncTask.BROADCAST_EXTRA_ERROR)) {
+                Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
             }
             Log.d("BroadcastReceiver",
                     "quoteRefresherMessageReceiver message = '" + message + "'");

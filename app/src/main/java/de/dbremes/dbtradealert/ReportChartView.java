@@ -38,7 +38,9 @@ public class ReportChartView extends View {
     private Rect boundsRectTemp = new Rect();
     private Paint linePaint = null;
     private Paint lossPaint = null;
+    private Paint textLossPaint = null;
     private Paint textPaint = null;
+    private Paint textWinPaint = null;
     private Paint winPaint = null;
     // endregion graphics objects
     // endregion private fields
@@ -162,9 +164,15 @@ public class ReportChartView extends View {
         this.lossPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.lossPaint.setColor(Color.RED);
         this.lossPaint.setStrokeWidth(2);
+        this.textLossPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        this.textLossPaint.setColor(Color.RED);
+        this.textLossPaint.setTextSize(30);
         this.textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.textPaint.setColor(Color.BLACK);
         this.textPaint.setTextSize(30);
+        this.textWinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        this.textWinPaint.setColor(Color.GREEN);
+        this.textWinPaint.setTextSize(30);
         this.winPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.winPaint.setColor(Color.GREEN);
         this.winPaint.setStrokeWidth(2);
@@ -227,19 +235,22 @@ public class ReportChartView extends View {
         if (this.basePrice.isNaN() == false) {
             // Show performance
             Float performance = (this.lastPrice - this.basePrice) * 100 / this.basePrice;
-            Paint paint;
+            Paint performancePaint;
+            Paint performanceTextPaint;
             if (performance > 0) {
-                paint = this.winPaint;
+                performancePaint = this.winPaint;
+                performanceTextPaint = this.textWinPaint;
             } else {
-                paint = this.lossPaint;
+                performancePaint = this.lossPaint;
+                performanceTextPaint = this.textLossPaint;
             }
             markArea(canvas, this.targetExtremes, lineY,
-                    this.basePrice, this.lastPrice, this.lastPrice, paint, width);
+                    this.basePrice, this.lastPrice, this.lastPrice, performancePaint, width);
             String performanceString = String.format("%01.2f%%", performance);
-            this.textPaint.getTextBounds(performanceString, 0,
+            performanceTextPaint.getTextBounds(performanceString, 0,
                     performanceString.length(), this.boundsRectTemp);
             int centerX = (width - this.boundsRectTemp.width()) / 2;
-            canvas.drawText(performanceString, centerX, lineY - 4, this.textPaint);
+            canvas.drawText(performanceString, centerX, lineY - 4, performanceTextPaint);
         }
     } // onDraw()
 

@@ -54,6 +54,7 @@ public class WatchlistFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_watchlist, container, false);
+        view.setTag(this.watchlistId);
 
         // Set the adapter
         if (view instanceof RecyclerView) {

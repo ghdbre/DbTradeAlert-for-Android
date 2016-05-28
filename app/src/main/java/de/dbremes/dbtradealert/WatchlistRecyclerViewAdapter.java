@@ -28,7 +28,7 @@ public class WatchlistRecyclerViewAdapter
     private static final String CLASS_NAME = "WatchlistRec.ViewAd.";
     private final DbHelper.Extremes quoteExtremes;
     private final DbHelper.Extremes targetExtremes;
-    private final Cursor cursor;
+    private Cursor cursor;
     private final OnListFragmentInteractionListener listener;
 
     public WatchlistRecyclerViewAdapter(
@@ -242,6 +242,13 @@ public class WatchlistRecyclerViewAdapter
         String formatString = isSmallText ? "%01.1f%%%s" : "%01.2f %%%s";
         textView.setText(String.format(formatString, percentValue, textToAdd));
     } // setPercentageText()
+
+    public void swapCursor(Cursor newCursor) {
+        if (newCursor != this.cursor) {
+            this.cursor = newCursor;
+            notifyDataSetChanged();
+        }
+    } // swapCursor()
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final TextView LastPriceDateTimeTextView;

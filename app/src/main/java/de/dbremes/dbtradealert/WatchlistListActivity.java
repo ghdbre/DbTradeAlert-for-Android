@@ -4,8 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.FragmentPagerAdapter;
@@ -16,10 +18,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
+import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
+    private static final String APP_NAME = "DbTradeAlert";
     private static final String CLASS_NAME = "WatchlistListActivity";
     private DbHelper dbHelper = null;
 
@@ -45,6 +53,8 @@ public class WatchlistListActivity extends AppCompatActivity
             if (message.equals(QuoteRefresherAsyncTask.BROADCAST_EXTRA_REFRESH_COMPLETED)) {
                 Log.d("BroadcastReceiver",
                         "quoteRefresherMessageReceiver triggered UI update");
+                refreshAllWatchLists();
+                setTitle(APP_NAME + " @ " + getTime());
             }
             else if (message.startsWith(QuoteRefresherAsyncTask.BROADCAST_EXTRA_ERROR)) {
                 Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
@@ -53,6 +63,15 @@ public class WatchlistListActivity extends AppCompatActivity
                     "quoteRefresherMessageReceiver message = '" + message + "'");
         }
     };
+
+    private String getTime() {
+        String result = "";
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        // Seems not to be necessary:
+        //sdf.setTimeZone(TimeZone.getDefault());
+        result = sdf.format(new Date());
+        return result;
+    } // getTime()
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +111,7 @@ public class WatchlistListActivity extends AppCompatActivity
         int id = item.getItemId();
         switch (id) {
             case R.id.action_refresh: {
+                setTitle(APP_NAME);
                 Context context = getApplicationContext();
                 new QuoteRefresherAsyncTask().execute(context);
                 return true;
@@ -118,4 +138,27 @@ public class WatchlistListActivity extends AppCompatActivity
                 new IntentFilter(QuoteRefresherAsyncTask.BROADCAST_ACTION_NAME));
         Log.d(CLASS_NAME, "onResume(): quoteRefresherMessageReceiver registered");
     } // onResume()
+
+    private void refreshAllWatchLists() {
+        final String methodName = "refreshAllWatchLists";
+        Cursor cursor = this.dbHelper.readAllWatchlists();
+        final int watchListIdColumnIndex = cursor.getColumnIndex(WatchlistContract.Watchlist.ID);
+        while (cursor.moveToNext()) {
+            long watchListId = cursor.getLong(watchListIdColumnIndex);
+            RecyclerView recyclerView = (RecyclerView) mViewPager.findViewWithTag(watchListId);
+            if (recyclerView != null) {
+                WatchlistRecyclerViewAdapter adapter
+                        = (WatchlistRecyclerViewAdapter) recyclerView.getAdapter();
+                Cursor quotesCursor = this.dbHelper.readAllQuotesForWatchlist(watchListId);
+                adapter.swapCursor(quotesCursor);
+                Log.d(CLASS_NAME, String.format(
+                        "%s: changed cursor for recyclerView with tag = %d",
+                        methodName, watchListId));
+            } else {
+                Log.d(CLASS_NAME, String.format(
+                        "%s: cannot find recyclerView with tag = %d",
+                        methodName, watchListId));
+            }
+        }
+    } // refreshAllWatchLists()
 }

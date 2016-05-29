@@ -39,7 +39,7 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
             if (isConnected()) {
                 quoteCsv = downloadQuotes(url);
                 DbHelper dbHelper = new DbHelper(this.context);
-                dbHelper.createOrUpdateQuotes(quoteCsv);
+                dbHelper.updateOrCreateQuotes(quoteCsv);
             } else {
                 sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "no Internet!");
             }

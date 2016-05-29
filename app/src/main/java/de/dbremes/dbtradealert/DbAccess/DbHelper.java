@@ -72,88 +72,6 @@ public class DbHelper extends SQLiteOpenHelper {
         super(context, DbHelper.DB_NAME, null, DbHelper.DB_VERSION);
     } // ctor()
 
-    public void createOrUpdateQuotes(String quoteCsv) {
-        final String methodName = "createOrUpdateQuotes";
-        Log.v(CLASS_NAME, String.format("%s: quoteCsv = %s", methodName, quoteCsv));
-        // region Example
-        // Calling http://download.finance.yahoo.com/d/quotes.csv?s=BAYN.DE+NESN.VX+NOVN.VX+SIE.DE&f=aa2bc4d1ghl1nopp2st1vx
-        // gets back a csv file with 4 lines like this:
-        // 85.50,3118324,85.47,"EUR","5/27/2016",85.23,85.93,85.49,"BAYER N",85.65,85.65,"-0.19%","BAYN.DE","10:40am",799639,"GER"
-        // 74.45,5109847,74.40,"CHF","5/27/2016",73.85,74.50,74.40,"NESTLE N",74.05,74.25,"+0.20%","NESN.VX","10:40am",1360058,"VTX"
-        // 79.55,5053093,79.50,"CHF","5/27/2016",79.20,79.80,79.50,"NOVARTIS N",79.30,79.35,"+0.19%","NOVN.VX","10:40am",1263633,"VTX"
-        // 97.80,2098357,97.79,"EUR","5/27/2016",97.25,97.94,97.80,"SIEMENS N",97.44,97.70,"+0.10%","SIE.DE","10:40am",308498,"GER"
-        // Split lines and parse each according to QuoteDownloadFormatParameter
-        // This will break if values include commas, see QuoteDownloadFormatParameter!
-        // endregion Example
-        SQLiteDatabase db = this.getWritableDatabase();
-        try {
-            db.beginTransaction();
-            String quoteCsvRow = null;
-            String[] quoteCsvRows = quoteCsv.split("\r?\n|\r");
-            for (int i = 0; i < quoteCsvRows.length; i++) {
-                quoteCsvRow = quoteCsvRows[i];
-                String[] values = quoteCsvRow.split(",");
-                // Delete any surrounding quotes
-                for (int j = 0; j < values.length; j++) {
-                    values[j] = values[j].replace("\"", "");
-                }
-                // Extract values (ordered by index of column in quoteCsv based on QuoteDownloadFormatParameter)
-                Float ask = getFloatFromString(values[0]); // a
-                Integer averageDailyVolume = getIntegerFromString(values[1]); // a2
-                Float bid = getFloatFromString(values[2]); // b
-                String currency = values[3]; // c4
-                String lastTradeDateTime
-                        = getDataTimeStringFromStrings(values[4], values[13]); // d1, t1
-                Float daysLow = getFloatFromString(values[5]); // g
-                Float daysHigh = getFloatFromString(values[6]); // h
-                Float lastTrade = getFloatFromString(values[7]); // l1
-                String name = values[8]; // n
-                Float open = getFloatFromString(values[9]); // 0
-                Float previousClose = getFloatFromString(values[10]); // p
-                Float percentChange = getFloatFromPercentString(values[11]); // p2
-                String symbol = values[12]; // s
-                Integer volume = getIntegerFromString(values[14]); // v
-                String stockExchangeName = values[15]; // x
-                long securityId = getSecurityIdFromSymbol(db, symbol);
-                // Store values (ordered alphabetically)
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(Quote.ASK, ask);
-                contentValues.put(Quote.AVERAGE_DAILY_VOLUME, averageDailyVolume);
-                contentValues.put(Quote.BID, bid);
-                contentValues.put(Quote.CURRENCY, currency);
-                contentValues.put(Quote.DAYS_HIGH, daysHigh);
-                contentValues.put(Quote.DAYS_LOW, daysLow);
-                contentValues.put(Quote.LAST_PRICE, lastTrade);
-                contentValues.put(Quote.LAST_PRICE_DATE_TIME, lastTradeDateTime);
-                contentValues.put(Quote.NAME, name);
-                contentValues.put(Quote.OPEN, open);
-                contentValues.put(Quote.PERCENT_CHANGE, percentChange);
-                contentValues.put(Quote.STOCK_EXCHANGE_NAME, stockExchangeName);
-                contentValues.put(Quote.PREVIOUS_CLOSE, previousClose);
-                contentValues.put(Quote.SECURITY_ID, securityId);
-                contentValues.put(Quote.SYMBOL, symbol);
-                contentValues.put(Quote.VOLUME, volume);
-                Long quoteId = getQuoteIdFromSymbol(db, symbol);
-                if (quoteId != NewItemId) {
-                    int updateResult = db.update(Quote.TABLE,
-                            contentValues, Quote.ID + " = ?",
-                            new String[] { quoteId.toString() });
-                    Log.d(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
-                            methodName, Quote.TABLE, updateResult));
-                } else {
-                    Long insertResult = db.insert(Quote.TABLE,
-                            null, contentValues);
-                    Log.d(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
-                            methodName, Quote.TABLE, insertResult));
-                }
-            }
-            db.setTransactionSuccessful();
-            Log.d(CLASS_NAME, methodName + ": success!");
-        } finally {
-            db.endTransaction();
-        }
-    } // createOrUpdateStockQuote()
-
     private void createQuoteTable(SQLiteDatabase db) {
         String columnDefinitions = (Quote.ASK + " REAL, ") +
                 Quote.AVERAGE_DAILY_VOLUME + " INTEGER, " +
@@ -764,6 +682,87 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         return cursor;
     } // readAllWatchlists()
+
+    public void updateOrCreateQuotes(String quoteCsv) {
+        final String methodName = "updateOrCreateQuotes";
+        Log.v(CLASS_NAME, String.format("%s: quoteCsv = %s", methodName, quoteCsv));
+        // region Example
+        // Calling http://download.finance.yahoo.com/d/quotes.csv?s=BAYN.DE+NESN.VX+NOVN.VX+SIE.DE&f=aa2bc4d1ghl1nopp2st1vx
+        // gets back a csv file with 4 lines like this:
+        // 85.50,3118324,85.47,"EUR","5/27/2016",85.23,85.93,85.49,"BAYER N",85.65,85.65,"-0.19%","BAYN.DE","10:40am",799639,"GER"
+        // 74.45,5109847,74.40,"CHF","5/27/2016",73.85,74.50,74.40,"NESTLE N",74.05,74.25,"+0.20%","NESN.VX","10:40am",1360058,"VTX"
+        // 79.55,5053093,79.50,"CHF","5/27/2016",79.20,79.80,79.50,"NOVARTIS N",79.30,79.35,"+0.19%","NOVN.VX","10:40am",1263633,"VTX"
+        // 97.80,2098357,97.79,"EUR","5/27/2016",97.25,97.94,97.80,"SIEMENS N",97.44,97.70,"+0.10%","SIE.DE","10:40am",308498,"GER"
+        // Split lines and parse each according to QuoteDownloadFormatParameter
+        // This will break if values include commas, see QuoteDownloadFormatParameter!
+        // endregion Example
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.beginTransaction();
+            String quoteCsvRow = null;
+            String[] quoteCsvRows = quoteCsv.split("\r?\n|\r");
+            for (int i = 0; i < quoteCsvRows.length; i++) {
+                quoteCsvRow = quoteCsvRows[i];
+                String[] values = quoteCsvRow.split(",");
+                // Delete any surrounding quotes
+                for (int j = 0; j < values.length; j++) {
+                    values[j] = values[j].replace("\"", "");
+                }
+                // Extract values (ordered by index of column in quoteCsv based on QuoteDownloadFormatParameter)
+                Float ask = getFloatFromString(values[0]); // a
+                Integer averageDailyVolume = getIntegerFromString(values[1]); // a2
+                Float bid = getFloatFromString(values[2]); // b
+                String currency = values[3]; // c4
+                String lastTradeDateTime
+                        = getDataTimeStringFromStrings(values[4], values[13]); // d1, t1
+                Float daysLow = getFloatFromString(values[5]); // g
+                Float daysHigh = getFloatFromString(values[6]); // h
+                Float lastTrade = getFloatFromString(values[7]); // l1
+                String name = values[8]; // n
+                Float open = getFloatFromString(values[9]); // 0
+                Float previousClose = getFloatFromString(values[10]); // p
+                Float percentChange = getFloatFromPercentString(values[11]); // p2
+                String symbol = values[12]; // s
+                Integer volume = getIntegerFromString(values[14]); // v
+                String stockExchangeName = values[15]; // x
+                long securityId = getSecurityIdFromSymbol(db, symbol);
+                // Store values (ordered alphabetically)
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(Quote.ASK, ask);
+                contentValues.put(Quote.AVERAGE_DAILY_VOLUME, averageDailyVolume);
+                contentValues.put(Quote.BID, bid);
+                contentValues.put(Quote.CURRENCY, currency);
+                contentValues.put(Quote.DAYS_HIGH, daysHigh);
+                contentValues.put(Quote.DAYS_LOW, daysLow);
+                contentValues.put(Quote.LAST_PRICE, lastTrade);
+                contentValues.put(Quote.LAST_PRICE_DATE_TIME, lastTradeDateTime);
+                contentValues.put(Quote.NAME, name);
+                contentValues.put(Quote.OPEN, open);
+                contentValues.put(Quote.PERCENT_CHANGE, percentChange);
+                contentValues.put(Quote.STOCK_EXCHANGE_NAME, stockExchangeName);
+                contentValues.put(Quote.PREVIOUS_CLOSE, previousClose);
+                contentValues.put(Quote.SECURITY_ID, securityId);
+                contentValues.put(Quote.SYMBOL, symbol);
+                contentValues.put(Quote.VOLUME, volume);
+                // Just try an Update as this will only fail for a newly added security
+                int updateResult = db.update(Quote.TABLE,
+                        contentValues, Quote.SECURITY_ID + " = ?",
+                        new String[] {String.valueOf(securityId)});
+                Log.d(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                        methodName, Quote.TABLE, updateResult));
+                if (updateResult == 0) {
+                    Long insertResult = db.insert(Quote.TABLE,
+                            null, contentValues);
+                    Log.d(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                            methodName, Quote.TABLE, insertResult));
+                }
+            }
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + ": success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // updateOrCreateQuotes()
 
     /**
      * Extremes holds information about the extremes of a quote or the targets of a security.

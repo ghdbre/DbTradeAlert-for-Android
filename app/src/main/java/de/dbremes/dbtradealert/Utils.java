@@ -9,5 +9,5 @@ public class Utils {
             result = cursor.getFloat(cursor.getColumnIndex(columnName));
         }
         return result;
-    }
-}
+    } // readFloatRespectingNull()
+} // class Utils

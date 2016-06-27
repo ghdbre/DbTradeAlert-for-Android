@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,7 +19,6 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
@@ -32,35 +30,24 @@ public class WatchlistListActivity extends AppCompatActivity
     private DbHelper dbHelper = null;
 
     /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private WatchlistListPagerAdapter mWatchlistListPagerAdapter;
-
-    /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
 
-    private BroadcastReceiver quoteRefresherMessageReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver quotesRefreshedBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String message = intent.getStringExtra(QuoteRefresherAsyncTask.BROADCAST_EXTRA_NAME);
-            if (message.equals(QuoteRefresherAsyncTask.BROADCAST_EXTRA_REFRESH_COMPLETED)) {
+            String message = intent.getStringExtra(QuoteRefresherService.BROADCAST_EXTRA_NAME);
+            if (message.equals(QuoteRefresherService.BROADCAST_EXTRA_REFRESH_COMPLETED)) {
                 Log.d("BroadcastReceiver",
-                        "quoteRefresherMessageReceiver triggered UI update");
+                        "quotesRefreshedBroadcastReceiver triggered UI update");
                 refreshAllWatchLists();
                 setTitle(APP_NAME + " @ " + getTime());
-            }
-            else if (message.startsWith(QuoteRefresherAsyncTask.BROADCAST_EXTRA_ERROR)) {
+            } else if (message.startsWith(QuoteRefresherService.BROADCAST_EXTRA_ERROR)) {
                 Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
+                Log.d("BroadcastReceiver",
+                        "quotesRefreshedBroadcastReceiver error = '" + message + "'");
             }
-            Log.d("BroadcastReceiver",
-                    "quoteRefresherMessageReceiver message = '" + message + "'");
         }
     };
 
@@ -78,18 +65,19 @@ public class WatchlistListActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_watchlist_list);
 
-        this.dbHelper =  new DbHelper(this);
+        this.dbHelper = new DbHelper(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each watchlist of the activity.
-        mWatchlistListPagerAdapter
-                = new WatchlistListPagerAdapter(getSupportFragmentManager(), dbHelper);
-
         // Set up the ViewPager with the watchlist adapter.
+        WatchlistListPagerAdapter watchlistListPagerAdapter
+                = new WatchlistListPagerAdapter(getSupportFragmentManager(), dbHelper);
         mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mWatchlistListPagerAdapter);
-    }
+        mViewPager.setAdapter(watchlistListPagerAdapter);
+        // Create initial quote refresh schedule (just overwrite existing ones)
+        Log.d(CLASS_NAME, "onCreate(): creating quote refresh schedule");
+        startQuoteRefreshScheduleCreation();
+    } // onCreate()
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -113,7 +101,9 @@ public class WatchlistListActivity extends AppCompatActivity
             case R.id.action_refresh: {
                 setTitle(APP_NAME);
                 Context context = getApplicationContext();
-                new QuoteRefresherAsyncTask().execute(context);
+                Intent service = new Intent(context, QuoteRefresherService.class);
+                service.putExtra(QuoteRefresherService.INTENT_EXTRA_IS_MANUAL_REFRESH, true);
+                startService(service);
                 return true;
             }
             case R.id.action_settings: {
@@ -126,7 +116,10 @@ public class WatchlistListActivity extends AppCompatActivity
 
     @Override
     protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(quoteRefresherMessageReceiver);
+        // App goes to background - no need to update screen
+        // And programatically registered broadcast receivers don't receive broadcasts when the app
+        // is paused anyway
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(quotesRefreshedBroadcastReceiver);
         Log.d(CLASS_NAME, "onPause(): quoteRefresherMessageReceiver unregistered");
         super.onPause();
     } // onPause()
@@ -134,9 +127,11 @@ public class WatchlistListActivity extends AppCompatActivity
     @Override
     public void onResume() {
         super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(quoteRefresherMessageReceiver,
-                new IntentFilter(QuoteRefresherAsyncTask.BROADCAST_ACTION_NAME));
+        LocalBroadcastManager.getInstance(this).registerReceiver(quotesRefreshedBroadcastReceiver,
+                new IntentFilter(QuoteRefresherService.BROADCAST_ACTION_NAME));
         Log.d(CLASS_NAME, "onResume(): quoteRefresherMessageReceiver registered");
+        // Show possibly updated quotes when user returns to app
+        refreshAllWatchLists();
     } // onResume()
 
     private void refreshAllWatchLists() {
@@ -161,4 +156,12 @@ public class WatchlistListActivity extends AppCompatActivity
             }
         }
     } // refreshAllWatchLists()
+
+    private void startQuoteRefreshScheduleCreation() {
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, QuoteRefreshScheduler.class);
+        // LocalBroadcastManager won't work for statically registered receiver:
+        //LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        sendBroadcast(intent);
+    } // startQuoteRefreshScheduleCreation()
 }

@@ -1,12 +1,12 @@
 package de.dbremes.dbtradealert;
 
-import android.content.Context;
+import android.app.IntentService;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,38 +16,79 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Calendar;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
-public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
-    private static final String CLASS_NAME = "QuoteRefresherAsyncTask";
+public class QuoteRefresherService extends IntentService {
+    private static final String CLASS_NAME = "QuoteRefresherService";
     public static final String BROADCAST_ACTION_NAME = "QuoteRefresherAction";
     public static final String BROADCAST_EXTRA_ERROR = "Error: ";
     public static final String BROADCAST_EXTRA_NAME = "Message";
     public static final String BROADCAST_EXTRA_REFRESH_COMPLETED = "Refresh completed";
-    private Context context;
+    public static final String INTENT_EXTRA_IS_MANUAL_REFRESH = "isManualRefresh";
+    private static final String exceptionMessage = "Exception caught";
+
+    public QuoteRefresherService() {
+        super("QuoteRefresherService");
+    } // ctor()
+
+    private boolean areExchangesOpenNow() {
+        final String methodName = "areExchangesOpenNow";
+        boolean result = false;
+        Calendar now = Calendar.getInstance();
+        int hourOfDay = now.get(Calendar.HOUR_OF_DAY);
+        if (hourOfDay >= 9 && hourOfDay <= 18) {
+            int dayOfWeek = now.get(Calendar.DAY_OF_WEEK);
+            if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
+                result = true;
+            } else {
+                Log.d(CLASS_NAME, String.format(
+                        "%s(): Exchanges closed on weekends (day = %d)",
+                        methodName, dayOfWeek));
+            }
+        } else {
+            Log.d(CLASS_NAME, String.format(
+                    "%s(): Exchanges closed after hours (hour = %d)",
+                    methodName, hourOfDay));
+        }
+        if (result) {
+            Log.d(CLASS_NAME, String.format(
+                    "%s(): Exchanges open", methodName));
+        }
+        return result;
+    }// areExchangesOpenNow()
 
     @Override
-    protected Void doInBackground(Context... params) {
-        this.context = params[0];
+    protected void onHandleIntent(Intent intent) {
         String baseUrl = "http://download.finance.yahoo.com/d/quotes.csv";
         String url = baseUrl
                 + "?f=" + DbHelper.QuoteDownloadFormatParameter
                 + "&s=" + getSymbolParameterValue();
         String quoteCsv = "";
         try {
-            if (isConnected()) {
-                quoteCsv = downloadQuotes(url);
-                DbHelper dbHelper = new DbHelper(this.context);
-                dbHelper.updateOrCreateQuotes(quoteCsv);
+            boolean isManualRefresh = intent.getBooleanExtra(INTENT_EXTRA_IS_MANUAL_REFRESH, false);
+            if (isManualRefresh || areExchangesOpenNow()) {
+                if (isConnected()) {
+                        quoteCsv = downloadQuotes(url);
+                        DbHelper dbHelper = new DbHelper(this);
+                        dbHelper.updateOrCreateQuotes(quoteCsv);
+                } else {
+                    sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "no Internet!");
+                    Log.d(CLASS_NAME, BROADCAST_EXTRA_ERROR + "no Internet!");
+                }
+                Log.d(CLASS_NAME,
+                        "onHandleIntent(): quotes updated - initiating screen refresh");
+                sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
+                QuoteRefreshAlarmReceiver.completeWakefulIntent(intent);
             } else {
-                sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "no Internet!");
+                Log.d(CLASS_NAME,
+                    "onHandleIntent(): exchanges closed and not a manual reefresh - skipping alarm");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(CLASS_NAME, exceptionMessage, e);
         }
-        return null;
-    } // doInBackground()
+    } // onHandleIntent()
 
     private String downloadQuotes(String urlString) throws IOException {
         String result = "";
@@ -74,11 +115,12 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
                 inputStream.close();
             }
         }
+        Log.d(CLASS_NAME, "downloadQuotes(): got " + result.length() + " characters");
         return result;
     } // downloadQuotes()
 
     private String getStringFromStream(InputStream inputStream) throws IOException {
-        // This won't work as inputStream.available() always returns 0:
+        // Elaborate solution as this won't work because inputStream.available() always returns 0:
         // byte[] data = new byte[inputStream.available()];
         // inputStream.read(data);
         StringBuilder sb = new StringBuilder();
@@ -92,7 +134,7 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
 
     private String getSymbolParameterValue() {
         String result = "";
-        DbHelper dbHelper = new DbHelper(this.context);
+        DbHelper dbHelper = new DbHelper(this);
         Cursor cursor = dbHelper.readAllSecuritySymbols();
         StringBuilder sb = new StringBuilder();
         while (cursor.moveToNext()) {
@@ -108,27 +150,21 @@ public class QuoteRefresherAsyncTask extends AsyncTask<Context, Void, Void> {
             symbols = URLEncoder.encode(symbols, "UTF-8");
             result += symbols;
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            Log.e(CLASS_NAME, exceptionMessage, e);
         }
         return result;
     } // getSymbolParameterValue()
 
     private boolean isConnected() {
         ConnectivityManager connectivityManager
-                = (ConnectivityManager) context.getSystemService(context.CONNECTIVITY_SERVICE);
+                = (ConnectivityManager) this.getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return (networkInfo != null && networkInfo.isConnected());
     } // isConnected()
 
-    @Override
-    protected void onPostExecute(Void result) {
-        sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
-    } // onPostExecute()
-
     private void sendLocalBroadcast(String message) {
         Intent intent = new Intent(BROADCAST_ACTION_NAME);
         intent.putExtra(BROADCAST_EXTRA_NAME, message);
-        LocalBroadcastManager.getInstance(this.context).sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     } // sendLocalBroadcast()
-
-} // class QuoteRefresherAsyncTask
+} // class QuoteRefresherService

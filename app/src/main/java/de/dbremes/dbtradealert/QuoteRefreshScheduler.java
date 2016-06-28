@@ -11,14 +11,24 @@ public class QuoteRefreshScheduler extends BroadcastReceiver {
     final static String CLASS_NAME = "QuoteRefreshScheduler";
 
     @Override
+    @SuppressWarnings("NewApi")
     public void onReceive(Context context, Intent intent) {
+        // Create schedule for quote refresh
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         int requestCode = 0;
         Intent newIntent = new Intent(context, QuoteRefreshAlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode,
                 newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                AlarmManager.INTERVAL_HOUR, AlarmManager.INTERVAL_HOUR, pendingIntent);
+        if (Utils.isAndroidBeforeMarshmallow()) {
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    AlarmManager.INTERVAL_HOUR, AlarmManager.INTERVAL_HOUR, pendingIntent);
+        } else {
+            alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    60 * 60 * 1000, pendingIntent);
+        }
+        // Use only for testing Dozw and App Standby modes!
+//        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+//                1 * 60 * 1000, 1 * 60 * 1000, pendingIntent);
         // Log what was done
         String scheduleCreationType;
         if (intent.getAction() != null

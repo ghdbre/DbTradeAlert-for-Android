@@ -71,7 +71,7 @@ public class WatchlistFragment extends Fragment {
                     cursor, quoteExtremes, targetExtremes, this.listener));
         }
         return view;
-    }
+    } // onCreateView()
 
 
     @Override

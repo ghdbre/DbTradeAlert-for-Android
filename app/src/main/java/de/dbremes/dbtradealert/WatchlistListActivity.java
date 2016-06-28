@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.net.Uri;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -51,6 +54,21 @@ public class WatchlistListActivity extends AppCompatActivity
         }
     };
 
+    @SuppressWarnings("NewApi")
+    private void ensureExemptionFromBatteryOptimizations() {
+        if (Utils.isAndroidBeforeMarshmallow() == false) {
+            String packageName = getPackageName();
+            PowerManager powerManager = getSystemService(PowerManager.class);
+            if (powerManager.isIgnoringBatteryOptimizations(packageName) == false) {
+                String explanation = "DbTradeAlert needs to download quotes even when in background!";
+                Toast.makeText(this, explanation, Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                        .setData(Uri.parse("package:" + packageName));
+                startActivity(intent);
+            }
+        }
+    } // ensureExemptionFromBatteryOptimizations()
+
     private String getTime() {
         String result = "";
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
@@ -74,6 +92,8 @@ public class WatchlistListActivity extends AppCompatActivity
                 = new WatchlistListPagerAdapter(getSupportFragmentManager(), dbHelper);
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(watchlistListPagerAdapter);
+        // Request user to whitelist app from Doze and App Standby
+        ensureExemptionFromBatteryOptimizations();
         // Create initial quote refresh schedule (just overwrite existing ones)
         Log.d(CLASS_NAME, "onCreate(): creating quote refresh schedule");
         startQuoteRefreshScheduleCreation();

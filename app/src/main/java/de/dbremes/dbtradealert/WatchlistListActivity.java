@@ -136,10 +136,10 @@ public class WatchlistListActivity extends AppCompatActivity
 
     private void refreshAllWatchLists() {
         final String methodName = "refreshAllWatchLists";
-        Cursor cursor = this.dbHelper.readAllWatchlists();
-        final int watchListIdColumnIndex = cursor.getColumnIndex(WatchlistContract.Watchlist.ID);
-        while (cursor.moveToNext()) {
-            long watchListId = cursor.getLong(watchListIdColumnIndex);
+        Cursor watchlistsCursor = this.dbHelper.readAllWatchlists();
+        final int watchListIdColumnIndex = watchlistsCursor.getColumnIndex(WatchlistContract.Watchlist.ID);
+        while (watchlistsCursor.moveToNext()) {
+            long watchListId = watchlistsCursor.getLong(watchListIdColumnIndex);
             RecyclerView recyclerView = (RecyclerView) mViewPager.findViewWithTag(watchListId);
             if (recyclerView != null) {
                 WatchlistRecyclerViewAdapter adapter
@@ -147,14 +147,15 @@ public class WatchlistListActivity extends AppCompatActivity
                 Cursor quotesCursor = this.dbHelper.readAllQuotesForWatchlist(watchListId);
                 adapter.swapCursor(quotesCursor);
                 Log.d(CLASS_NAME, String.format(
-                        "%s: changed cursor for recyclerView with tag = %d",
+                        "%s(): changed cursor for recyclerView with tag = %d",
                         methodName, watchListId));
             } else {
                 Log.d(CLASS_NAME, String.format(
-                        "%s: cannot find recyclerView with tag = %d",
+                        "%s(): cannot find recyclerView with tag = %d",
                         methodName, watchListId));
             }
         }
+        DbHelper.closeCursor(watchlistsCursor);
     } // refreshAllWatchLists()
 
     private void startQuoteRefreshScheduleCreation() {

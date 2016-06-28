@@ -27,10 +27,10 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "dbtradealert.db";
     private static final int DB_VERSION = 1;
     private static final String EXCEPTION_CAUGHT = "Exception caught";
-    // strings for logging
-    private final static String CURSOR_COUNT_FORMAT = "%s: cursor.getCount() = %d";
-    private final static String INSERT_RESULT_FORMAT = "%s: result of db.insert() into %s: %d";
-    private final static String UPDATE_RESULT_FORMAT = "%s: result of db.update() for %s: %d";
+    // Format strings for logging
+    private final static String CURSOR_COUNT_FORMAT = "%s(): cursor.getCount() = %d";
+    private final static String INSERT_RESULT_FORMAT = "%s(): result of db.insert() into %s: %d";
+    private final static String UPDATE_RESULT_FORMAT = "%s(): result of db.update() for %s: %d";
 
     // region Format parameter values
     // API for Yahoo Finance (see e.g. http://brusdeylins.info/projects/yahoo-finance-api/):
@@ -72,6 +72,22 @@ public class DbHelper extends SQLiteOpenHelper {
         super(context, DbHelper.DB_NAME, null, DbHelper.DB_VERSION);
     } // ctor()
 
+    public static void closeCursor(Cursor cursor) {
+        if( cursor != null && cursor.isClosed() == false) {
+            cursor.close();
+        }
+    } // closeCursor()
+
+    // No need to close SQLite db as getReadableDatabase() / getWritableDatabase() always return
+    // the same object. See getDatabaseLocked() in
+    // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/core/java/
+    // android/database/sqlite/SQLiteOpenHelper.java
+//    private void closeDb(SQLiteDatabase db) {
+//        if( db != null && db.isOpen()) {
+//            db.close();
+//        }
+//    } // closeDb()
+
     private void createQuoteTable(SQLiteDatabase db) {
         String columnDefinitions = (Quote.ASK + " REAL, ") +
                 Quote.AVERAGE_DAILY_VOLUME + " INTEGER, " +
@@ -94,7 +110,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String sql = String.format("CREATE TABLE %s (%s);",
                 Quote.TABLE, columnDefinitions);
         db.execSQL(sql);
-        Log.d(CLASS_NAME, "createQuoteTable created with SQL = " + sql);
+        Log.d(CLASS_NAME, "createQuoteTable(): created with SQL = " + sql);
     } // createQuoteTable()
 
     private void createSampleData(SQLiteDatabase db) {
@@ -292,7 +308,7 @@ public class DbHelper extends SQLiteOpenHelper {
             // endregion - SIE.DE
             db.setTransactionSuccessful();
             // endregion Create sample quote data
-            Log.d(DbHelper.CLASS_NAME, methodName + ": success!");
+            Log.d(DbHelper.CLASS_NAME, methodName + "(): success!");
         } finally {
             db.endTransaction();
         }
@@ -308,7 +324,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 columnDefinitions);
         db.execSQL(sql);
         Log.d(CLASS_NAME,
-                "createSecuritiesInWatchListsTable created with SQL = "
+                "createSecuritiesInWatchListsTable(): created with SQL = "
                         + sql);
     } // createSecuritiesInWatchListsTable()
 
@@ -326,7 +342,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String sql = String.format("CREATE TABLE %s (%s);",
                 Security.TABLE, columnDefinitions);
         db.execSQL(sql);
-        Log.d(CLASS_NAME, "createSecurityTable created with SQL = " + sql);
+        Log.d(CLASS_NAME, "createSecurityTable(): created with SQL = " + sql);
     } // createSecurityTable()
 
     private void createTables(SQLiteDatabase db) {
@@ -337,7 +353,7 @@ public class DbHelper extends SQLiteOpenHelper {
             createQuoteTable(db);
             createSecuritiesInWatchListsTable(db);
             db.setTransactionSuccessful();
-            Log.d(DbHelper.CLASS_NAME, "createTables: success!");
+            Log.d(DbHelper.CLASS_NAME, "createTables(): success!");
         } finally {
             db.endTransaction();
         }
@@ -349,7 +365,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String sql = String.format("CREATE TABLE %s (%s);",
                 Watchlist.TABLE, columnDefinitions);
         db.execSQL(sql);
-        Log.d(DbHelper.CLASS_NAME, "createWatchListTable created with SQL = " + sql);
+        Log.d(DbHelper.CLASS_NAME, "createWatchListTable(): created with SQL = " + sql);
     } // createWatchListTable()
 
     /**
@@ -477,6 +493,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public Extremes getQuoteExtremesForWatchlist(long watchlistId) {
         final String methodName = "getQuoteExtremesForWatchlist";
+        Extremes extremes = null;
         Cursor cursor = null;
         SQLiteDatabase db = this.getReadableDatabase();
         String sql = "SELECT q." + Quote.ASK
@@ -502,7 +519,9 @@ public class DbHelper extends SQLiteOpenHelper {
         List<String> columnNames = new ArrayList<String>();
         Collections.addAll(columnNames, Quote.ASK, Quote.BID, Quote.DAYS_HIGH,
                 Quote.DAYS_LOW, Quote.OPEN, Quote.PREVIOUS_CLOSE);
-        return getExtremesForCursor(columnNames, cursor);
+        extremes = getExtremesForCursor(columnNames, cursor);
+        closeCursor(cursor);
+        return extremes;
     } // getQuoteExtremesForWatchlist()
 
     private Long getQuoteIdFromSymbol(SQLiteDatabase db, String symbol) {
@@ -547,6 +566,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public Extremes getTargetExtremesForWatchlist(long watchlistId) {
         final String methodName = "getTargetExtremesForWatchlist";
+        Extremes extremes = null;
         Cursor cursor = null;
         SQLiteDatabase db = this.getReadableDatabase();
         String sql = "SELECT q." + Quote.LAST_PRICE
@@ -574,22 +594,24 @@ public class DbHelper extends SQLiteOpenHelper {
         List<String> columnNames = new ArrayList<String>();
         Collections.addAll(columnNames, Quote.LAST_PRICE, Security.BASE_PRICE,
                 Security.LOWER_TARGET, Security.TRAILING_TARGET, Security.UPPER_TARGET);
-        return getExtremesForCursor(columnNames, cursor);
+        extremes = getExtremesForCursor(columnNames, cursor);
+        closeCursor(cursor);
+        return extremes;
     } // getTargetExtremesForWatchlist()
 
     public long getWatchlistIdByPosition(int position) {
         final String methodName = "getWatchlistIdByPosition";
         int result = -1;
-        Cursor c = readAllWatchlists();
-        if (c.getCount() >= position) {
-            c.moveToPosition(position);
-            result = c.getInt(c.getColumnIndex(Watchlist.ID));
+        Cursor cursor = readAllWatchlists();
+        if (cursor.getCount() >= position) {
+            cursor.moveToPosition(position);
+            result = cursor.getInt(cursor.getColumnIndex(Watchlist.ID));
         } else {
             Log.w(DbHelper.CLASS_NAME, String.format(
                     "%s: cannot move to position = %d; cursor.getCount() = %d",
-                    methodName, position, c.getCount()));
+                    methodName, position, cursor.getCount()));
         }
-        c.close();
+        closeCursor(cursor);
         return result;
     } // getWatchlistIdByPosition()
 
@@ -624,7 +646,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         createTables(db);
         createSampleData(db);
-    }
+    } // onCreate()
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -748,17 +770,17 @@ public class DbHelper extends SQLiteOpenHelper {
                 int updateResult = db.update(Quote.TABLE,
                         contentValues, Quote.SECURITY_ID + " = ?",
                         new String[] {String.valueOf(securityId)});
-                Log.d(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
                         methodName, Quote.TABLE, updateResult));
                 if (updateResult == 0) {
                     Long insertResult = db.insert(Quote.TABLE,
                             null, contentValues);
-                    Log.d(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                    Log.v(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
                             methodName, Quote.TABLE, insertResult));
                 }
             }
             db.setTransactionSuccessful();
-            Log.d(CLASS_NAME, methodName + ": success!");
+            Log.d(CLASS_NAME, methodName + "(): success!");
         } finally {
             db.endTransaction();
         }

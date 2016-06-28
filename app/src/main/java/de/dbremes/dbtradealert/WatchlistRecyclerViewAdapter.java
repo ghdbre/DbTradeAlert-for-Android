@@ -245,6 +245,7 @@ public class WatchlistRecyclerViewAdapter
 
     public void swapCursor(Cursor newCursor) {
         if (newCursor != this.cursor) {
+            DbHelper.closeCursor(this.cursor);
             this.cursor = newCursor;
             notifyDataSetChanged();
         }

@@ -140,7 +140,7 @@ public class QuoteRefresherService extends IntentService {
         while (cursor.moveToNext()) {
             sb.append(cursor.getString(0) + "+");
         }
-        cursor.close();
+        DbHelper.closeCursor(cursor);
         String symbols = sb.toString();
         if (sb.length() > 0) {
             symbols = symbols.substring(0, symbols.length() - 1);

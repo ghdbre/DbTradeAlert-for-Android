@@ -66,7 +66,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public final static String QuoteDownloadFormatParameter = "aa2bc4d1ghl1nopp2st1vx";
     // NewItemId is used as a temporary ID until the database has stored the item
     // and issued an ID for it
-    public final static long NewItemId = -1l;
+    public final static long NewItemId = -1L;
 
     public DbHelper(Context context) {
         super(context, DbHelper.DB_NAME, null, DbHelper.DB_VERSION);
@@ -475,7 +475,9 @@ public class DbHelper extends SQLiteOpenHelper {
             result = Float.parseFloat(s);
         } catch (NumberFormatException x) {
             // Probably empty string or "n/a" - return Float.NaN;
-            Log.e(CLASS_NAME, EXCEPTION_CAUGHT, x);
+            if ("N/A".equals(s) == false) {
+                Log.e(CLASS_NAME, EXCEPTION_CAUGHT, x);
+            }
         }
         return result;
     } // getFloatFromString()
@@ -638,7 +640,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private void logSql(String methodName, String selection,
                         String[] selectionArgs) {
         Log.v(DbHelper.CLASS_NAME,
-                methodName + ": "
+                methodName + "(): "
                         + insertSelectionArgs(selection, selectionArgs));
     } // logSql()
 
@@ -690,6 +692,68 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         return cursor;
     } // readAllSecuritySymbols()
+
+    public Cursor readAllTriggeredSignals() {
+        final String methodName = "readAllTriggeredSignals";
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        // sq.days_high, Quote.DAYS_LOW will be stored as NULL if Yahoo returned n/a
+        // SQLite auto-converts Float.NaN to NULL
+        String sql = "/* Lower target signal */ "
+                + "\nSELECT 'low' AS actual_name, " + Quote.DAYS_LOW + " AS actual_value,"
+                + " 'L' AS signal_name, " + Security.LOWER_TARGET + " AS target_value,"
+                + " s." + Security.SYMBOL
+                + "\nFROM " + Security.TABLE + " s"
+                + "\n\tLEFT JOIN " + Quote.TABLE + " q"
+                + " ON q." + Quote.SECURITY_ID + " = s." + Security.ID
+                // Only evaluate target if quote isn't older than 1 day
+                + "\nWHERE (" + Quote.LAST_PRICE_DATE_TIME + " >= date('now','-1 day'))"
+                + "\n\tAND ("
+                // Only evaluate target if LOWER_TARGET was specified and DAYS_LOW wasn't N/A
+                + "\n\t\t" + Security.LOWER_TARGET + " IS NOT NULL"
+                + "\n\t\tAND " + Quote.DAYS_LOW + " IS NOT NULL"
+                + "\n\t\tAND " + Quote.DAYS_LOW + " <= " + Security.LOWER_TARGET
+                + "\n\t) "
+                + "\nUNION ALL "
+                + "\n/* Upper target signal */ "
+                + "\nSELECT 'high' AS actual_name, " + Quote.DAYS_HIGH + " AS actual_value,"
+                + " 'U' AS signal_name, " + Security.UPPER_TARGET + " AS target_value,"
+                + " s." + Security.SYMBOL
+                + "\nFROM " + Security.TABLE + " s"
+                + "\n\tLEFT JOIN " + Quote.TABLE + " q"
+                + " ON q." + Quote.SECURITY_ID + " = s." + Security.ID
+                // Only evaluate target if quote isn't older than 1 day
+                + "\nWHERE (" + Quote.LAST_PRICE_DATE_TIME + " >= date('now','-1 day'))"
+                + "\n\tAND ("
+                // Only evaluate target if UPPER_TARGET was specified and DAYS_HIGH wasn't N/A
+                + "\n\t\t" + Security.UPPER_TARGET + " IS NOT NULL"
+                + "\n\t\tAND " + Quote.DAYS_HIGH + " IS NOT NULL"
+                + "\n\t\tAND " + Quote.DAYS_HIGH + " >= " + Security.UPPER_TARGET
+                + "\n\t) "
+                + "\nUNION ALL "
+                + "\n/* Trailing stop loss signal */"
+                + "\nSELECT 'low' AS actual_name, " + Quote.DAYS_LOW + " AS actual_value,"
+                + " 'T' AS signal_name, " + Security.MAX_PRICE
+                + " * (100 - " + Security.TRAILING_TARGET + ") / 100 AS target_value,"
+                + " s." + Security.SYMBOL
+                + "\nFROM " + Security.TABLE + " s"
+                + "\n\tLEFT JOIN " + Quote.TABLE + " q"
+                + " ON q." + Quote.SECURITY_ID + " = s." + Security.ID
+                // Only evaluate target if quote isn't older than 1 day
+                + "\nWHERE (" + Quote.LAST_PRICE_DATE_TIME + " >= date('now','-1 day'))"
+                + "\n\tAND ("
+                // Only evaluate target if TRAILING_TARGET was specified and DAYS_LOW wasn't N/A
+                + "\n\t\t" + Security.TRAILING_TARGET + " IS NOT NULL"
+                + "\n\t\tAND " + Quote.DAYS_LOW + " IS NOT NULL"
+                + "\n\t\tAND " + Quote.DAYS_LOW + " <= " + Security.MAX_PRICE + " * (100 - "
+                + Security.TRAILING_TARGET + ") / 100"
+                + "\n\t) "
+                + "\nORDER BY s." + Security.SYMBOL + " ASC";
+        String[] selectionArgs = new String[] {};
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        return cursor;
+    } // readAllTriggeredSignals()
 
     public Cursor readAllWatchlists() {
         Cursor cursor = null;
@@ -786,6 +850,58 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     } // updateOrCreateQuotes()
 
+    public void updateSecurityMaxPrice() {
+        final String methodName = "updateSecurityMaxPrice";
+        // Update Security.MAX_PRICE with Quote.DAYS_HIGH if that's higher. Note that both can be
+        // NULL. Also update Security.MAX_PRICE_DATE from Quote.LAST_PRICE_DATE_TIME in that case.
+        // SQLite doesn't support JOINs in UPDATEs. So find securities to update
+        // first, then issue individual UPDATEs.
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Step #1: find securities to update
+        // Caveats for DAYS_HIGH: time not available and volume may have been 0
+        String sql = "SELECT s." + Security.ID + ", " + Security.MAX_PRICE
+                + ", " + Security.MAX_PRICE_DATE + ", s." + Security.SYMBOL
+                + ", " + Quote.DAYS_HIGH + ", SUBSTR(" + Quote.LAST_PRICE_DATE_TIME + ", 0, 11)"
+                + "\nFROM " + Security.TABLE + " s"
+                + "\n\tLEFT JOIN " + Quote.TABLE + " q ON q." + Quote.SECURITY_ID + " = s." + Security.ID
+                + "\nWHERE COALESCE(" + Security.MAX_PRICE + ", 0) < COALESCE(" + Quote.DAYS_HIGH + ", 0)"
+                + "\n\tAND COALESCE(" + Security.MAX_PRICE_DATE + ", '') < SUBSTR(" + Quote.LAST_PRICE_DATE_TIME + ", 0, 11)";
+        String[] selectionArgs = new String[] {};
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        // Step #2: issue individual UPDATEs
+        try {
+            db.beginTransaction();
+            ContentValues contentValues = new ContentValues();
+            while (cursor.moveToNext()) {
+                Long securityId = cursor.getLong(0);
+                Float maxPrice = cursor.getFloat(1);
+                String maxPriceDate = cursor.getString(2);
+                String symbol = cursor.getString(3);
+                Float daysHigh = cursor.getFloat(4);
+                String lastTradeDate = cursor.getString(5);
+                Log.v(CLASS_NAME, String.format(
+                        "%s(): symbol=%s; maxPrice=%f; maxPriceDate=%s; daysHigh=%f; lastTradeDate=%s;",
+                        methodName, symbol, maxPrice, maxPriceDate, daysHigh, lastTradeDate));
+                contentValues.clear();
+                contentValues.put(Security.MAX_PRICE, daysHigh);
+                contentValues.put(Security.MAX_PRICE_DATE, lastTradeDate);
+                String[] whereArgs = new String[] { String.valueOf(securityId) };
+                Integer updateResult = db.update(Security.TABLE,
+                        contentValues, Security.ID + " = ?", whereArgs);
+                Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                        methodName, Security.TABLE, updateResult));
+            }
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + "(): success!");
+        } finally {
+            db.endTransaction();
+            closeCursor(cursor);
+        }
+    } // updateSecurityMaxPrice()
+
     /**
      * Extremes holds information about the extremes of a quote or the targets of a security.
      * If lastPrice is null then maxValue and minValue are stored as the extremes.
@@ -819,4 +935,3 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     } // class Extremes
 }
-

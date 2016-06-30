@@ -1,10 +1,16 @@
 package de.dbremes.dbtradealert;
 
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -16,7 +22,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.Calendar;
+import java.util.Locale;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
@@ -59,6 +67,19 @@ public class QuoteRefresherService extends IntentService {
         return result;
     }// areExchangesOpenNow()
 
+    private String buildNotificationLineFromCursor(Cursor cursor) {
+        String result = null;
+        String actualName = cursor.getString(0);
+        float actualValue = cursor.getFloat(1);
+        String signalName = cursor.getString(2);
+        float signalValue = cursor.getFloat(3);
+        String symbol = cursor.getString(4);
+        result = String.format(Locale.getDefault(),
+                "%s: %s = %01.2f; %s = %01.2f", symbol, actualName,
+                actualValue, signalName, signalValue);
+        return result;
+    } // buildNotificationLineFromCursor()
+
     @Override
     protected void onHandleIntent(Intent intent) {
         String baseUrl = "http://download.finance.yahoo.com/d/quotes.csv";
@@ -73,6 +94,9 @@ public class QuoteRefresherService extends IntentService {
                         quoteCsv = downloadQuotes(url);
                         DbHelper dbHelper = new DbHelper(this);
                         dbHelper.updateOrCreateQuotes(quoteCsv);
+                        // Notify user of triggered signals even if app is sleeping
+                        dbHelper.updateSecurityMaxPrice();
+                        sendNotificationForTriggeredSignals(dbHelper);
                 } else {
                     sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "no Internet!");
                     Log.d(CLASS_NAME, BROADCAST_EXTRA_ERROR + "no Internet!");
@@ -86,6 +110,12 @@ public class QuoteRefresherService extends IntentService {
                     "onHandleIntent(): exchanges closed and not a manual reefresh - skipping alarm");
             }
         } catch (IOException e) {
+            if (e instanceof UnknownHostException) {
+                // java.net.UnknownHostException:
+                // Unable to resolve host "download.finance.yahoo.com":
+                // No address associated with hostname
+                sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "broken Internet connection!");
+            }
             Log.e(CLASS_NAME, exceptionMessage, e);
         }
     } // onHandleIntent()
@@ -167,4 +197,50 @@ public class QuoteRefresherService extends IntentService {
         intent.putExtra(BROADCAST_EXTRA_NAME, message);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     } // sendLocalBroadcast()
+
+    private void sendNotificationForTriggeredSignals(DbHelper dbHelper) {
+        final String methodName = "sendNotificationForTriggeredSignals";
+        Cursor cursor = dbHelper.readAllTriggeredSignals();
+        if (cursor.getCount() > 0) {
+            Context context = getApplicationContext();
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+                    .setSmallIcon(R.drawable.emo_im_money_mouth)
+                    .setDefaults(Notification.DEFAULT_ALL)
+                    .setNumber(cursor.getCount());
+            // Specify which intent to show when user taps notification
+            Intent watchlistListIntent = new Intent(this, WatchlistListActivity.class);
+            PendingIntent watchlistListPendingIntent
+                    = PendingIntent.getActivity(context, 0, watchlistListIntent, 0);
+            builder.setContentIntent(watchlistListPendingIntent);
+            // Build back stack
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addParentStack(WatchlistListActivity.class);
+            stackBuilder.addNextIntent(watchlistListIntent);
+            // Create notification
+            if (cursor.getCount() == 1) {
+                cursor.moveToFirst();
+                String s = buildNotificationLineFromCursor(cursor);
+                builder.setContentTitle("Target hit").setContentText(s);
+                Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
+            } else {
+                builder.setContentTitle(cursor.getCount() + " Targets hit");
+                NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+                builder.setStyle(inboxStyle);
+                while (cursor.moveToNext()) {
+                    String s = buildNotificationLineFromCursor(cursor);
+                    inboxStyle.addLine(s);
+                    Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
+                }
+            }
+            // Show notification
+            NotificationManager notificationManager = (NotificationManager) context
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+            // Show new notification or update pending one
+            final int notificationId = 1234;
+            notificationManager.notify(notificationId, builder.build());
+        }
+        Log.d(CLASS_NAME,
+                String.format("%s(): created %d notifications", methodName, cursor.getCount()));
+        DbHelper.closeCursor(cursor);
+    } // sendNotificationForTriggeredSignals()
 } // class QuoteRefresherService

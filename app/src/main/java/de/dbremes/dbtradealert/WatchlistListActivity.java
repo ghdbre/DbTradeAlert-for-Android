@@ -30,7 +30,9 @@ public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
     private static final String APP_NAME = "DbTradeAlert";
     private static final String CLASS_NAME = "WatchlistListActivity";
+    private static final int WATCHLISTS_MANAGEMENT_REQUEST = 2;
     private DbHelper dbHelper = null;
+    private WatchlistListPagerAdapter watchlistListPagerAdapter;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -79,6 +81,23 @@ public class WatchlistListActivity extends AppCompatActivity
     } // getTime()
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        final String methodName = "onActivityResult";
+        switch (requestCode) {
+            case WATCHLISTS_MANAGEMENT_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    watchlistListPagerAdapter.notifyDataSetChanged();
+                }
+                break;
+            default:
+                Log.e(CLASS_NAME, String.format("%s(): unexpected requestCode = ",
+                        methodName, requestCode));
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    } // onActivityResult()
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_watchlist_list);
@@ -88,7 +107,7 @@ public class WatchlistListActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Set up the ViewPager with the watchlist adapter.
-        WatchlistListPagerAdapter watchlistListPagerAdapter
+        watchlistListPagerAdapter
                 = new WatchlistListPagerAdapter(getSupportFragmentManager(), dbHelper);
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(watchlistListPagerAdapter);
@@ -124,6 +143,11 @@ public class WatchlistListActivity extends AppCompatActivity
                 Intent service = new Intent(context, QuoteRefresherService.class);
                 service.putExtra(QuoteRefresherService.INTENT_EXTRA_IS_MANUAL_REFRESH, true);
                 startService(service);
+                return true;
+            }
+            case R.id.action_watchlists_management: {
+                Intent intent = new Intent(this, WatchlistsManagementActivity.class);
+                startActivityForResult(intent, WATCHLISTS_MANAGEMENT_REQUEST);
                 return true;
             }
             case R.id.action_settings: {

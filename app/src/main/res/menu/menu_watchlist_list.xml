@@ -10,6 +10,11 @@
         android:titleCondensed="Refresh">
     </item>
     <item
+        android:id="@+id/action_watchlists_management"
+        android:orderInCategory="100"
+        android:title="Manage Watchlists"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"

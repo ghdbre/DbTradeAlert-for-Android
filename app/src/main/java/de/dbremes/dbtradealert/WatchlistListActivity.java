@@ -90,7 +90,7 @@ public class WatchlistListActivity extends AppCompatActivity
                 }
                 break;
             default:
-                Log.e(CLASS_NAME, String.format("%s(): unexpected requestCode = ",
+                Log.e(CLASS_NAME, String.format("%s(): unexpected requestCode = %d",
                         methodName, requestCode));
                 break;
         }

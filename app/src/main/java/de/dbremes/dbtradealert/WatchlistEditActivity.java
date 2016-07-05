@@ -13,12 +13,11 @@ import android.widget.TextView;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract;
-import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class WatchlistEditActivity extends AppCompatActivity {
     private final static String CLASS_NAME = "WatchlistEditActivity";
     public final static int CREATE_WATCHLIST_REQUEST_CODE = 0;
-    public final static String INTENT_EXTRA_WATCHLIST_ID = "de.dbremes.dbtradealert.watchlistId";
+    public final static String WATCHLIST_ID_INTENT_EXTRA = "de.dbremes.dbtradealert.watchlistId";
     private DbHelper dbHelper;
     private long watchlistId = DbHelper.NewItemId;
 
@@ -35,7 +34,7 @@ public class WatchlistEditActivity extends AppCompatActivity {
         this.dbHelper = new DbHelper(this);
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            this.watchlistId = extras.getLong(INTENT_EXTRA_WATCHLIST_ID);
+            this.watchlistId = extras.getLong(WATCHLIST_ID_INTENT_EXTRA);
             EditText nameEditText = (EditText) findViewById(R.id.nameEditText);
             if (this.watchlistId == DbHelper.NewItemId) {
                 // Create mode

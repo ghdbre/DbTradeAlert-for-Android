@@ -41,7 +41,7 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
 
     public void onNewButtonClick(View view) {
         Intent intent = new Intent(this, WatchlistEditActivity.class);
-        intent.putExtra(WatchlistEditActivity.INTENT_EXTRA_WATCHLIST_ID,
+        intent.putExtra(WatchlistEditActivity.WATCHLIST_ID_INTENT_EXTRA,
                 DbHelper.NEW_ITEM_ID);
         startActivityForResult(intent,
                 WatchlistEditActivity.CREATE_WATCHLIST_REQUEST_CODE);

@@ -56,11 +56,27 @@ public class WatchlistEditActivity extends AppCompatActivity {
 //                }
             }
         }
-        showStockList(this.watchlistId);
+        refreshSecuritiesList(this.watchlistId);
     } // onCreate()
 
-    private void showStockList(long watchListId) {
-        final String methodName = "showStockList";
+    public void onOkButtonClick(View view) {
+        // Get name
+        String name = "";
+        EditText editText = (EditText) findViewById(R.id.nameEditText);
+        if (editText.length() > 0) {
+            name = editText.getText().toString();
+        }
+        // Get securities to include in watchlist
+        ListView listView = (ListView) findViewById(R.id.securitiesListView);
+        long[] securityIds = listView.getCheckedItemIds();
+        // Save edits
+        this.dbHelper.updateOrCreateWatchlist(name, securityIds, this.watchlistId);
+        setResult(RESULT_OK, getIntent());
+        finish();
+    } // onOkButtonClick()
+
+    private void refreshSecuritiesList(long watchListId) {
+        final String methodName = "refreshSecuritiesList";
         SimpleCursorAdapter adapter;
         // Connect securities list to cursor
         // TODO: add securities name?
@@ -71,11 +87,11 @@ public class WatchlistEditActivity extends AppCompatActivity {
         adapter = new SimpleCursorAdapter(this,
                 android.R.layout.simple_list_item_multiple_choice,
                 securitiesCursor, fromColumns, toViews, flags);
-        ListView securitiesToIncludeListView
-                = (ListView) findViewById(R.id.securitiesToIncludeListView);
+        ListView securitiesListView
+                = (ListView) findViewById(R.id.securitiesListView);
         TextView emptyTextView = (TextView) findViewById(R.id.emptyTextView);
-        securitiesToIncludeListView.setEmptyView(emptyTextView);
-        securitiesToIncludeListView.setAdapter(adapter);
+        securitiesListView.setEmptyView(emptyTextView);
+        securitiesListView.setAdapter(adapter);
         // Mark securities that are included in this watchlist
         int isInWatchListIncludedColumnIndex = securitiesCursor
                 .getColumnIndex(DbHelper.IS_SYMBOL_IN_WATCHLIST_ALIAS);
@@ -85,8 +101,8 @@ public class WatchlistEditActivity extends AppCompatActivity {
                     methodName, i, DbHelper.IS_SYMBOL_IN_WATCHLIST_ALIAS,
                     securitiesCursor.getInt(isInWatchListIncludedColumnIndex)));
             if (securitiesCursor.getInt(isInWatchListIncludedColumnIndex) == 1) {
-                securitiesToIncludeListView.setItemChecked(i, true);
+                securitiesListView.setItemChecked(i, true);
             }
         }
-    } // showStockList()
+    } // refreshSecuritiesList()
 } // class WatchlistEditActivity

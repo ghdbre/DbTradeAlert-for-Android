@@ -31,6 +31,8 @@ public class DbHelper extends SQLiteOpenHelper {
     public final static long NEW_ITEM_ID = -1L;
     // Format strings for logging
     private final static String CURSOR_COUNT_FORMAT = "%s(): cursor.getCount() = %d";
+    private final static String DELETE_RESULT_FORMAT = "%s(): result of db.delete() from %s = %d";
+    private final static String INSERT_CONTENT_VALUES_FORMAT = "%s(): contentValues for %s: %s";
     private final static String INSERT_RESULT_FORMAT = "%s(): result of db.insert() into %s: %d";
     private final static String UPDATE_RESULT_FORMAT = "%s(): result of db.update() for %s: %d";
 
@@ -899,6 +901,64 @@ public class DbHelper extends SQLiteOpenHelper {
             db.endTransaction();
         }
     } // updateOrCreateQuotes()
+
+    public void updateOrCreateWatchlist(String name, long[] securityIds,
+                                        long watchlistId) {
+        final String methodName = "updateOrCreateWatchlist";
+        Long insertResult = null;
+        String[] whereArgs = new String[] { String.valueOf(watchlistId) };
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.beginTransaction();
+            // Save watchlist data
+            boolean isExistingWatchlist = (watchlistId != NEW_ITEM_ID);
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Watchlist.NAME, name);
+            if (isExistingWatchlist) {
+                Integer updateResult = db.update(Watchlist.TABLE,
+                        contentValues, Watchlist.ID + " = ?", whereArgs);
+                Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                        methodName, Watchlist.TABLE, updateResult));
+            } else {
+                insertResult = db.insert(Watchlist.TABLE, null, contentValues);
+                Log.v(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                        methodName, Watchlist.TABLE, insertResult));
+                watchlistId = insertResult;
+                Log.v(CLASS_NAME, String.format("%s(): new watchlistId = %d",
+                        methodName, watchlistId));
+            }
+            // Delete existing connections to securities
+            if (isExistingWatchlist) {
+                Integer deleteResult = db.delete(
+                        SecuritiesInWatchlists.TABLE,
+                        SecuritiesInWatchlists.WATCHLIST_ID + " = ?", whereArgs);
+                Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT,
+                        methodName, SecuritiesInWatchlists.TABLE,
+                        deleteResult));
+            } else {
+                Log.v(CLASS_NAME, String.format(
+                        "%s(): New watchlist; skipping delete in %s",
+                        methodName, SecuritiesInWatchlists.TABLE));
+            }
+            // Create specified connections to securities
+            contentValues = new ContentValues();
+            for (int i = 0; i < securityIds.length; i++) {
+                contentValues.clear();
+                contentValues.put(SecuritiesInWatchlists.SECURITY_ID, securityIds[i]);
+                contentValues.put(SecuritiesInWatchlists.WATCHLIST_ID, watchlistId);
+                Log.v(CLASS_NAME, String.format(INSERT_CONTENT_VALUES_FORMAT,
+                        methodName, SecuritiesInWatchlists.TABLE,
+                        contentValues));
+                insertResult = db.insert(SecuritiesInWatchlists.TABLE, null, contentValues);
+                Log.v(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                        methodName, SecuritiesInWatchlists.TABLE, insertResult));
+            }
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + "(): success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // updateOrCreateWatchlist()
 
     public void updateSecurityMaxPrice() {
         final String methodName = "updateSecurityMaxPrice";

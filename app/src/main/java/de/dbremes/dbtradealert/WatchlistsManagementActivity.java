@@ -13,7 +13,15 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 public class WatchlistsManagementActivity extends AppCompatActivity {
     private Cursor cursor;
     private DbHelper dbHelper;
-    private WatchListManagementCursorAdapter watchListManagementCursorAdapter;
+    private WatchListManagementCursorAdapter watchlistManagementCursorAdapter;
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            refreshWatchlistsListView();
+        }
+    } // onActivityResult()
 
     public void onCancelButtonClick(View view) {
         setResult(RESULT_CANCELED, getIntent());
@@ -27,13 +35,13 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
         setTitle("Manage Watchlists");
         dbHelper = new DbHelper(this);
         this.cursor = dbHelper.readAllWatchlists();
-        this.watchListManagementCursorAdapter
+        this.watchlistManagementCursorAdapter
                 = new WatchListManagementCursorAdapter(this, this.cursor, false);
         ListView watchListsListView = (ListView) findViewById(R.id.watchListsListView);
         TextView emptyTextView = (TextView) findViewById(R.id.emptyTextView);
         watchListsListView.setEmptyView(emptyTextView);
-        watchListsListView.setAdapter(watchListManagementCursorAdapter);
-    } // ctor()
+        watchListsListView.setAdapter(watchlistManagementCursorAdapter);
+    } // onCreate()
 
     public void onOkButtonClick(View view) {
         setResult(RESULT_OK, getIntent());
@@ -47,5 +55,10 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
         startActivityForResult(intent,
                 WatchlistEditActivity.CREATE_WATCHLIST_REQUEST_CODE);
     } // onNewButtonClick()
+
+    private void refreshWatchlistsListView() {
+        Cursor cursor = this.dbHelper.readAllWatchlists();
+        this.watchlistManagementCursorAdapter.changeCursor(cursor);
+    } // refreshWatchlistsListView()
 
 } // class WatchlistsManagementActivity()

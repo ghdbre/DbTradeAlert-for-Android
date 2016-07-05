@@ -13,7 +13,7 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 public class WatchlistsManagementActivity extends AppCompatActivity {
     private Cursor cursor;
     private DbHelper dbHelper;
-    private WatchListManagementCursorAdapter watchlistManagementCursorAdapter;
+    private WatchlistManagementCursorAdapter watchlistManagementCursorAdapter;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -36,7 +36,7 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
         dbHelper = new DbHelper(this);
         this.cursor = dbHelper.readAllWatchlists();
         this.watchlistManagementCursorAdapter
-                = new WatchListManagementCursorAdapter(this, this.cursor, false);
+                = new WatchlistManagementCursorAdapter(this, this.cursor, false);
         ListView watchListsListView = (ListView) findViewById(R.id.watchListsListView);
         TextView emptyTextView = (TextView) findViewById(R.id.emptyTextView);
         watchListsListView.setEmptyView(emptyTextView);

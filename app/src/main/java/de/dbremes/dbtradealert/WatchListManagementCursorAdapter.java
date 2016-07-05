@@ -11,11 +11,11 @@ import android.widget.TextView;
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
-public class WatchListManagementCursorAdapter extends CursorAdapter {
+public class WatchlistManagementCursorAdapter extends CursorAdapter {
     private Context context;
     DbHelper dbHelper;
 
-    public WatchListManagementCursorAdapter(Context context, Cursor c, boolean autoRequery) {
+    public WatchlistManagementCursorAdapter(Context context, Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
         this.context = context;
         this.dbHelper = new DbHelper(this.context);
@@ -54,4 +54,4 @@ public class WatchListManagementCursorAdapter extends CursorAdapter {
         public TextView nameTextView;
         public long watchListId;
     } // class WatchListManagementDetailViewHolder
-} // class WatchListManagementCursorAdapter
+} // class WatchlistManagementCursorAdapter

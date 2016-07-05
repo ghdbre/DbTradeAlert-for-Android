@@ -24,6 +24,7 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_watchlists_management);
+        setTitle("Manage Watchlists");
         dbHelper = new DbHelper(this);
         this.cursor = dbHelper.readAllWatchlists();
         this.watchListManagementCursorAdapter

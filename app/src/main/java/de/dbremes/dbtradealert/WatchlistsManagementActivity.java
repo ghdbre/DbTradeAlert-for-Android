@@ -1,5 +1,6 @@
 package de.dbremes.dbtradealert;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -37,5 +38,13 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
         setResult(RESULT_OK, getIntent());
         finish();
     } // onOkButtonClick()
+
+    public void onNewButtonClick(View view) {
+        Intent intent = new Intent(this, WatchlistEditActivity.class);
+        intent.putExtra(WatchlistEditActivity.INTENT_EXTRA_WATCHLIST_ID,
+                DbHelper.NEW_ITEM_ID);
+        startActivityForResult(intent,
+                WatchlistEditActivity.CREATE_WATCHLIST_REQUEST_CODE);
+    } // onNewButtonClick()
 
 } // class WatchlistsManagementActivity()

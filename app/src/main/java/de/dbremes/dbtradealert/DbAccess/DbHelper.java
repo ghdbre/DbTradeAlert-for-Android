@@ -11,6 +11,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.text.ParseException;
@@ -27,10 +28,14 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "dbtradealert.db";
     private static final int DB_VERSION = 1;
     private static final String EXCEPTION_CAUGHT = "Exception caught";
+    public final static long NEW_ITEM_ID = -1L;
     // Format strings for logging
     private final static String CURSOR_COUNT_FORMAT = "%s(): cursor.getCount() = %d";
     private final static String INSERT_RESULT_FORMAT = "%s(): result of db.insert() into %s: %d";
     private final static String UPDATE_RESULT_FORMAT = "%s(): result of db.update() for %s: %d";
+
+    // Alias for generated columns of getAllSecuritiesAndMarkIfInWatchlist() and readAllWatchlists()
+    public final static String IS_SYMBOL_IN_WATCHLIST_ALIAS = "isSymbolInWatchlist";
 
     // region Format parameter values
     // API for Yahoo Finance (see e.g. http://brusdeylins.info/projects/yahoo-finance-api/):
@@ -73,7 +78,7 @@ public class DbHelper extends SQLiteOpenHelper {
     } // ctor()
 
     public static void closeCursor(Cursor cursor) {
-        if( cursor != null && cursor.isClosed() == false) {
+        if (cursor != null && cursor.isClosed() == false) {
             cursor.close();
         }
     } // closeCursor()
@@ -423,7 +428,7 @@ public class DbHelper extends SQLiteOpenHelper {
     } // getExtremesForCursor()
 
     private String getDataTimeStringFromStrings(String lastTradeDateString,
-                                                   String lastTradeTimeString) {
+                                                String lastTradeTimeString) {
         String lastTradeDateTimeString = null;
         Date lastTradeDate = null; // d1
         Date lastTradeTime = null; // t1
@@ -529,12 +534,12 @@ public class DbHelper extends SQLiteOpenHelper {
     private Long getQuoteIdFromSymbol(SQLiteDatabase db, String symbol) {
         Long result = NewItemId;
         String table = Quote.TABLE;
-        String[] columns = new String[] { Quote.ID };
+        String[] columns = new String[]{Quote.ID};
         String groupBy = null;
         String having = null;
         String orderBy = null;
         String selection = Quote.SYMBOL + " = ?";
-        String[] selectionArgs = new String[] { symbol };
+        String[] selectionArgs = new String[]{symbol};
         Cursor cursor = db.query(
                 table, columns, selection, selectionArgs, groupBy, having, orderBy);
         if (cursor.moveToFirst()) {
@@ -548,19 +553,19 @@ public class DbHelper extends SQLiteOpenHelper {
         final String methodName = "getSecurityIdFromSymbol";
         Long securityId = NewItemId;
         String table = Security.TABLE;
-        String[] columns = new String[] { Security.ID };
+        String[] columns = new String[]{Security.ID};
         String groupBy = null;
         String having = null;
         String orderBy = null;
         String selection = Security.SYMBOL + " = ?";
-        String[] selectionArgs = new String[] { symbol };
+        String[] selectionArgs = new String[]{symbol};
         Cursor cursor = db.query(
                 table, columns, selection, selectionArgs, groupBy, having, orderBy);
         if (cursor.moveToFirst()) {
             securityId = cursor.getLong(0);
         } else {
-            Log.d(CLASS_NAME, String.format(
-                    "%s: couldn't get securityId for symbol = %s", methodName, symbol));
+            Log.e(CLASS_NAME, String.format(
+                    "%s(): couldn't get securityId for symbol = %s", methodName, symbol));
         }
         cursor.close();
         return securityId;
@@ -679,10 +684,55 @@ public class DbHelper extends SQLiteOpenHelper {
         return cursor;
     } // readAllQuotesForWatchlist()
 
+    /**
+     * Gets a list of all securities with those in the specified watchlist marked,
+     * ordered by symbol
+     *
+     * @param idOfWatchlistToMark
+     *            If a stock is included in this watchlist,
+     *            is_in_watchlist_included will be 1, otherwise 0
+     * @return A list (_id, is_included_in_watchlist, symbol) of all securities
+     * with those in the specified watchlist marked, ordered by symbol
+     */
+    public Cursor getAllSecuritiesAndMarkIfInWatchlist(long idOfWatchlistToMark) {
+        final String methodName = "getAllSecuritiesAndMarkIfInWatchlist";
+        Cursor cursor = null;
+        Log.v(CLASS_NAME, String.format("%s(): idOfWatchlistToMark = %d",
+                methodName, idOfWatchlistToMark));
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT tmp._id AS "
+                + Security.ID
+                + ", tmp.symbol AS "
+                + Security.SYMBOL
+                + ", q.name AS "
+                + Quote.NAME
+                + ", MAX(tmp.isInWatchList) AS "
+                + IS_SYMBOL_IN_WATCHLIST_ALIAS
+                + "\nFROM ("
+                + "\n\tSELECT " + Security.ID + ", " + Security.SYMBOL + ", 1 AS isInWatchList"
+                + "\n\tFROM " + Security.TABLE + " s"
+                + "\n\t\tLEFT JOIN " + SecuritiesInWatchlists.TABLE + " siwl ON "
+                + SecuritiesInWatchlists.SECURITY_ID + " = " + Security.ID
+                + "\n\tWHERE siwl." + SecuritiesInWatchlists.WATCHLIST_ID + " = ?"
+                + "\n\tUNION ALL"
+                + "\n\tSELECT " + Security.ID + ", " + Security.SYMBOL + ", 0 AS isInWatchList"
+                + "\n\tFROM " + Security.TABLE + " s"
+                + "\n) AS tmp"
+                + "\n\tLEFT OUTER JOIN " + Quote.TABLE + " q ON q." + Quote.SECURITY_ID + " = tmp._id"
+                + "\nGROUP BY tmp._id, tmp.symbol, " + Quote.NAME
+                + "\nORDER BY tmp.symbol ASC";
+        String[] selectionArgs = new String[] { String.valueOf(idOfWatchlistToMark) };
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(CLASS_NAME, String.format(
+                CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        return cursor;
+    } // getAllSecuritiesAndMarkIfInWatchlist()
+
     public Cursor readAllSecuritySymbols() {
         Cursor cursor = null;
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = new String[] { Security.SYMBOL };
+        String[] columns = new String[]{Security.SYMBOL};
         String groupBy = null;
         String having = null;
         String orderBy = Security.SYMBOL;
@@ -749,7 +799,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 + Security.TRAILING_TARGET + ") / 100"
                 + "\n\t) "
                 + "\nORDER BY s." + Security.SYMBOL + " ASC";
-        String[] selectionArgs = new String[] {};
+        String[] selectionArgs = new String[]{};
         logSql(methodName, sql, selectionArgs);
         cursor = db.rawQuery(sql, selectionArgs);
         return cursor;
@@ -833,7 +883,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 // Just try an Update as this will only fail for a newly added security
                 int updateResult = db.update(Quote.TABLE,
                         contentValues, Quote.SECURITY_ID + " = ?",
-                        new String[] {String.valueOf(securityId)});
+                        new String[]{String.valueOf(securityId)});
                 Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
                         methodName, Quote.TABLE, updateResult));
                 if (updateResult == 0) {
@@ -867,7 +917,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 + "\n\tLEFT JOIN " + Quote.TABLE + " q ON q." + Quote.SECURITY_ID + " = s." + Security.ID
                 + "\nWHERE COALESCE(" + Security.MAX_PRICE + ", 0) < COALESCE(" + Quote.DAYS_HIGH + ", 0)"
                 + "\n\tAND COALESCE(" + Security.MAX_PRICE_DATE + ", '') < SUBSTR(" + Quote.LAST_PRICE_DATE_TIME + ", 0, 11)";
-        String[] selectionArgs = new String[] {};
+        String[] selectionArgs = new String[]{};
         logSql(methodName, sql, selectionArgs);
         cursor = db.rawQuery(sql, selectionArgs);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
@@ -888,7 +938,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 contentValues.clear();
                 contentValues.put(Security.MAX_PRICE, daysHigh);
                 contentValues.put(Security.MAX_PRICE_DATE, lastTradeDate);
-                String[] whereArgs = new String[] { String.valueOf(securityId) };
+                String[] whereArgs = new String[]{String.valueOf(securityId)};
                 Integer updateResult = db.update(Security.TABLE,
                         contentValues, Security.ID + " = ?", whereArgs);
                 Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,

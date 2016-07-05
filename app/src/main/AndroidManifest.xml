@@ -25,9 +25,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".WatchlistsManagementActivity"></activity>
 
-        <receiver android:name=".QuoteRefreshAlarmReceiver"></receiver>
+        <activity android:name=".WatchlistEditActivity"></activity>
+        <activity android:name=".WatchlistsManagementActivity" />
+
+        <receiver android:name=".QuoteRefreshAlarmReceiver" />
         <receiver android:name=".QuoteRefreshScheduler">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

@@ -77,14 +77,14 @@ public class WatchlistEditActivity extends AppCompatActivity {
         securitiesToIncludeListView.setEmptyView(emptyTextView);
         securitiesToIncludeListView.setAdapter(adapter);
         // Mark securities that are included in this watchlist
-        int isInWatchListIncludedPosition = securitiesCursor
+        int isInWatchListIncludedColumnIndex = securitiesCursor
                 .getColumnIndex(DbHelper.IS_SYMBOL_IN_WATCHLIST_ALIAS);
         for (int i = 0; i < securitiesCursor.getCount(); i++) {
             securitiesCursor.moveToPosition(i);
             Log.v(CLASS_NAME, String.format("%s(): stocksCursor[%d].%s = %d",
                     methodName, i, DbHelper.IS_SYMBOL_IN_WATCHLIST_ALIAS,
-                    securitiesCursor.getInt(isInWatchListIncludedPosition)));
-            if (securitiesCursor.getInt(isInWatchListIncludedPosition) == 1) {
+                    securitiesCursor.getInt(isInWatchListIncludedColumnIndex)));
+            if (securitiesCursor.getInt(isInWatchListIncludedColumnIndex) == 1) {
                 securitiesToIncludeListView.setItemChecked(i, true);
             }
         }

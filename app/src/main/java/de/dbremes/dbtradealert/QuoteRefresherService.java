@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.app.NotificationCompat;
@@ -118,8 +119,7 @@ public class QuoteRefresherService extends IntentService {
                 Log.d(CLASS_NAME, BROADCAST_EXTRA_ERROR + "broken Internet connection!");
             }
             // TODO: cannot rethrow in else case as that doesn't match overridden methods signature?
-        }
-        finally {
+        } finally {
             QuoteRefreshAlarmReceiver.completeWakefulIntent(intent);
         }
     } // onHandleIntent()
@@ -208,9 +208,10 @@ public class QuoteRefresherService extends IntentService {
         if (cursor.getCount() > 0) {
             Context context = getApplicationContext();
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.emo_im_money_mouth)
+                    .setColor(Color.GREEN)
                     .setDefaults(Notification.DEFAULT_ALL)
-                    .setNumber(cursor.getCount());
+                    .setNumber(cursor.getCount())
+                    .setSmallIcon(R.drawable.emo_im_money_mouth);
             // Specify which intent to show when user taps notification
             Intent watchlistListIntent = new Intent(this, WatchlistListActivity.class);
             PendingIntent watchlistListPendingIntent

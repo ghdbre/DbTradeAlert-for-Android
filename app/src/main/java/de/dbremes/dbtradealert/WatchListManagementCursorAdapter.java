@@ -14,7 +14,6 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class WatchlistManagementCursorAdapter extends CursorAdapter {
-    private Context context;
     DbHelper dbHelper;
 
     private View.OnClickListener deleteButtonClickListener = new View.OnClickListener() {
@@ -50,8 +49,7 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
 
     public WatchlistManagementCursorAdapter(Context context, Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
-        this.context = context;
-        this.dbHelper = new DbHelper(this.context);
+        this.dbHelper = new DbHelper(context);
     } // ctor()
 
     @Override

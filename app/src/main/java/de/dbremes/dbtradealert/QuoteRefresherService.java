@@ -68,7 +68,7 @@ public class QuoteRefresherService extends IntentService {
     }// areExchangesOpenNow()
 
     private String buildNotificationLineFromCursor(Cursor cursor) {
-        String result = null;
+        String result = "";
         String actualName = cursor.getString(0);
         float actualValue = cursor.getFloat(1);
         String signalName = cursor.getString(2);
@@ -172,7 +172,7 @@ public class QuoteRefresherService extends IntentService {
         Cursor cursor = dbHelper.readAllSecuritySymbols();
         StringBuilder sb = new StringBuilder();
         while (cursor.moveToNext()) {
-            sb.append(cursor.getString(0) + "+");
+            sb.append(cursor.getString(0)).append("+");
         }
         DbHelper.closeCursor(cursor);
         String symbols = sb.toString();

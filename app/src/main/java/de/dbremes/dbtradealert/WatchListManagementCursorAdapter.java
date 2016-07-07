@@ -38,7 +38,7 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
                                     WatchlistManagementDetailViewHolder holder
                                             = (WatchlistManagementDetailViewHolder) ((View) v
                                             .getParent()).getTag();
-                                    long watchListId = holder.watchListId;
+                                    long watchListId = holder.watchlistId;
                                     dbHelper.deleteWatchlist(watchListId);
                                     ((WatchlistsManagementActivity) holder.context)
                                             .refreshWatchlistsListView();
@@ -54,9 +54,9 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
         public void onClick(View v) {
             WatchlistManagementDetailViewHolder holder
                     = (WatchlistManagementDetailViewHolder) ((View) v.getParent()).getTag();
-            long watchListId = holder.watchListId;
+            long watchlistId = holder.watchlistId;
             Intent intent = new Intent(holder.context, WatchlistEditActivity.class);
-            intent.putExtra(WatchlistEditActivity.WATCHLIST_ID_INTENT_EXTRA, watchListId);
+            intent.putExtra(WatchlistEditActivity.WATCHLIST_ID_INTENT_EXTRA, watchlistId);
             ((Activity) holder.context).startActivityForResult(intent,
                     WatchlistEditActivity.UPDATE_WATCHLIST_REQUEST_CODE);
         }
@@ -73,7 +73,7 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
                 = (WatchlistManagementDetailViewHolder) view.getTag();
         holder.nameTextView.setText(cursor.getString(cursor
                 .getColumnIndex(WatchlistContract.Watchlist.NAME)));
-        holder.watchListId = cursor.getLong(cursor
+        holder.watchlistId = cursor.getLong(cursor
                 .getColumnIndex(WatchlistContract.Watchlist.ID));
     } // bindView()
 
@@ -89,7 +89,7 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
         holder.editButton = (Button) view.findViewById(R.id.editButton);
         holder.editButton.setOnClickListener(editButtonClickListener);
         holder.nameTextView = (TextView) view.findViewById(R.id.nameTextView);
-        holder.watchListId = cursor.getLong(cursor.getColumnIndex(WatchlistContract.Watchlist.ID));
+        holder.watchlistId = cursor.getLong(cursor.getColumnIndex(WatchlistContract.Watchlist.ID));
         view.setTag(holder);
         return view;
     } // newView()
@@ -100,6 +100,6 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
         public Button deleteButton;
         public Button editButton;
         public TextView nameTextView;
-        public long watchListId;
+        public long watchlistId;
     } // class WatchlistManagementDetailViewHolder
 } // class WatchlistManagementCursorAdapter

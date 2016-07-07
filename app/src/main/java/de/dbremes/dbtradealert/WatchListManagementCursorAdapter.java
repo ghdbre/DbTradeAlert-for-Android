@@ -20,8 +20,8 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
     private View.OnClickListener deleteButtonClickListener = new View.OnClickListener() {
 
         public void onClick(final View v) {
-            WatchListManagementDetailViewHolder holder
-                    = (WatchListManagementDetailViewHolder) ((View) v.getParent()).getTag();
+            WatchlistManagementDetailViewHolder holder
+                    = (WatchlistManagementDetailViewHolder) ((View) v.getParent()).getTag();
             String watchListName = holder.nameTextView.getText().toString();
             new AlertDialog.Builder(holder.context)
                     .setTitle("Delete?")
@@ -34,8 +34,8 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog,
                                                     int whichButton) {
-                                    WatchListManagementDetailViewHolder holder
-                                            = (WatchListManagementDetailViewHolder) ((View) v
+                                    WatchlistManagementDetailViewHolder holder
+                                            = (WatchlistManagementDetailViewHolder) ((View) v
                                             .getParent()).getTag();
                                     long watchListId = holder.watchListId;
                                     dbHelper.deleteWatchlist(watchListId);
@@ -56,8 +56,8 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        WatchListManagementDetailViewHolder holder
-                = (WatchListManagementDetailViewHolder) view.getTag();
+        WatchlistManagementDetailViewHolder holder
+                = (WatchlistManagementDetailViewHolder) view.getTag();
         holder.nameTextView.setText(cursor.getString(cursor
                 .getColumnIndex(WatchlistContract.Watchlist.NAME)));
         holder.watchListId = cursor.getLong(cursor
@@ -67,9 +67,9 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
         View view = View.inflate(context, R.layout.layout_watchlists_management_detail, null);
-        // could replace WatchListManagementDetailViewHolder in ICS and above with
+        // could replace WatchlistManagementDetailViewHolder in ICS and above with
         // view.setTag(R.id.my_view, myView);
-        WatchListManagementDetailViewHolder holder = new WatchListManagementDetailViewHolder();
+        WatchlistManagementDetailViewHolder holder = new WatchlistManagementDetailViewHolder();
         holder.context = context;
         holder.deleteButton = (Button) view.findViewById(R.id.deleteButton);
         holder.deleteButton.setOnClickListener(deleteButtonClickListener);
@@ -82,11 +82,11 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
     } // newView()
 
 
-    public class WatchListManagementDetailViewHolder {
+    private class WatchlistManagementDetailViewHolder {
         public Context context;
         public Button deleteButton;
         public Button editButton;
         public TextView nameTextView;
         public long watchListId;
-    } // class WatchListManagementDetailViewHolder
+    } // class WatchlistManagementDetailViewHolder
 } // class WatchlistManagementCursorAdapter

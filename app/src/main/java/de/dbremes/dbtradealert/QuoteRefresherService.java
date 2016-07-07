@@ -91,32 +91,36 @@ public class QuoteRefresherService extends IntentService {
             boolean isManualRefresh = intent.getBooleanExtra(INTENT_EXTRA_IS_MANUAL_REFRESH, false);
             if (isManualRefresh || areExchangesOpenNow()) {
                 if (isConnected()) {
-                        quoteCsv = downloadQuotes(url);
-                        DbHelper dbHelper = new DbHelper(this);
-                        dbHelper.updateOrCreateQuotes(quoteCsv);
-                        // Notify user of triggered signals even if app is sleeping
-                        dbHelper.updateSecurityMaxPrice();
-                        sendNotificationForTriggeredSignals(dbHelper);
+                    quoteCsv = downloadQuotes(url);
+                    DbHelper dbHelper = new DbHelper(this);
+                    dbHelper.updateOrCreateQuotes(quoteCsv);
+                    // Notify user of triggered signals even if app is sleeping
+                    dbHelper.updateSecurityMaxPrice();
+                    sendNotificationForTriggeredSignals(dbHelper);
+                    Log.d(CLASS_NAME,
+                            "onHandleIntent(): quotes updated - initiating screen refresh");
+                    sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
                 } else {
                     sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "no Internet!");
                     Log.d(CLASS_NAME, BROADCAST_EXTRA_ERROR + "no Internet!");
                 }
-                Log.d(CLASS_NAME,
-                        "onHandleIntent(): quotes updated - initiating screen refresh");
-                sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
-                QuoteRefreshAlarmReceiver.completeWakefulIntent(intent);
             } else {
                 Log.d(CLASS_NAME,
-                    "onHandleIntent(): exchanges closed and not a manual reefresh - skipping alarm");
+                        "onHandleIntent(): exchanges closed and not a manual refresh - skipping alarm");
             }
         } catch (IOException e) {
+            Log.e(CLASS_NAME, exceptionMessage, e);
             if (e instanceof UnknownHostException) {
                 // java.net.UnknownHostException:
                 // Unable to resolve host "download.finance.yahoo.com":
                 // No address associated with hostname
                 sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "broken Internet connection!");
+                Log.d(CLASS_NAME, BROADCAST_EXTRA_ERROR + "broken Internet connection!");
             }
-            Log.e(CLASS_NAME, exceptionMessage, e);
+            // TODO: cannot rethrow in else case as that doesn't match overridden methods signature?
+        }
+        finally {
+            QuoteRefreshAlarmReceiver.completeWakefulIntent(intent);
         }
     } // onHandleIntent()
 
@@ -136,6 +140,7 @@ public class QuoteRefresherService extends IntentService {
             if (responseCode == 200) {
                 inputStream = conn.getInputStream();
                 result = getStringFromStream(inputStream);
+                Log.d(CLASS_NAME, "downloadQuotes(): got " + result.length() + " characters");
             } else {
                 sendLocalBroadcast(BROADCAST_EXTRA_ERROR
                         + "download failed (response code " + responseCode + ")!");
@@ -145,7 +150,6 @@ public class QuoteRefresherService extends IntentService {
                 inputStream.close();
             }
         }
-        Log.d(CLASS_NAME, "downloadQuotes(): got " + result.length() + " characters");
         return result;
     } // downloadQuotes()
 
@@ -157,7 +161,7 @@ public class QuoteRefresherService extends IntentService {
         BufferedReader rd = new BufferedReader(new InputStreamReader(inputStream));
         String line;
         while ((line = rd.readLine()) != null) {
-            sb.append(line + "\n");
+            sb.append(line).append("\n");
         }
         return sb.toString();
     } // getStringFromStream()

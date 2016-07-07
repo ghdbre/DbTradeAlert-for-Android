@@ -1,7 +1,9 @@
 package de.dbremes.dbtradealert;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
@@ -47,6 +49,19 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
 
     }; // deleteButtonClickListener
 
+    private View.OnClickListener editButtonClickListener = new View.OnClickListener() {
+
+        public void onClick(View v) {
+            WatchlistManagementDetailViewHolder holder
+                    = (WatchlistManagementDetailViewHolder) ((View) v.getParent()).getTag();
+            long watchListId = holder.watchListId;
+            Intent intent = new Intent(holder.context, WatchlistEditActivity.class);
+            intent.putExtra(WatchlistEditActivity.WATCHLIST_ID_INTENT_EXTRA, watchListId);
+            ((Activity) holder.context).startActivityForResult(intent,
+                    WatchlistEditActivity.UPDATE_WATCHLIST_REQUEST_CODE);
+        }
+    }; // editButtonClickListener
+
     public WatchlistManagementCursorAdapter(Context context, Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
         this.dbHelper = new DbHelper(context);
@@ -72,7 +87,7 @@ public class WatchlistManagementCursorAdapter extends CursorAdapter {
         holder.deleteButton = (Button) view.findViewById(R.id.deleteButton);
         holder.deleteButton.setOnClickListener(deleteButtonClickListener);
         holder.editButton = (Button) view.findViewById(R.id.editButton);
-        //holder.editButton.setOnClickListener(editButtonClickListener);
+        holder.editButton.setOnClickListener(editButtonClickListener);
         holder.nameTextView = (TextView) view.findViewById(R.id.nameTextView);
         holder.watchListId = cursor.getLong(cursor.getColumnIndex(WatchlistContract.Watchlist.ID));
         view.setTag(holder);

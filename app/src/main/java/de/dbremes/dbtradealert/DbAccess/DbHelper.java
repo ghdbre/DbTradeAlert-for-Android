@@ -11,6 +11,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.text.ParseException;
@@ -378,7 +379,7 @@ public class DbHelper extends SQLiteOpenHelper {
         final String methodName = "deleteWatchlist";
         Log.d(CLASS_NAME,
                 String.format("%s(): watchlistId = %d", methodName, watchlistId));
-        String[] whereArgs = new String[] { String.valueOf(watchlistId) };
+        String[] whereArgs = new String[]{String.valueOf(watchlistId)};
         Integer deleteResult;
         SQLiteDatabase db = getWritableDatabase();
         try {
@@ -675,6 +676,33 @@ public class DbHelper extends SQLiteOpenHelper {
                         + insertSelectionArgs(selection, selectionArgs));
     } // logSql()
 
+    private void logSql(String methodName, String[] columns, String orderBy,
+                        String selection, String[] selectionArgs, String table) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT ");
+        if (columns != null) {
+            for (int i = 0; i < columns.length; i++) {
+                sb.append(columns[i]);
+                if (i < columns.length - 1) {
+                    sb.append(", ");
+                }
+            }
+        } else {
+            sb.append("*");
+        }
+        sb.append("\nFROM ");
+        sb.append(table);
+        if (TextUtils.isEmpty(selection) == false) {
+            sb.append("\nWHERE ");
+            sb.append(insertSelectionArgs(selection, selectionArgs));
+        }
+        if (TextUtils.isEmpty(orderBy) == false) {
+            sb.append("\nORDER BY ");
+            sb.append(orderBy);
+        }
+        Log.v(CLASS_NAME, methodName + "(): " + sb.toString());
+    } // logSql()
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         createTables(db);
@@ -714,9 +742,8 @@ public class DbHelper extends SQLiteOpenHelper {
      * Gets a list of all securities with those in the specified watchlist marked,
      * ordered by symbol
      *
-     * @param idOfWatchlistToMark
-     *            If a stock is included in this watchlist,
-     *            is_in_watchlist_included will be 1, otherwise 0
+     * @param idOfWatchlistToMark If a stock is included in this watchlist,
+     *                            is_in_watchlist_included will be 1, otherwise 0
      * @return A list (_id, is_included_in_watchlist, symbol) of all securities
      * with those in the specified watchlist marked, ordered by symbol
      */
@@ -747,7 +774,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 + "\n\tLEFT OUTER JOIN " + Quote.TABLE + " q ON q." + Quote.SECURITY_ID + " = tmp._id"
                 + "\nGROUP BY tmp._id, tmp.symbol, " + Quote.NAME
                 + "\nORDER BY tmp.symbol ASC";
-        String[] selectionArgs = new String[] { String.valueOf(idOfWatchlistToMark) };
+        String[] selectionArgs = new String[]{String.valueOf(idOfWatchlistToMark)};
         logSql(methodName, sql, selectionArgs);
         cursor = db.rawQuery(sql, selectionArgs);
         Log.v(CLASS_NAME, String.format(
@@ -845,6 +872,27 @@ public class DbHelper extends SQLiteOpenHelper {
         return cursor;
     } // readAllWatchlists()
 
+    public Cursor readWatchlist(long watchlistId) {
+        final String methodName = "readWatchlist";
+        Cursor cursor = null;
+        Log.v(CLASS_NAME,
+                String.format("%s(): watchlistId = %d", methodName, watchlistId));
+        SQLiteDatabase db = getReadableDatabase();
+        String selection = Watchlist.ID + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
+        String table = Watchlist.TABLE;
+        logSql(methodName, null, null, selection, selectionArgs, table);
+        cursor = db.query(table, null, selection, selectionArgs, null, null,
+                null);
+        Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        if (cursor.getCount() != 1) {
+            Log.e(CLASS_NAME, String.format(
+                    "%s(): found %d watchlists with id = %d; expected 1!", methodName,
+                    cursor.getCount(), watchlistId));
+        }
+        return cursor;
+    } // readWatchlist()
+
     public void updateOrCreateQuotes(String quoteCsv) {
         final String methodName = "updateOrCreateQuotes";
         Log.v(CLASS_NAME, String.format("%s: quoteCsv = %s", methodName, quoteCsv));
@@ -930,7 +978,7 @@ public class DbHelper extends SQLiteOpenHelper {
                                         long watchlistId) {
         final String methodName = "updateOrCreateWatchlist";
         Long insertResult = null;
-        String[] whereArgs = new String[] { String.valueOf(watchlistId) };
+        String[] whereArgs = new String[]{String.valueOf(watchlistId)};
         SQLiteDatabase db = getWritableDatabase();
         try {
             db.beginTransaction();

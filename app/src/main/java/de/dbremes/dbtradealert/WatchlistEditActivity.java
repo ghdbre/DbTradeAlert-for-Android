@@ -13,10 +13,12 @@ import android.widget.TextView;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract;
+import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class WatchlistEditActivity extends AppCompatActivity {
     private final static String CLASS_NAME = "WatchlistEditActivity";
     public final static int CREATE_WATCHLIST_REQUEST_CODE = 0;
+    public final static int UPDATE_WATCHLIST_REQUEST_CODE = 1;
     public final static String WATCHLIST_ID_INTENT_EXTRA = "de.dbremes.dbtradealert.watchlistId";
     private DbHelper dbHelper;
     private long watchlistId = DbHelper.NewItemId;
@@ -42,18 +44,18 @@ public class WatchlistEditActivity extends AppCompatActivity {
                 setTitle("Create Watchlist");
             } else {
                 // Update mode
-//                Cursor watchlistCursor = this.dbHelper.readWatchlist(this.watchlistId);
-//                if (watchlistCursor.getCount() == 1) {
-//                    watchlistCursor.moveToFirst();
-//                    nameEditText
-//                            .setText(watchlistCursor.getString(watchlistCursor
-//                                    .getColumnIndex(WatchlistContract.Watchlist.NAME)));
-//                } else {
-//                    Log.e(CLASS_NAME, String.format(
-//                            "%s(): readWatchlist() found %d watchlists with id = %d; expected 1!",
-//                            methodName, watchlistCursor.getCount(),
-//                            this.watchlistId));
-//                }
+                Cursor watchlistCursor = this.dbHelper.readWatchlist(this.watchlistId);
+                if (watchlistCursor.getCount() == 1) {
+                    watchlistCursor.moveToFirst();
+                    nameEditText
+                            .setText(watchlistCursor.getString(watchlistCursor
+                                    .getColumnIndex(WatchlistContract.Watchlist.NAME)));
+                } else {
+                    Log.e(CLASS_NAME, String.format(
+                            "%s(): readWatchlist() found %d watchlists with id = %d; expected 1!",
+                            methodName, watchlistCursor.getCount(),
+                            this.watchlistId));
+                }
             }
         }
         refreshSecuritiesList(this.watchlistId);

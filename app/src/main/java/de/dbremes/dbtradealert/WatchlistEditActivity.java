@@ -50,6 +50,7 @@ public class WatchlistEditActivity extends AppCompatActivity {
                     nameEditText
                             .setText(watchlistCursor.getString(watchlistCursor
                                     .getColumnIndex(WatchlistContract.Watchlist.NAME)));
+                    setTitle("Edit Watchlist");
                 } else {
                     Log.e(CLASS_NAME, String.format(
                             "%s(): readWatchlist() found %d watchlists with id = %d; expected 1!",

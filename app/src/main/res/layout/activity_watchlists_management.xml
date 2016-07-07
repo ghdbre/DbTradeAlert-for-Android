@@ -38,7 +38,7 @@
         android:text="@android:string/cancel" />
 
     <ListView
-        android:id="@+id/watchListsListView"
+        android:id="@+id/watchlistsListView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/okButton"
@@ -52,6 +52,6 @@
         android:layout_alignParentLeft="false"
         android:layout_alignParentTop="false"
         android:layout_centerInParent="true"
-        android:text="(Click 'New' to create a new watch list)"
+        android:text="(Click 'New' to create a new watchlist)"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 </RelativeLayout>

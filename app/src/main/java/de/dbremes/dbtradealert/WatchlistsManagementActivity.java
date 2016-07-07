@@ -37,7 +37,7 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
         this.cursor = dbHelper.readAllWatchlists();
         this.watchlistManagementCursorAdapter
                 = new WatchlistManagementCursorAdapter(this, this.cursor, false);
-        ListView watchListsListView = (ListView) findViewById(R.id.watchListsListView);
+        ListView watchListsListView = (ListView) findViewById(R.id.watchlistsListView);
         TextView emptyTextView = (TextView) findViewById(R.id.emptyTextView);
         watchListsListView.setEmptyView(emptyTextView);
         watchListsListView.setAdapter(watchlistManagementCursorAdapter);
@@ -57,6 +57,7 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
     } // onNewButtonClick()
 
     public void refreshWatchlistsListView() {
+        // public so it can be called from WatchlistManagementCursorAdapter
         Cursor cursor = this.dbHelper.readAllWatchlists();
         this.watchlistManagementCursorAdapter.changeCursor(cursor);
     } // refreshWatchlistsListView()

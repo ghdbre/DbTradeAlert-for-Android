@@ -56,7 +56,7 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
                 WatchlistEditActivity.CREATE_WATCHLIST_REQUEST_CODE);
     } // onNewButtonClick()
 
-    private void refreshWatchlistsListView() {
+    public void refreshWatchlistsListView() {
         Cursor cursor = this.dbHelper.readAllWatchlists();
         this.watchlistManagementCursorAdapter.changeCursor(cursor);
     } // refreshWatchlistsListView()

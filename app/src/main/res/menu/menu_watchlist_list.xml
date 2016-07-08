@@ -7,11 +7,13 @@
         android:icon="@drawable/ic_action_refresh"
         app:showAsAction="ifRoom"
         android:title="Refresh"
-        android:titleCondensed="Refresh">
-    </item>
+        android:titleCondensed="Refresh" />
+    <item
+        android:id="@+id/action_securities_management"
+        android:title="Manage Securities"
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_watchlists_management"
-        android:orderInCategory="100"
         android:title="Manage Watchlists"
         app:showAsAction="never" />
     <item

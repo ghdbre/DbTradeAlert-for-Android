@@ -30,6 +30,7 @@ public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
     private static final String APP_NAME = "DbTradeAlert";
     private static final String CLASS_NAME = "WatchlistListActivity";
+    private static final int SECURITIES_MANAGEMENT_REQUEST = 1;
     private static final int WATCHLISTS_MANAGEMENT_REQUEST = 2;
     private DbHelper dbHelper = null;
     private WatchlistListPagerAdapter watchlistListPagerAdapter;
@@ -85,8 +86,13 @@ public class WatchlistListActivity extends AppCompatActivity
         final String methodName = "onActivityResult";
         switch (requestCode) {
             case WATCHLISTS_MANAGEMENT_REQUEST:
+                // Even if user tapped Cancel in Manage Watchlists screen he may have OK'd
+                // changes in Edit Watchlist screen
+                watchlistListPagerAdapter.notifyDataSetChanged();
+                break;
+            case SECURITIES_MANAGEMENT_REQUEST:
                 if (resultCode == RESULT_OK) {
-                    watchlistListPagerAdapter.notifyDataSetChanged();
+                    refreshAllWatchLists();
                 }
                 break;
             default:
@@ -135,6 +141,7 @@ public class WatchlistListActivity extends AppCompatActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        Intent intent;
         int id = item.getItemId();
         switch (id) {
             case R.id.action_refresh: {
@@ -145,8 +152,12 @@ public class WatchlistListActivity extends AppCompatActivity
                 startService(service);
                 return true;
             }
+            case R.id.action_securities_management:
+                intent = new Intent(this, SecuritiesManagementActivity.class);
+                startActivityForResult(intent, SECURITIES_MANAGEMENT_REQUEST);
+                return true;
             case R.id.action_watchlists_management: {
-                Intent intent = new Intent(this, WatchlistsManagementActivity.class);
+                intent = new Intent(this, WatchlistsManagementActivity.class);
                 startActivityForResult(intent, WATCHLISTS_MANAGEMENT_REQUEST);
                 return true;
             }
@@ -156,12 +167,12 @@ public class WatchlistListActivity extends AppCompatActivity
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
+    } // onOptionsItemSelected()
 
     @Override
     protected void onPause() {
         // App goes to background - no need to update screen
-        // And programatically registered broadcast receivers don't receive broadcasts when the app
+        // And programmatically registered broadcast receivers don't receive broadcasts when the app
         // is paused anyway
         LocalBroadcastManager.getInstance(this).unregisterReceiver(quotesRefreshedBroadcastReceiver);
         Log.d(CLASS_NAME, "onPause(): quoteRefresherMessageReceiver unregistered");

@@ -13,7 +13,7 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 public class WatchlistsManagementActivity extends AppCompatActivity {
     private Cursor cursor;
     private DbHelper dbHelper;
-    private WatchlistManagementCursorAdapter watchlistManagementCursorAdapter;
+    private WatchlistsManagementCursorAdapter watchlistsManagementCursorAdapter;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -35,12 +35,12 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
         setTitle("Manage Watchlists");
         this.dbHelper = new DbHelper(this);
         this.cursor = dbHelper.readAllWatchlists();
-        this.watchlistManagementCursorAdapter
-                = new WatchlistManagementCursorAdapter(this, this.cursor, false);
+        this.watchlistsManagementCursorAdapter
+                = new WatchlistsManagementCursorAdapter(this, this.cursor, false);
         ListView watchListsListView = (ListView) findViewById(R.id.watchlistsListView);
         TextView emptyTextView = (TextView) findViewById(R.id.emptyTextView);
         watchListsListView.setEmptyView(emptyTextView);
-        watchListsListView.setAdapter(watchlistManagementCursorAdapter);
+        watchListsListView.setAdapter(watchlistsManagementCursorAdapter);
     } // onCreate()
 
     public void onOkButtonClick(View view) {
@@ -57,9 +57,9 @@ public class WatchlistsManagementActivity extends AppCompatActivity {
     } // onNewButtonClick()
 
     public void refreshWatchlistsListView() {
-        // public so it can be called from WatchlistManagementCursorAdapter
+        // public so it can be called from WatchlistsManagementCursorAdapter
         Cursor cursor = this.dbHelper.readAllWatchlists();
-        this.watchlistManagementCursorAdapter.changeCursor(cursor);
+        this.watchlistsManagementCursorAdapter.changeCursor(cursor);
     } // refreshWatchlistsListView()
 
 } // class WatchlistsManagementActivity()

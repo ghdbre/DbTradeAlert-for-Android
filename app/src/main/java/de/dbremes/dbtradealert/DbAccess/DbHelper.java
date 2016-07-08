@@ -36,7 +36,8 @@ public class DbHelper extends SQLiteOpenHelper {
     private final static String INSERT_RESULT_FORMAT = "%s(): result of db.insert() into %s: %d";
     private final static String UPDATE_RESULT_FORMAT = "%s(): result of db.update() for %s: %d";
 
-    // Alias for generated columns of getAllSecuritiesAndMarkIfInWatchlist() and readAllWatchlists()
+    // Alias for generated columns of getAllSecuritiesAndMarkIfInWatchlist()
+    // and getAllWatchlistsAndMarkIfSecurityIsIncluded()
     public final static String IS_SYMBOL_IN_WATCHLIST_ALIAS = "isSymbolInWatchlist";
 
     // region Format parameter values
@@ -714,30 +715,6 @@ public class DbHelper extends SQLiteOpenHelper {
 
     }
 
-    public Cursor readAllQuotesForWatchlist(long watchlistId) {
-        final String methodName = "readAllQuotesForWatchlist";
-        Cursor cursor = null;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String sql = "SELECT q.*, s." + Security.BASE_PRICE + ", s."
-                + Security.LOWER_TARGET + ", s." + Security.MAX_PRICE
-                + ", s." + Security.TRAILING_TARGET + ", s."
-                + Security.UPPER_TARGET + "\nFROM "
-                + SecuritiesInWatchlists.TABLE + " siwl" + "\n\tINNER JOIN "
-                + Quote.TABLE + " q ON q." + Quote.SECURITY_ID
-                + " = " + "siwl." + SecuritiesInWatchlists.SECURITY_ID + "\n\tINNER JOIN "
-                + Security.TABLE + " s ON s." + Security.ID + " = " + "q."
-                + Quote.SECURITY_ID + "\nWHERE siwl."
-                + SecuritiesInWatchlists.WATCHLIST_ID + " = ?" + "\nORDER BY q."
-                + Quote.NAME + " ASC";
-        String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
-        logSql(methodName, sql, selectionArgs);
-        cursor = db.rawQuery(sql, selectionArgs);
-        Log.v(DbHelper.CLASS_NAME,
-                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName,
-                        cursor.getCount()));
-        return cursor;
-    } // readAllQuotesForWatchlist()
-
     /**
      * Gets a list of all securities with those in the specified watchlist marked,
      * ordered by symbol
@@ -781,6 +758,30 @@ public class DbHelper extends SQLiteOpenHelper {
                 CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         return cursor;
     } // getAllSecuritiesAndMarkIfInWatchlist()
+
+    public Cursor readAllQuotesForWatchlist(long watchlistId) {
+        final String methodName = "readAllQuotesForWatchlist";
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT q.*, s." + Security.BASE_PRICE + ", s."
+                + Security.LOWER_TARGET + ", s." + Security.MAX_PRICE
+                + ", s." + Security.TRAILING_TARGET + ", s."
+                + Security.UPPER_TARGET + "\nFROM "
+                + SecuritiesInWatchlists.TABLE + " siwl" + "\n\tINNER JOIN "
+                + Quote.TABLE + " q ON q." + Quote.SECURITY_ID
+                + " = " + "siwl." + SecuritiesInWatchlists.SECURITY_ID + "\n\tINNER JOIN "
+                + Security.TABLE + " s ON s." + Security.ID + " = " + "q."
+                + Quote.SECURITY_ID + "\nWHERE siwl."
+                + SecuritiesInWatchlists.WATCHLIST_ID + " = ?" + "\nORDER BY q."
+                + Quote.NAME + " ASC";
+        String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(DbHelper.CLASS_NAME,
+                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName,
+                        cursor.getCount()));
+        return cursor;
+    } // readAllQuotesForWatchlist()
 
     public Cursor readAllSecuritySymbols() {
         Cursor cursor = null;
@@ -860,7 +861,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public Cursor readAllWatchlists() {
         Cursor cursor = null;
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
         String[] columns = new String[]{Watchlist.ID, Watchlist.NAME};
         String groupBy = null;
         String having = null;

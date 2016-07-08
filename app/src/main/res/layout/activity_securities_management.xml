@@ -17,7 +17,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:onClick="onOkButtonClick"
-        android:text="@android:string/ok" />
+        android:text="OK" />
 
     <Button
         android:id="@+id/cancelButton"
@@ -26,7 +26,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:onClick="onCancelButtonClick"
-        android:text="@android:string/cancel" />
+        android:text="Cancel" />
 
     <ListView
         android:id="@+id/securitiesListView"
@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_toRightOf="@id/cancelButton"
-        android:text="(Click New to include a new security)"
+        android:text="(Click New to add a new security)"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>

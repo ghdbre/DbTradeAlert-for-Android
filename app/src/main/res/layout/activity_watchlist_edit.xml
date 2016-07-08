@@ -28,7 +28,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:onClick="onCancelButtonClick"
-        android:text="@android:string/cancel" />
+        android:text="Cancel" />
 
     <TextView
         android:id="@+id/nameTextView"

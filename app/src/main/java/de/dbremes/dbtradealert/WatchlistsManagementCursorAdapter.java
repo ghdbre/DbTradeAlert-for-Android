@@ -43,7 +43,7 @@ public class WatchlistsManagementCursorAdapter extends CursorAdapter {
                                     ((WatchlistsManagementActivity) holder.context)
                                             .refreshWatchlistsListView();
                                 }
-                            }).setNegativeButton(android.R.string.no, null)
+                            }).setNegativeButton("Cancel", null)
                     .show();
         } // onClick()
 

@@ -15,7 +15,8 @@ public class SecuritiesManagementActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_securities_management);
-    }
+        setTitle("Manage Securities");
+    } // onCreate()
 
     public void onOkButtonClick(View view) {
         setResult(RESULT_OK, getIntent());

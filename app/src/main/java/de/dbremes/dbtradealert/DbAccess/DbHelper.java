@@ -37,8 +37,8 @@ public class DbHelper extends SQLiteOpenHelper {
     private final static String INSERT_RESULT_FORMAT = "%s(): result of db.insert() into %s: %d";
     private final static String UPDATE_RESULT_FORMAT = "%s(): result of db.update() for %s: %d";
 
-    // Alias for generated columns of getAllSecuritiesAndMarkIfInWatchlist()
-    // and getAllWatchlistsAndMarkIfSecurityIsIncluded()
+    // Alias for generated columns of readAllSecuritiesAndMarkIfInWatchlist()
+    // and readAllWatchlistsAndMarkIfSecurityIsIncluded()
     public final static String IS_SECURITY_IN_WATCHLIST_ALIAS = "isSecurityInWatchlist";
 
     // region Format parameter values
@@ -741,6 +741,30 @@ public class DbHelper extends SQLiteOpenHelper {
 
     }
 
+    public Cursor readAllQuotesForWatchlist(long watchlistId) {
+        final String methodName = "readAllQuotesForWatchlist";
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT q.*, s." + Security.BASE_PRICE + ", s."
+                + Security.LOWER_TARGET + ", s." + Security.MAX_PRICE
+                + ", s." + Security.TRAILING_TARGET + ", s."
+                + Security.UPPER_TARGET + "\nFROM "
+                + SecuritiesInWatchlists.TABLE + " siwl" + "\n\tINNER JOIN "
+                + Quote.TABLE + " q ON q." + Quote.SECURITY_ID
+                + " = " + "siwl." + SecuritiesInWatchlists.SECURITY_ID + "\n\tINNER JOIN "
+                + Security.TABLE + " s ON s." + Security.ID + " = " + "q."
+                + Quote.SECURITY_ID + "\nWHERE siwl."
+                + SecuritiesInWatchlists.WATCHLIST_ID + " = ?" + "\nORDER BY q."
+                + Quote.NAME + " ASC";
+        String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(DbHelper.CLASS_NAME,
+                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName,
+                        cursor.getCount()));
+        return cursor;
+    } // readAllQuotesForWatchlist()
+
     /**
      * Gets a list of all securities with those in the specified watchlist marked,
      * ordered by symbol
@@ -750,8 +774,8 @@ public class DbHelper extends SQLiteOpenHelper {
      * @return A list (_id, is_included_in_watchlist, symbol) of all securities
      * with those in the specified watchlist marked, ordered by symbol
      */
-    public Cursor getAllSecuritiesAndMarkIfInWatchlist(long idOfWatchlistToMark) {
-        final String methodName = "getAllSecuritiesAndMarkIfInWatchlist";
+    public Cursor readAllSecuritiesAndMarkIfInWatchlist(long idOfWatchlistToMark) {
+        final String methodName = "readAllSecuritiesAndMarkIfInWatchlist";
         Cursor cursor = null;
         Log.v(CLASS_NAME, String.format("%s(): idOfWatchlistToMark = %d",
                 methodName, idOfWatchlistToMark));
@@ -783,67 +807,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.v(CLASS_NAME, String.format(
                 CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         return cursor;
-    } // getAllSecuritiesAndMarkIfInWatchlist()
-
-    /**
-     * Gets a list of all watchlists with those including the specified security marked, ordered
-     * by name
-     *
-     * @param securityIdToMark If a watchlist contains this security, is_security_included will
-     *                         be 1, otherwise 0
-     * @return A list (_id, is_security_included, name) of all watchlists
-     * with those including the specified security marked, ordered by name
-     */
-    public Cursor getAllWatchlistsAndMarkIfSecurityIsIncluded(long securityIdToMark) {
-        final String methodName = "getAllWatchlistsAndMarkIfSecurityIsIncluded";
-        Cursor cursor = null;
-        Log.v(CLASS_NAME, String.format("%s: securityIdToMark = %d", methodName,
-                securityIdToMark));
-        SQLiteDatabase db = getReadableDatabase();
-        String sql = "SELECT tmp._id, tmp.name, MAX(tmp.isSecurityIncluded) AS "
-                + IS_SECURITY_IN_WATCHLIST_ALIAS
-                + "\nFROM ("
-                + "\n\tSELECT " + Watchlist.ID + ", " + Watchlist.NAME + ", 1 AS isSecurityIncluded"
-                + "\n\tFROM " + Watchlist.TABLE + " w"
-                + "\n\t\tLEFT JOIN " + SecuritiesInWatchlists.TABLE + " siwl ON siwl."
-                + SecuritiesInWatchlists.WATCHLIST_ID + " = " + Watchlist.ID
-                + "\n\tWHERE siwl." + SecuritiesInWatchlists.SECURITY_ID + " = ?"
-                + "\n\tUNION ALL"
-                + "\n\tSELECT " + Watchlist.ID + ", " + Watchlist.NAME + ", 0 AS isSecurityIncluded"
-                + "\n\tFROM " + Watchlist.TABLE + " w"
-                + "\n) AS tmp"
-                + "\nGROUP BY tmp._id, tmp.name"
-                + "\nORDER BY tmp.name ASC";
-        String[] selectionArgs = new String[]{String.valueOf(securityIdToMark)};
-        logSql(methodName, sql, selectionArgs);
-        cursor = db.rawQuery(sql, selectionArgs);
-        Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
-        return cursor;
-    } // getAllWatchlistsAndMarkIfSecurityIsIncluded()
-
-    public Cursor readAllQuotesForWatchlist(long watchlistId) {
-        final String methodName = "readAllQuotesForWatchlist";
-        Cursor cursor = null;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String sql = "SELECT q.*, s." + Security.BASE_PRICE + ", s."
-                + Security.LOWER_TARGET + ", s." + Security.MAX_PRICE
-                + ", s." + Security.TRAILING_TARGET + ", s."
-                + Security.UPPER_TARGET + "\nFROM "
-                + SecuritiesInWatchlists.TABLE + " siwl" + "\n\tINNER JOIN "
-                + Quote.TABLE + " q ON q." + Quote.SECURITY_ID
-                + " = " + "siwl." + SecuritiesInWatchlists.SECURITY_ID + "\n\tINNER JOIN "
-                + Security.TABLE + " s ON s." + Security.ID + " = " + "q."
-                + Quote.SECURITY_ID + "\nWHERE siwl."
-                + SecuritiesInWatchlists.WATCHLIST_ID + " = ?" + "\nORDER BY q."
-                + Quote.NAME + " ASC";
-        String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
-        logSql(methodName, sql, selectionArgs);
-        cursor = db.rawQuery(sql, selectionArgs);
-        Log.v(DbHelper.CLASS_NAME,
-                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName,
-                        cursor.getCount()));
-        return cursor;
-    } // readAllQuotesForWatchlist()
+    } // readAllSecuritiesAndMarkIfInWatchlist()
 
     public Cursor readAllSecuritySymbols() {
         Cursor cursor = null;
@@ -934,6 +898,42 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         return cursor;
     } // readAllWatchlists()
+
+    /**
+     * Gets a list of all watchlists with those including the specified security marked, ordered
+     * by name
+     *
+     * @param securityIdToMark If a watchlist contains this security, is_security_included will
+     *                         be 1, otherwise 0
+     * @return A list (_id, is_security_included, name) of all watchlists
+     * with those including the specified security marked, ordered by name
+     */
+    public Cursor readAllWatchlistsAndMarkIfSecurityIsIncluded(long securityIdToMark) {
+        final String methodName = "readAllWatchlistsAndMarkIfSecurityIsIncluded";
+        Cursor cursor = null;
+        Log.v(CLASS_NAME, String.format("%s: securityIdToMark = %d", methodName,
+                securityIdToMark));
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT tmp._id, tmp.name, MAX(tmp.isSecurityIncluded) AS "
+                + IS_SECURITY_IN_WATCHLIST_ALIAS
+                + "\nFROM ("
+                + "\n\tSELECT " + Watchlist.ID + ", " + Watchlist.NAME + ", 1 AS isSecurityIncluded"
+                + "\n\tFROM " + Watchlist.TABLE + " w"
+                + "\n\t\tLEFT JOIN " + SecuritiesInWatchlists.TABLE + " siwl ON siwl."
+                + SecuritiesInWatchlists.WATCHLIST_ID + " = " + Watchlist.ID
+                + "\n\tWHERE siwl." + SecuritiesInWatchlists.SECURITY_ID + " = ?"
+                + "\n\tUNION ALL"
+                + "\n\tSELECT " + Watchlist.ID + ", " + Watchlist.NAME + ", 0 AS isSecurityIncluded"
+                + "\n\tFROM " + Watchlist.TABLE + " w"
+                + "\n) AS tmp"
+                + "\nGROUP BY tmp._id, tmp.name"
+                + "\nORDER BY tmp.name ASC";
+        String[] selectionArgs = new String[]{String.valueOf(securityIdToMark)};
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        return cursor;
+    } // readAllWatchlistsAndMarkIfSecurityIsIncluded()
 
     /**
      * Gets all data for the security identified by securityId

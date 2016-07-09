@@ -51,7 +51,7 @@ public class SecuritiesManagementActivity extends AppCompatActivity {
         setContentView(R.layout.activity_securities_management);
         setTitle("Manage Securities");
         this.dbHelper = new DbHelper(this);
-        this.cursor = dbHelper.getAllSecuritiesAndMarkIfInWatchlist(DbHelper.NEW_ITEM_ID);
+        this.cursor = dbHelper.readAllSecuritiesAndMarkIfInWatchlist(DbHelper.NEW_ITEM_ID);
         this.securitiesManagementCursorAdapter
                 = new SecuritiesManagementCursorAdapter(this, this.cursor, false);
         ListView securitiesListView = (ListView) findViewById(R.id.securitiesListView);
@@ -90,7 +90,7 @@ public class SecuritiesManagementActivity extends AppCompatActivity {
     } // onResume()
 
     private void refreshSecuritiesListView() {
-        Cursor cursor = dbHelper.getAllSecuritiesAndMarkIfInWatchlist(DbHelper.NEW_ITEM_ID);
+        Cursor cursor = dbHelper.readAllSecuritiesAndMarkIfInWatchlist(DbHelper.NEW_ITEM_ID);
         securitiesManagementCursorAdapter.changeCursor(cursor);
     } // refreshSecuritiesListView()
 

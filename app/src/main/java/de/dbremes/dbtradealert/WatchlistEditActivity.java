@@ -84,7 +84,7 @@ public class WatchlistEditActivity extends AppCompatActivity {
         // TODO: add securities name?
         String[] fromColumns = {SecurityContract.Security.SYMBOL};
         int[] toViews = {android.R.id.text1};
-        Cursor securitiesCursor = this.dbHelper.getAllSecuritiesAndMarkIfInWatchlist(watchListId);
+        Cursor securitiesCursor = this.dbHelper.readAllSecuritiesAndMarkIfInWatchlist(watchListId);
         int flags = 0;
         adapter = new SimpleCursorAdapter(this,
                 android.R.layout.simple_list_item_multiple_choice,

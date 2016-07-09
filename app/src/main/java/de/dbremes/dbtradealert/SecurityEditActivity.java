@@ -2,7 +2,6 @@ package de.dbremes.dbtradealert;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,7 +18,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract;
@@ -173,7 +171,7 @@ public class SecurityEditActivity extends AppCompatActivity {
         String[] fromColumns = {WatchlistContract.Watchlist.NAME};
         int[] toViews = {android.R.id.text1};
         Cursor watchlistsCursor
-                = this.dbHelper.getAllWatchlistsAndMarkIfSecurityIsIncluded(securityId);
+                = this.dbHelper.readAllWatchlistsAndMarkIfSecurityIsIncluded(securityId);
         int flags = 0;
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
                 android.R.layout.simple_list_item_multiple_choice,

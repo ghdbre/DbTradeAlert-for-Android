@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class WatchlistsManagementCursorAdapter extends CursorAdapter {
+    public static final String WATCHLIST_DELETED_BROADCAST = "WatchlistDeletedBroadcast";
     DbHelper dbHelper;
 
     private View.OnClickListener deleteButtonClickListener = new View.OnClickListener() {
@@ -40,10 +42,12 @@ public class WatchlistsManagementCursorAdapter extends CursorAdapter {
                                             .getParent()).getTag();
                                     long watchListId = holder.watchlistId;
                                     dbHelper.deleteWatchlist(watchListId);
-                                    ((WatchlistsManagementActivity) holder.context)
-                                            .refreshWatchlistsListView();
+                                    Intent intent = new Intent(WATCHLIST_DELETED_BROADCAST);
+                                    LocalBroadcastManager.getInstance(holder.context)
+                                            .sendBroadcast(intent);
                                 }
-                            }).setNegativeButton("Cancel", null)
+                            })
+                    .setNegativeButton("Cancel", null)
                     .show();
         } // onClick()
 

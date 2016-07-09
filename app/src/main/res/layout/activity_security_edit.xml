@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="de.dbremes.dbtradealert.SecurityEditActivity">
+
+    <!-- Line 1: Symbol -->
+    <TextView
+        android:id="@+id/symbolTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/symbolEditText"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="7dp"
+        android:text="Symbol"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/symbolEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:inputType="textCapCharacters"
+        tools:text="NESN.VX"
+        android:textAllCaps="false"
+        android:textAppearance="?android:attr/textAppearanceSmallInverse" >
+        <requestFocus />
+    </EditText>
+
+    <!-- Line 2: Base price, date -->
+    <TextView
+        android:id="@+id/basePriceTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/basePriceDateEditText"
+        android:layout_alignParentLeft="true"
+        android:text="Base price"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/basePriceEditText"
+        android:layout_alignBaseline="@+id/basePriceDateEditText"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="7dp"
+        android:layout_toLeftOf="@+id/basePriceDateTextView"
+        android:layout_width="wrap_content"
+        android:ems="5"
+        android:inputType="numberDecimal"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/basePriceDateTextView"
+        android:layout_alignBaseline="@+id/basePriceDateEditText"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_toLeftOf="@+id/basePriceDateEditText"
+        android:layout_width="wrap_content"
+        android:text="date"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:ems="5"
+        android:id="@+id/basePriceDateEditText"
+        android:inputType="date"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/symbolEditText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <!-- Line 3: Max price value, date -->
+    <TextView
+        android:id="@+id/maxPriceTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/maxPriceDateEditText"
+        android:layout_alignParentLeft="true"
+        android:text="Max price"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/maxPriceEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/maxPriceDateEditText"
+        android:layout_alignLeft="@+id/basePriceEditText"
+        android:ems="5"
+        android:inputType="numberDecimal"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/maxPriceDateTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/maxPriceDateEditText"
+        android:layout_alignLeft="@+id/basePriceDateTextView"
+        android:text="date"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/maxPriceDateEditText"
+        android:layout_below="@+id/basePriceEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignLeft="@+id/basePriceDateEditText"
+        android:ems="5"
+        android:inputType="date"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <!-- Line 4: Lower target, upper target -->
+    <TextView
+        android:id="@+id/lowerTargetTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/upperTargetEditText"
+        android:layout_alignParentLeft="true"
+        android:text="Target: lower"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/lowerTargetEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/upperTargetEditText"
+        android:layout_alignLeft="@+id/maxPriceEditText"
+        android:ems="5"
+        android:inputType="numberDecimal"
+        android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+
+    <TextView
+        android:id="@+id/upperTargetTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/upperTargetEditText"
+        android:layout_alignLeft="@id/maxPriceDateTextView"
+        android:text="upper"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/upperTargetEditText"
+        android:layout_below="@+id/maxPriceDateEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignLeft="@+id/maxPriceDateEditText"
+        android:layout_centerHorizontal="false"
+        android:ems="5"
+        android:inputType="numberDecimal"
+        android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+
+    <!-- Line 5: Trailing target -->
+    <TextView
+        android:id="@+id/trailingTargetTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/trailingTargetEditText"
+        android:layout_alignParentLeft="true"
+        android:text="Trailing target [%]"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/trailingTargetEditText"
+        android:layout_below="@+id/upperTargetEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignLeft="@+id/upperTargetEditText"
+        android:layout_centerHorizontal="false"
+        android:ems="5"
+        android:inputType="numberDecimal"
+        android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+
+    <!-- Line 6: Notes -->
+    <TextView
+        android:id="@+id/notesTextView"
+        android:layout_alignBaseline="@+id/notesEditText"
+        android:layout_alignParentLeft="true"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Notes"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:ems="10"
+        android:id="@+id/notesEditText"
+        android:inputType="text"
+        android:layout_alignParentRight="true"
+        android:layout_alignLeft="@+id/lowerTargetEditText"
+        android:layout_below="@+id/trailingTargetEditText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:lines="3"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <!-- Line 7: Buttons -->
+    <Button
+        android:id="@+id/cancelButton"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:onClick="onCancelButtonClick"
+        android:text="Cancel" />
+
+    <Button
+        android:id="@+id/okButton"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:onClick="onOkButtonClick"
+        style="android:buttonStyle"
+        android:text="@android:string/ok" />
+
+    <!-- Line 8: watchlistsListView -->
+    <ListView
+        android:id="@+id/watchlistsListView"
+        android:layout_above="@id/okButton"
+        android:layout_below="@+id/includeInWatchListsTextView"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="7dp"
+        android:layout_width="match_parent"
+        android:choiceMode="multipleChoice" >
+    </ListView>
+
+    <TextView
+        android:id="@+id/emptyTextView"
+        android:layout_below="@+id/includeInWatchListsTextView"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Use Manage Watchlists menu to create watchlists"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/includeInWatchListsTextView"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/notesEditText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Include in Watchlists:"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+</RelativeLayout>

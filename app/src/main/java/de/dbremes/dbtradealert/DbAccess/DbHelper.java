@@ -759,6 +759,43 @@ public class DbHelper extends SQLiteOpenHelper {
         return cursor;
     } // getAllSecuritiesAndMarkIfInWatchlist()
 
+    /**
+     * Gets a list of all watchlists with those including the specified security marked, ordered
+     * by name
+     *
+     * @param securityIdToMark
+     *            If a watchlist contains this security, is_security_included will
+     *            be 1, otherwise 0
+     * @return A list (_id, is_security_included, name) of all watchlists
+     * with those including the specified security marked, ordered by name
+     */
+    public Cursor getAllWatchlistsAndMarkIfSecurityIsIncluded(long securityIdToMark) {
+        final String methodName = "getAllWatchlistsAndMarkIfSecurityIsIncluded";
+        Cursor cursor = null;
+        Log.v(CLASS_NAME, String.format("%s: securityIdToMark = %d", methodName,
+                securityIdToMark));
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT tmp._id, tmp.name, MAX(tmp.isSecurityIncluded) AS "
+                + IS_SYMBOL_IN_WATCHLIST_ALIAS
+                + "\nFROM ("
+                + "\n\tSELECT " + Watchlist.ID + ", " + Watchlist.NAME + ", 1 AS isSecurityIncluded"
+                + "\n\tFROM " + Watchlist.TABLE + " w"
+                + "\n\t\tLEFT JOIN " + SecuritiesInWatchlists.TABLE + " siwl ON siwl."
+                + SecuritiesInWatchlists.WATCHLIST_ID + " = " + Watchlist.ID
+                + "\n\tWHERE siwl." + SecuritiesInWatchlists.SECURITY_ID + " = ?"
+                + "\n\tUNION ALL"
+                + "\n\tSELECT " + Watchlist.ID + ", " + Watchlist.NAME + ", 0 AS isSecurityIncluded"
+                + "\n\tFROM " + Watchlist.TABLE + " w"
+                + "\n) AS tmp"
+                + "\nGROUP BY tmp._id, tmp.name"
+                + "\nORDER BY tmp.name ASC";
+        String[] selectionArgs = new String[] { String.valueOf(securityIdToMark) };
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        return cursor;
+    } // getAllWatchlistsAndMarkIfSecurityIsIncluded()
+
     public Cursor readAllQuotesForWatchlist(long watchlistId) {
         final String methodName = "readAllQuotesForWatchlist";
         Cursor cursor = null;

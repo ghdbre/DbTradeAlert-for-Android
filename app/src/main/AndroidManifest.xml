@@ -26,6 +26,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".SecuritiesManagementActivity" />
+        <activity android:name=".SecurityEditActivity" />
         <activity android:name=".WatchlistEditActivity" />
         <activity android:name=".WatchlistsManagementActivity" />
 
@@ -37,7 +38,6 @@
         </receiver>
 
         <service android:name=".QuoteRefresherService" />
-
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package de.dbremes.dbtradealert;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -33,6 +34,12 @@ public class SecuritiesManagementActivity extends AppCompatActivity {
         securitiesListView.setEmptyView(emptyTextView);
         securitiesListView.setAdapter(securitiesManagementCursorAdapter);
     } // onCreate()
+
+    public void onNewButtonClick(View view) {
+        Intent intent = new Intent(this, SecurityEditActivity.class);
+        intent.putExtra(SecurityEditActivity.SECURITY_ID_INTENT_EXTRA, DbHelper.NEW_ITEM_ID);
+        startActivityForResult(intent, SecurityEditActivity.CREATE_SECURITY_REQUEST_CODE);
+    } // onNewButtonClick()
 
     public void onOkButtonClick(View view) {
         setResult(RESULT_OK, getIntent());

@@ -82,11 +82,11 @@ public class SecurityEditActivity extends AppCompatActivity {
         watchlistsListView.setEmptyView(emptyTextView);
         watchlistsListView.setAdapter(adapter);
         // Mark watchlists that include this security
-        int isSymbolIncludedPosition = watchlistsCursor
+        int isSecurityIncludedColumnIndex = watchlistsCursor
                 .getColumnIndex(DbHelper.IS_SECURITY_IN_WATCHLIST_ALIAS);
         for (int i = 0; i < watchlistsCursor.getCount(); i++) {
             watchlistsCursor.moveToPosition(i);
-            if (watchlistsCursor.getInt(isSymbolIncludedPosition) == 1) {
+            if (watchlistsCursor.getInt(isSecurityIncludedColumnIndex) == 1) {
                 watchlistsListView.setItemChecked(i, true);
             }
         }

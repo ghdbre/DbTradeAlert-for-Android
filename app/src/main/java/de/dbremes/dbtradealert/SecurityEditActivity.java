@@ -76,7 +76,7 @@ public class SecurityEditActivity extends AppCompatActivity {
         watchlistsListView.setAdapter(adapter);
         // Mark watchlists that include this security
         int isSymbolIncludedPosition = watchlistsCursor
-                .getColumnIndex(DbHelper.IS_SYMBOL_IN_WATCHLIST_ALIAS);
+                .getColumnIndex(DbHelper.IS_SECURITY_IN_WATCHLIST_ALIAS);
         for (int i = 0; i < watchlistsCursor.getCount(); i++) {
             watchlistsCursor.moveToPosition(i);
             if (watchlistsCursor.getInt(isSymbolIncludedPosition) == 1) {

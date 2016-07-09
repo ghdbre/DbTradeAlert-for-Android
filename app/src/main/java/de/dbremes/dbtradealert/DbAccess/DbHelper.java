@@ -36,9 +36,8 @@ public class DbHelper extends SQLiteOpenHelper {
     private final static String INSERT_RESULT_FORMAT = "%s(): result of db.insert() into %s: %d";
     private final static String UPDATE_RESULT_FORMAT = "%s(): result of db.update() for %s: %d";
 
-    // Alias for generated columns of getAllSecuritiesAndMarkIfInWatchlist()
-    // and getAllWatchlistsAndMarkIfSecurityIsIncluded()
-    public final static String IS_SYMBOL_IN_WATCHLIST_ALIAS = "isSymbolInWatchlist";
+    // Alias for generated columns of getAllWatchlistsAndMarkIfSecurityIsIncluded()
+    public final static String IS_SECURITY_IN_WATCHLIST_ALIAS = "isSecurityInWatchlist";
 
     // region Format parameter values
     // API for Yahoo Finance (see e.g. http://brusdeylins.info/projects/yahoo-finance-api/):
@@ -736,16 +735,16 @@ public class DbHelper extends SQLiteOpenHelper {
                 + Security.SYMBOL
                 + ", q.name AS "
                 + Quote.NAME
-                + ", MAX(tmp.isInWatchList) AS "
-                + IS_SYMBOL_IN_WATCHLIST_ALIAS
+                + ", MAX(tmp.isInWatchlist) AS "
+                + IS_SECURITY_IN_WATCHLIST_ALIAS
                 + "\nFROM ("
-                + "\n\tSELECT " + Security.ID + ", " + Security.SYMBOL + ", 1 AS isInWatchList"
+                + "\n\tSELECT " + Security.ID + ", " + Security.SYMBOL + ", 1 AS isInWatchlist"
                 + "\n\tFROM " + Security.TABLE + " s"
                 + "\n\t\tLEFT JOIN " + SecuritiesInWatchlists.TABLE + " siwl ON "
                 + SecuritiesInWatchlists.SECURITY_ID + " = " + Security.ID
                 + "\n\tWHERE siwl." + SecuritiesInWatchlists.WATCHLIST_ID + " = ?"
                 + "\n\tUNION ALL"
-                + "\n\tSELECT " + Security.ID + ", " + Security.SYMBOL + ", 0 AS isInWatchList"
+                + "\n\tSELECT " + Security.ID + ", " + Security.SYMBOL + ", 0 AS isInWatchlist"
                 + "\n\tFROM " + Security.TABLE + " s"
                 + "\n) AS tmp"
                 + "\n\tLEFT OUTER JOIN " + Quote.TABLE + " q ON q." + Quote.SECURITY_ID + " = tmp._id"
@@ -776,7 +775,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 securityIdToMark));
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT tmp._id, tmp.name, MAX(tmp.isSecurityIncluded) AS "
-                + IS_SYMBOL_IN_WATCHLIST_ALIAS
+                + IS_SECURITY_IN_WATCHLIST_ALIAS
                 + "\nFROM ("
                 + "\n\tSELECT " + Watchlist.ID + ", " + Watchlist.NAME + ", 1 AS isSecurityIncluded"
                 + "\n\tFROM " + Watchlist.TABLE + " w"

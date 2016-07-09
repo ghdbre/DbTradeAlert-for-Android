@@ -15,6 +15,17 @@ public class SecuritiesManagementActivity extends AppCompatActivity {
     private DbHelper dbHelper;
     private SecuritiesManagementCursorAdapter securitiesManagementCursorAdapter;
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // securitiesListView shows only symbols and these are immutable
+        // so don't re-query after updating a security
+        if (requestCode == SecurityEditActivity.CREATE_SECURITY_REQUEST_CODE
+                && resultCode == RESULT_OK) {
+            refreshSecuritiesListView();
+        }
+    } // onActivityResult()
+
     public void onCancelButtonClick(View view) {
         setResult(RESULT_CANCELED, getIntent());
         finish();
@@ -45,5 +56,10 @@ public class SecuritiesManagementActivity extends AppCompatActivity {
         setResult(RESULT_OK, getIntent());
         finish();
     } // onOkButtonClick()
+
+    private void refreshSecuritiesListView() {
+        Cursor cursor = dbHelper.getAllSecuritiesAndMarkIfInWatchlist(DbHelper.NEW_ITEM_ID);
+        securitiesManagementCursorAdapter.changeCursor(cursor);
+    } // refreshSecuritiesListView()
 
 } // class SecuritiesManagementActivity

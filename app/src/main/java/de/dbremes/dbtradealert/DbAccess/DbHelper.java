@@ -13,6 +13,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,10 +25,10 @@ import java.util.Locale;
 
 public class DbHelper extends SQLiteOpenHelper {
     private static final String CLASS_NAME = "DbHelper";
-    public final static String DATE_TIME_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm";
+    public final static String DATE_FORMAT_STRING = "yyyy-MM-dd";
+    public final static String DATE_TIME_FORMAT_STRING = DATE_FORMAT_STRING + "'T'HH:mm";
     private static final String DB_NAME = "dbtradealert.db";
     private static final int DB_VERSION = 1;
-    private static final String EXCEPTION_CAUGHT = "Exception caught";
     public final static long NEW_ITEM_ID = -1L;
     // Format strings for logging
     private final static String CURSOR_COUNT_FORMAT = "%s(): cursor.getCount() = %d";
@@ -468,7 +469,7 @@ public class DbHelper extends SQLiteOpenHelper {
             try {
                 lastTradeDate = lastTradeDateFormat.parse(lastTradeDateString);
             } catch (ParseException e) {
-                Log.e(CLASS_NAME, EXCEPTION_CAUGHT, e);
+                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
             }
             // Step 2: calculate lastTradeTime
             // SimpleDateFormat can't handle missing space between time and am / pm
@@ -480,7 +481,7 @@ public class DbHelper extends SQLiteOpenHelper {
             try {
                 lastTradeTime = lastTradeTimeFormat.parse(lastTradeTimeString);
             } catch (ParseException e) {
-                Log.e(CLASS_NAME, EXCEPTION_CAUGHT, e);
+                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
             }
         }
         // Step 3: combine lastTradeDate and lastTradeTime
@@ -509,7 +510,7 @@ public class DbHelper extends SQLiteOpenHelper {
         } catch (NumberFormatException x) {
             // Probably empty string or "n/a" - return Float.NaN;
             if ("N/A".equals(s) == false) {
-                Log.e(CLASS_NAME, EXCEPTION_CAUGHT, x);
+                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, x);
             }
         }
         return result;
@@ -521,7 +522,7 @@ public class DbHelper extends SQLiteOpenHelper {
             result = Integer.parseInt(s);
         } catch (NumberFormatException x) {
             // Probably empty string or "n/a" - return null;
-            Log.e(CLASS_NAME, EXCEPTION_CAUGHT, x);
+            Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, x);
         }
         return result;
     } // getIntegerFromString()
@@ -591,9 +592,6 @@ public class DbHelper extends SQLiteOpenHelper {
                 table, columns, selection, selectionArgs, groupBy, having, orderBy);
         if (cursor.moveToFirst()) {
             securityId = cursor.getLong(0);
-        } else {
-            Log.e(CLASS_NAME, String.format(
-                    "%s(): couldn't get securityId for symbol = %s", methodName, symbol));
         }
         cursor.close();
         return securityId;
@@ -763,9 +761,8 @@ public class DbHelper extends SQLiteOpenHelper {
      * Gets a list of all watchlists with those including the specified security marked, ordered
      * by name
      *
-     * @param securityIdToMark
-     *            If a watchlist contains this security, is_security_included will
-     *            be 1, otherwise 0
+     * @param securityIdToMark If a watchlist contains this security, is_security_included will
+     *                         be 1, otherwise 0
      * @return A list (_id, is_security_included, name) of all watchlists
      * with those including the specified security marked, ordered by name
      */
@@ -789,7 +786,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 + "\n) AS tmp"
                 + "\nGROUP BY tmp._id, tmp.name"
                 + "\nORDER BY tmp.name ASC";
-        String[] selectionArgs = new String[] { String.valueOf(securityIdToMark) };
+        String[] selectionArgs = new String[]{String.valueOf(securityIdToMark)};
         logSql(methodName, sql, selectionArgs);
         cursor = db.rawQuery(sql, selectionArgs);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
@@ -910,6 +907,34 @@ public class DbHelper extends SQLiteOpenHelper {
         return cursor;
     } // readAllWatchlists()
 
+    /**
+     * Gets all data for the security identified by securityId
+     *
+     * @param securityId Unique ID of a security
+     * @return All data for the security identified by securityId
+     */
+    public Cursor readSecurity(long securityId) {
+        final String methodName = "readSecurity";
+        Cursor cursor = null;
+        Log.v(CLASS_NAME, String.format("%s(): securityId = %d", methodName, securityId));
+        SQLiteDatabase db = getReadableDatabase();
+        String selection = "SELECT s.*, q." + Quote.NAME
+                + "\nFROM " + Security.TABLE + " s "
+                + "\n\tLEFT OUTER JOIN " + Quote.TABLE
+                + " q ON q." + Quote.SECURITY_ID + " = s." + Security.ID
+                + "\nWHERE s." + Security.ID + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(securityId)};
+        logSql(methodName, selection, selectionArgs);
+        cursor = db.rawQuery(selection, selectionArgs);
+        Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        if (cursor.getCount() != 1) {
+            Log.e(CLASS_NAME, String.format(
+                    "%s(): found %d securities with id = %d; expected 1!", methodName,
+                    cursor.getCount(), securityId));
+        }
+        return cursor;
+    } // readSecurity()
+
     public Cursor readWatchlist(long watchlistId) {
         final String methodName = "readWatchlist";
         Cursor cursor = null;
@@ -1011,6 +1036,95 @@ public class DbHelper extends SQLiteOpenHelper {
             db.endTransaction();
         }
     } // updateOrCreateQuotes()
+
+    public String updateOrCreateSecurity(Float basePrice, Date basePriceDate,
+                                         Float lowerTarget, Float maxPrice, Date maxPriceDate,
+                                         String notes, long securityId, String symbol,
+                                         Float trailingTarget, Float upperTarget,
+                                         long[] watchlistIds) {
+        final String methodName = "updateOrCreateSecurity";
+        String errorMessage = "";
+        Log.v(CLASS_NAME, String.format("%s(): securityId = %d; symbol = %s",
+                methodName, securityId, symbol));
+        String securityIdString = String.valueOf(securityId);
+        int deleteResult = 0;
+        Long insertResult = 0L;
+        int updateResult = 0;
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.beginTransaction();
+            boolean isExistingSecurity = (securityId != NEW_ITEM_ID);
+            // Check for securities with same symbol
+            if (isExistingSecurity == false && getSecurityIdFromSymbol(db, symbol) != NEW_ITEM_ID) {
+                errorMessage = "Cannot add another security with symbol = " + symbol;
+                Log.d(CLASS_NAME, methodName + "(): " + errorMessage);
+                return errorMessage;
+            }
+            // Store security data
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Security.BASE_PRICE, basePrice);
+            if (basePriceDate != null) {
+                SimpleDateFormat dateFormat
+                        = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.getDefault());
+                String basePriceDateString = dateFormat.format(basePriceDate);
+                contentValues.put(Security.BASE_PRICE_DATE, basePriceDateString);
+            }
+            contentValues.put(Security.LOWER_TARGET, lowerTarget);
+            contentValues.put(Security.MAX_PRICE, maxPrice);
+            if (maxPriceDate != null) {
+                SimpleDateFormat dateFormat
+                        = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.getDefault());
+                String maxPriceDateString = dateFormat.format(maxPriceDate);
+                contentValues.put(Security.MAX_PRICE_DATE, maxPriceDateString);
+            }
+            contentValues.put(Security.NOTES, notes);
+            contentValues.put(Security.SYMBOL, symbol);
+            contentValues.put(Security.TRAILING_TARGET, trailingTarget);
+            contentValues.put(Security.UPPER_TARGET, upperTarget);
+            if (isExistingSecurity) {
+                updateResult = db.update(Security.TABLE, contentValues,
+                        Security.ID + " = ?", new String[]{securityIdString});
+                Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                        methodName, Security.TABLE, updateResult));
+            } else {
+                insertResult = db.insert(Security.TABLE, null, contentValues);
+                Log.v(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                        methodName, Security.TABLE, insertResult));
+                securityId = insertResult;
+                Log.v(CLASS_NAME, String.format("%s(): new securityId = %d",
+                        methodName, securityId));
+            }
+            // Delete existing connections to watchlists
+            if (isExistingSecurity) {
+                deleteResult = db.delete(SecuritiesInWatchlists.TABLE,
+                        SecuritiesInWatchlists.SECURITY_ID + " = ?",
+                        new String[]{securityIdString});
+                Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT,
+                        methodName, SecuritiesInWatchlists.TABLE, deleteResult));
+            } else {
+                Log.v(CLASS_NAME, String.format(
+                        "%s(): Security didn't exist; skipping delete in %s",
+                        methodName, SecuritiesInWatchlists.TABLE));
+            }
+            // Create specified connections to watchlists
+            contentValues = new ContentValues();
+            for (int i = 0; i < watchlistIds.length; i++) {
+                Log.v(CLASS_NAME, String.format("%s(): watchlistIds[%d] = %d",
+                        methodName, i, watchlistIds[i]));
+                contentValues.clear();
+                contentValues.put(SecuritiesInWatchlists.SECURITY_ID, securityId);
+                contentValues.put(SecuritiesInWatchlists.WATCHLIST_ID, watchlistIds[i]);
+                insertResult = db.insert(SecuritiesInWatchlists.TABLE, null, contentValues);
+                Log.v(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                        methodName, SecuritiesInWatchlists.TABLE, insertResult));
+            }
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + "(): success!");
+        } finally {
+            db.endTransaction();
+        }
+        return errorMessage;
+    } // updateOrCreateSecurity()
 
     public void updateOrCreateWatchlist(String name, long[] securityIds,
                                         long watchlistId) {

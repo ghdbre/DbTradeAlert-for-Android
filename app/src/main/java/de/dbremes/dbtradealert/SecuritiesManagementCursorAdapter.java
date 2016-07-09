@@ -23,6 +23,19 @@ public class SecuritiesManagementCursorAdapter extends CursorAdapter {
         this.dbHelper = new DbHelper(context);
     } // ctor()
 
+    private View.OnClickListener editButtonClickListener = new View.OnClickListener() {
+
+        public void onClick(View v) {
+            SecuritiesManagementDetailViewHolder holder
+                    = (SecuritiesManagementDetailViewHolder) ((View) v.getParent()).getTag();
+            long securityId = holder.securityId;
+            Intent intent = new Intent(holder.context, SecurityEditActivity.class);
+            intent.putExtra(SecurityEditActivity.SECURITY_ID_INTENT_EXTRA, securityId);
+            ((Activity) holder.context).startActivityForResult(intent,
+                    SecurityEditActivity.UPDATE_SECURITY_REQUEST_CODE);
+        }
+    }; // editButtonClickListener
+
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         SecuritiesManagementDetailViewHolder holder
@@ -45,7 +58,7 @@ public class SecuritiesManagementCursorAdapter extends CursorAdapter {
         holder.deleteButton = (Button) view.findViewById(R.id.deleteButton);
         //holder.deleteButton.setOnClickListener(deleteButtonClickListener);
         holder.editButton = (Button) view.findViewById(R.id.editButton);
-        //holder.editButton.setOnClickListener(editButtonClickListener);
+        holder.editButton.setOnClickListener(editButtonClickListener);
         holder.nameTextView = (TextView) view.findViewById(R.id.nameTextView);
         holder.securityId = cursor.getLong(cursor.getColumnIndex(SecurityContract.Security.ID));
         holder.symbolTextView = (TextView) view.findViewById(R.id.symbolTextView);

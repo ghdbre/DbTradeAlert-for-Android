@@ -17,8 +17,8 @@ import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class WatchlistEditActivity extends AppCompatActivity {
     private final static String CLASS_NAME = "WatchlistEditActivity";
-    public final static int CREATE_WATCHLIST_REQUEST_CODE = 0;
-    public final static int UPDATE_WATCHLIST_REQUEST_CODE = 1;
+    public final static int CREATE_WATCHLIST_REQUEST_CODE = 10;
+    public final static int UPDATE_WATCHLIST_REQUEST_CODE = 11;
     public final static String WATCHLIST_ID_INTENT_EXTRA = "de.dbremes.dbtradealert.watchlistId";
     private DbHelper dbHelper;
     private long watchlistId = DbHelper.NewItemId;
@@ -70,8 +70,7 @@ public class WatchlistEditActivity extends AppCompatActivity {
             name = editText.getText().toString();
         }
         // Get securities to include in watchlist
-        ListView listView = (ListView) findViewById(R.id.securitiesListView);
-        long[] securityIds = listView.getCheckedItemIds();
+        long[] securityIds = Utils.getSelectedListViewItemIds(this, R.id.securitiesListView);
         // Save edits
         this.dbHelper.updateOrCreateWatchlist(name, securityIds, this.watchlistId);
         setResult(RESULT_OK, getIntent());
@@ -83,10 +82,10 @@ public class WatchlistEditActivity extends AppCompatActivity {
         SimpleCursorAdapter adapter;
         // Connect securities list to cursor
         // TODO: add securities name?
-        String[] fromColumns = { SecurityContract.Security.SYMBOL };
-        int[] toViews = { android.R.id.text1 };
+        String[] fromColumns = {SecurityContract.Security.SYMBOL};
+        int[] toViews = {android.R.id.text1};
         Cursor securitiesCursor = this.dbHelper.getAllSecuritiesAndMarkIfInWatchlist(watchListId);
-        int flags =0;
+        int flags = 0;
         adapter = new SimpleCursorAdapter(this,
                 android.R.layout.simple_list_item_multiple_choice,
                 securitiesCursor, fromColumns, toViews, flags);

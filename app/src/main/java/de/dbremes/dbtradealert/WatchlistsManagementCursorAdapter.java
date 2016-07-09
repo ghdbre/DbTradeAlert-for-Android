@@ -42,6 +42,8 @@ public class WatchlistsManagementCursorAdapter extends CursorAdapter {
                                             .getParent()).getTag();
                                     long watchListId = holder.watchlistId;
                                     dbHelper.deleteWatchlist(watchListId);
+                                    // Inform WatchlistsManagementActivity so it can refresh
+                                    // watchlistsListView
                                     Intent intent = new Intent(WATCHLIST_DELETED_BROADCAST);
                                     LocalBroadcastManager.getInstance(holder.context)
                                             .sendBroadcast(intent);

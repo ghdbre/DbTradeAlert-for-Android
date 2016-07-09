@@ -2,9 +2,12 @@ package de.dbremes.dbtradealert;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.CursorAdapter;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -16,12 +19,48 @@ import de.dbremes.dbtradealert.DbAccess.SecurityContract;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class SecuritiesManagementCursorAdapter extends CursorAdapter {
+    public static final String SECURITY_DELETED_BROADCAST = "SecurityDeletedBroadcast";
     DbHelper dbHelper;
 
     public SecuritiesManagementCursorAdapter(Context context, Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
         this.dbHelper = new DbHelper(context);
     } // ctor()
+
+    private View.OnClickListener deleteButtonClickListener = new View.OnClickListener() {
+
+        public void onClick(final View v) {
+            SecuritiesManagementDetailViewHolder holder
+                    = (SecuritiesManagementDetailViewHolder) ((View) v.getParent()).getTag();
+            String securityName = holder.nameTextView.getText().toString();
+            String securitySymbol = holder.symbolTextView.getText().toString();
+            new AlertDialog.Builder(holder.context)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setMessage(
+                            String.format(
+                                    "Delete %s ('%s'), it's quotes and connections to watchlists?",
+                                    securitySymbol, securityName))
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton(android.R.string.yes,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    SecuritiesManagementDetailViewHolder holder
+                                            = (SecuritiesManagementDetailViewHolder) ((View) v
+                                            .getParent()).getTag();
+                                    long securityId = holder.securityId;
+                                    dbHelper.deleteSecurity(securityId);
+                                    // Inform SecuritiesManagementActivity so it can refresh
+                                    // securitiesListView
+                                    Intent intent = new Intent(SECURITY_DELETED_BROADCAST);
+                                    LocalBroadcastManager.getInstance(holder.context)
+                                            .sendBroadcast(intent);
+                                }
+                            })
+                    .setTitle("Delete?")
+                    .show();
+        } // onClick()
+
+    }; // deleteButtonClickListener
 
     private View.OnClickListener editButtonClickListener = new View.OnClickListener() {
 
@@ -56,7 +95,7 @@ public class SecuritiesManagementCursorAdapter extends CursorAdapter {
         SecuritiesManagementDetailViewHolder holder = new SecuritiesManagementDetailViewHolder();
         holder.context = context;
         holder.deleteButton = (Button) view.findViewById(R.id.deleteButton);
-        //holder.deleteButton.setOnClickListener(deleteButtonClickListener);
+        holder.deleteButton.setOnClickListener(deleteButtonClickListener);
         holder.editButton = (Button) view.findViewById(R.id.editButton);
         holder.editButton.setOnClickListener(editButtonClickListener);
         holder.nameTextView = (TextView) view.findViewById(R.id.nameTextView);

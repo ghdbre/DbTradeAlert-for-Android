@@ -377,23 +377,51 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d(DbHelper.CLASS_NAME, "createWatchListTable(): created with SQL = " + sql);
     } // createWatchListTable()
 
+    public void deleteSecurity(long securityId) {
+        final String methodName = "deleteSecurity";
+        Log.v(CLASS_NAME, String.format("%s(): securityId = %d", methodName, securityId));
+        String[] whereArgs = new String[] { String.valueOf(securityId) };
+        int deleteResult = 0;
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.beginTransaction();
+            // Delete security's quotes
+            deleteResult = db.delete(Quote.TABLE, Quote.SECURITY_ID + " = ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+                    Quote.TABLE, deleteResult));
+            // Delete security's existing connections to watchlists
+            deleteResult = db.delete(SecuritiesInWatchlists.TABLE,
+                    SecuritiesInWatchlists.SECURITY_ID + " = ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+                    SecuritiesInWatchlists.TABLE, deleteResult));
+            // Delete security
+            deleteResult = db.delete(Security.TABLE, Security.ID + " = ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+                    Security.TABLE, deleteResult));
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + "(): success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // deleteSecurity()
+
     public void deleteWatchlist(long watchlistId) {
         final String methodName = "deleteWatchlist";
-        Log.d(CLASS_NAME,
+        Log.v(CLASS_NAME,
                 String.format("%s(): watchlistId = %d", methodName, watchlistId));
         String[] whereArgs = new String[]{String.valueOf(watchlistId)};
-        Integer deleteResult;
+        int deleteResult = 0;
         SQLiteDatabase db = getWritableDatabase();
         try {
             db.beginTransaction();
             // Delete any existing connections to securities
             deleteResult = db.delete(SecuritiesInWatchlists.TABLE,
                     SecuritiesInWatchlists.WATCHLIST_ID + " = ?", whereArgs);
-            Log.d(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
                     SecuritiesInWatchlists.TABLE, deleteResult));
             // Delete watchlist
             deleteResult = db.delete(Watchlist.TABLE, Watchlist.ID + " = ?", whereArgs);
-            Log.d(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
                     Watchlist.TABLE, deleteResult));
             db.setTransactionSuccessful();
             Log.d(CLASS_NAME, methodName + "(): success!");

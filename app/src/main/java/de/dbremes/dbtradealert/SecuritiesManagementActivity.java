@@ -1,7 +1,11 @@
 package de.dbremes.dbtradealert;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -14,6 +18,16 @@ public class SecuritiesManagementActivity extends AppCompatActivity {
     private Cursor cursor;
     private DbHelper dbHelper;
     private SecuritiesManagementCursorAdapter securitiesManagementCursorAdapter;
+
+    private BroadcastReceiver securityDeletedBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(
+                    SecuritiesManagementCursorAdapter.SECURITY_DELETED_BROADCAST)) {
+                refreshSecuritiesListView();
+            }
+        }
+    }; // securityDeletedBroadcastReceiver
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -56,6 +70,24 @@ public class SecuritiesManagementActivity extends AppCompatActivity {
         setResult(RESULT_OK, getIntent());
         finish();
     } // onOkButtonClick()
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Unregister broadcast receiver for SECURITY_DELETED_BROADCAST
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+        broadcastManager.unregisterReceiver(securityDeletedBroadcastReceiver);
+    } // onPause()
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Register broadcast receiver for SECURITY_DELETED_BROADCAST
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(SecuritiesManagementCursorAdapter.SECURITY_DELETED_BROADCAST);
+        broadcastManager.registerReceiver(securityDeletedBroadcastReceiver, intentFilter);
+    } // onResume()
 
     private void refreshSecuritiesListView() {
         Cursor cursor = dbHelper.getAllSecuritiesAndMarkIfInWatchlist(DbHelper.NEW_ITEM_ID);

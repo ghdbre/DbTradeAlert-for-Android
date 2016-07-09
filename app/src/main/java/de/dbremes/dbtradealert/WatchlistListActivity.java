@@ -47,7 +47,7 @@ public class WatchlistListActivity extends AppCompatActivity
             if (message.equals(QuoteRefresherService.BROADCAST_EXTRA_REFRESH_COMPLETED)) {
                 Log.d("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver triggered UI update");
-                refreshAllWatchLists();
+                refreshAllWatchlists();
                 setTitle(APP_NAME + " @ " + getTime());
             } else if (message.startsWith(QuoteRefresherService.BROADCAST_EXTRA_ERROR)) {
                 Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
@@ -92,7 +92,7 @@ public class WatchlistListActivity extends AppCompatActivity
                 break;
             case SECURITIES_MANAGEMENT_REQUEST:
                 if (resultCode == RESULT_OK) {
-                    refreshAllWatchLists();
+                    refreshAllWatchlists();
                 }
                 break;
             default:
@@ -186,11 +186,11 @@ public class WatchlistListActivity extends AppCompatActivity
                 new IntentFilter(QuoteRefresherService.BROADCAST_ACTION_NAME));
         Log.d(CLASS_NAME, "onResume(): quoteRefresherMessageReceiver registered");
         // Show possibly updated quotes when user returns to app
-        refreshAllWatchLists();
+        refreshAllWatchlists();
     } // onResume()
 
-    private void refreshAllWatchLists() {
-        final String methodName = "refreshAllWatchLists";
+    private void refreshAllWatchlists() {
+        final String methodName = "refreshAllWatchlists";
         Cursor watchlistsCursor = this.dbHelper.readAllWatchlists();
         final int watchListIdColumnIndex = watchlistsCursor.getColumnIndex(WatchlistContract.Watchlist.ID);
         while (watchlistsCursor.moveToNext()) {
@@ -211,7 +211,7 @@ public class WatchlistListActivity extends AppCompatActivity
             }
         }
         DbHelper.closeCursor(watchlistsCursor);
-    } // refreshAllWatchLists()
+    } // refreshAllWatchlists()
 
     private void startQuoteRefreshScheduleCreation() {
         Context context = getApplicationContext();

@@ -1,9 +1,11 @@
 package de.dbremes.dbtradealert;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -38,6 +40,11 @@ public class SecurityEditActivity extends AppCompatActivity {
         editText = (EditText) findViewById(R.id.upperTargetEditText);
         editText.setText("");
     } // clearEditTextViews()
+
+    public void onCancelButtonClick(View view) {
+        setResult(RESULT_CANCELED, new Intent());
+        finish();
+    } // onCancelButtonClick()
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

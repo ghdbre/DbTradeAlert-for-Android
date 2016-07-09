@@ -36,7 +36,8 @@ public class DbHelper extends SQLiteOpenHelper {
     private final static String INSERT_RESULT_FORMAT = "%s(): result of db.insert() into %s: %d";
     private final static String UPDATE_RESULT_FORMAT = "%s(): result of db.update() for %s: %d";
 
-    // Alias for generated columns of getAllWatchlistsAndMarkIfSecurityIsIncluded()
+    // Alias for generated columns of getAllSecuritiesAndMarkIfInWatchlist()
+    // and getAllWatchlistsAndMarkIfSecurityIsIncluded()
     public final static String IS_SECURITY_IN_WATCHLIST_ALIAS = "isSecurityInWatchlist";
 
     // region Format parameter values

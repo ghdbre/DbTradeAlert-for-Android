@@ -30,8 +30,9 @@ public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
     private static final String APP_NAME = "DbTradeAlert";
     private static final String CLASS_NAME = "WatchlistListActivity";
-    private static final int SECURITIES_MANAGEMENT_REQUEST = 1;
-    private static final int WATCHLISTS_MANAGEMENT_REQUEST = 2;
+    private static final int REMINDERS_MANAGEMENT_REQUEST = 1;
+    private static final int SECURITIES_MANAGEMENT_REQUEST = 2;
+    private static final int WATCHLISTS_MANAGEMENT_REQUEST = 3;
     private DbHelper dbHelper = null;
     private WatchlistListPagerAdapter watchlistListPagerAdapter;
 
@@ -85,6 +86,9 @@ public class WatchlistListActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         final String methodName = "onActivityResult";
         switch (requestCode) {
+            case REMINDERS_MANAGEMENT_REQUEST:
+                // Nothing to do
+                break;
             case WATCHLISTS_MANAGEMENT_REQUEST:
                 // Even if user tapped Cancel in Manage Watchlists screen he may have OK'd
                 // changes in Edit Watchlist screen
@@ -152,6 +156,10 @@ public class WatchlistListActivity extends AppCompatActivity
                 startService(service);
                 return true;
             }
+            case R.id.action_reminders_management:
+                intent = new Intent(this, RemindersManagementActivity.class);
+                startActivityForResult(intent, REMINDERS_MANAGEMENT_REQUEST);
+                return true;
             case R.id.action_securities_management:
                 intent = new Intent(this, SecuritiesManagementActivity.class);
                 startActivityForResult(intent, SECURITIES_MANAGEMENT_REQUEST);

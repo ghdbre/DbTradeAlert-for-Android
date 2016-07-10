@@ -9,6 +9,10 @@
         android:title="Refresh"
         android:titleCondensed="Refresh" />
     <item
+        android:id="@+id/action_reminders_management"
+        android:title="Manage Reminders"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_securities_management"
         android:title="Manage Securities"
         app:showAsAction="never" />

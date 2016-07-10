@@ -402,6 +402,25 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d(DbHelper.CLASS_NAME, "createWatchListTable(): created with SQL = " + sql);
     } // createWatchListTable()
 
+    public void deleteReminder(long reminderId) {
+        final String methodName = "deleteReminder";
+        Log.v(CLASS_NAME, String.format("%s(): reminderId = %d", methodName, reminderId));
+        String[] whereArgs = new String[]{String.valueOf(reminderId)};
+        int deleteResult = 0;
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.beginTransaction();
+            // Delete reminder
+            deleteResult = db.delete(Reminder.TABLE, Reminder.ID + " = ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+                    Reminder.TABLE, deleteResult));
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + "(): success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // deleteReminder()
+
     public void deleteSecurity(long securityId) {
         final String methodName = "deleteSecurity";
         Log.v(CLASS_NAME, String.format("%s(): securityId = %d", methodName, securityId));
@@ -784,6 +803,21 @@ public class DbHelper extends SQLiteOpenHelper {
                 String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         return cursor;
     } // readAllDueReminders()
+
+    public Cursor readAllReminders() {
+        final String methodName = "readAllReminders";
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT " + Reminder.HEADING + ", " + Reminder.ID
+                + "\nFROM " + Reminder.TABLE + " r"
+                + "\nORDER BY " + Reminder.DUE_DATE + " ASC";
+        String[] selectionArgs = null;
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(DbHelper.CLASS_NAME,
+                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        return cursor;
+    } // readAllReminders()
 
     public Cursor readAllQuotesForWatchlist(long watchlistId) {
         final String methodName = "readAllQuotesForWatchlist";

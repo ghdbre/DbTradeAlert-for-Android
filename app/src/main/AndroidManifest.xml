@@ -25,6 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".RemindersManagementActivity" />
         <activity android:name=".SecuritiesManagementActivity" />
         <activity android:name=".SecurityEditActivity" />
         <activity android:name=".WatchlistEditActivity" />
@@ -38,6 +39,7 @@
         </receiver>
 
         <service android:name=".QuoteRefresherService" />
+
     </application>
 
 </manifest>

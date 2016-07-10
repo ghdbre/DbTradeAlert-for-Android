@@ -16,7 +16,6 @@ import android.widget.TextView;
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
 public class RemindersManagementActivity extends AppCompatActivity {
-    public final static String REMINDER_ID_INTENT_EXTRA = "de.dbremes.dbtradealert.reminderId";
     private Cursor cursor;
     private DbHelper dbHelper;
     private RemindersManagementCursorAdapter remindersManagementCursorAdapter;
@@ -29,7 +28,8 @@ public class RemindersManagementActivity extends AppCompatActivity {
                 refreshRemindersListView();
                 Bundle extras = intent.getExtras();
                 if (extras != null) {
-                    long reminderId = extras.getLong(REMINDER_ID_INTENT_EXTRA);
+                    long reminderId = extras.getLong(
+                            RemindersManagementCursorAdapter.REMINDER_ID_INTENT_EXTRA);
                     // Need to pass reminderId as int because notificationManager.cancel()
                     // doesn't work with long
                     removeNotificationForDeletedReminder((int) reminderId);

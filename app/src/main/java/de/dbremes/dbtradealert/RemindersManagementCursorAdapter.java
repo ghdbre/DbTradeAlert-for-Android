@@ -17,6 +17,7 @@ import de.dbremes.dbtradealert.DbAccess.ReminderContract;
 
 public class RemindersManagementCursorAdapter extends CursorAdapter {
     public static final String REMINDER_DELETED_BROADCAST = "ReminderDeletedBroadcast";
+    public final static String REMINDER_ID_INTENT_EXTRA = "de.dbremes.dbtradealert.reminderId";
     DbHelper dbHelper;
 
     private View.OnClickListener deleteButtonClickListener = new View.OnClickListener() {
@@ -43,9 +44,7 @@ public class RemindersManagementCursorAdapter extends CursorAdapter {
                                     // remindersListView and remove a possible notification
                                     // for the deleted reminder
                                     Intent intent = new Intent(REMINDER_DELETED_BROADCAST);
-                                    intent.putExtra(
-                                            RemindersManagementActivity.REMINDER_ID_INTENT_EXTRA,
-                                            reminderId);
+                                    intent.putExtra(REMINDER_ID_INTENT_EXTRA, reminderId);
                                     LocalBroadcastManager.getInstance(holder.context)
                                             .sendBroadcast(intent);
                                 }

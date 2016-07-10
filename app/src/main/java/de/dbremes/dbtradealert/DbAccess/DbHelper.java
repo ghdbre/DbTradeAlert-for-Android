@@ -1,6 +1,7 @@
 package de.dbremes.dbtradealert.DbAccess;
 
 import de.dbremes.dbtradealert.DbAccess.QuoteContract.Quote;
+import de.dbremes.dbtradealert.DbAccess.ReminderContract.Reminder;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract.Security;
 import de.dbremes.dbtradealert.DbAccess.SecuritiesInWatchlistsContract.SecuritiesInWatchlists;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract.Watchlist;
@@ -13,8 +14,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -121,6 +122,17 @@ public class DbHelper extends SQLiteOpenHelper {
         db.execSQL(sql);
         Log.d(CLASS_NAME, "createQuoteTable(): created with SQL = " + sql);
     } // createQuoteTable()
+
+    private void createReminderTable(SQLiteDatabase db) {
+        String columnDefinitions = Reminder.DUE_DATE + " TEXT, " +
+                Reminder.HEADING + " TEXT, " +
+                Reminder.ID + " INTEGER PRIMARY KEY, " +
+                Reminder.IS_ACTIVE + " INTEGER, " +
+                Reminder.NOTES + " TEXT";
+        String sql = String.format("CREATE TABLE %s (%s);", Reminder.TABLE, columnDefinitions);
+        db.execSQL(sql);
+        Log.d(CLASS_NAME, "createReminderTable(): created with SQL = " + sql);
+    } // createReminderTable()
 
     private void createSampleData(SQLiteDatabase db) {
         final String methodName = "createSampleData";
@@ -315,8 +327,20 @@ public class DbHelper extends SQLiteOpenHelper {
             db.insert(Quote.TABLE, null, contentValues);
             Log.v(DbHelper.CLASS_NAME, "Sample quote for 'SIE.DE' created");
             // endregion - SIE.DE
-            db.setTransactionSuccessful();
             // endregion Create sample quote data
+            // region Create sample reminder data
+            contentValues.clear();
+            DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING);
+            Date today = new Date();
+            contentValues.put(Reminder.DUE_DATE, dateFormat.format(today));
+            contentValues.put(Reminder.HEADING, "Sample reminder");
+            contentValues.put(Reminder.IS_ACTIVE, 1);
+            contentValues.put(Reminder.NOTES,
+                    "This is some more text which could go in a reminder's note");
+            db.insert(Reminder.TABLE, null, contentValues);
+            Log.v(DbHelper.CLASS_NAME, "Sample reminder created");
+            // endregion Create sample reminder data
+            db.setTransactionSuccessful();
             Log.d(DbHelper.CLASS_NAME, methodName + "(): success!");
         } finally {
             db.endTransaction();
@@ -361,6 +385,7 @@ public class DbHelper extends SQLiteOpenHelper {
             createWatchListTable(db);
             createQuoteTable(db);
             createSecuritiesInWatchListsTable(db);
+            createReminderTable(db);
             db.setTransactionSuccessful();
             Log.d(DbHelper.CLASS_NAME, "createTables(): success!");
         } finally {
@@ -380,7 +405,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public void deleteSecurity(long securityId) {
         final String methodName = "deleteSecurity";
         Log.v(CLASS_NAME, String.format("%s(): securityId = %d", methodName, securityId));
-        String[] whereArgs = new String[] { String.valueOf(securityId) };
+        String[] whereArgs = new String[]{String.valueOf(securityId)};
         int deleteResult = 0;
         SQLiteDatabase db = getWritableDatabase();
         try {
@@ -679,20 +704,22 @@ public class DbHelper extends SQLiteOpenHelper {
     private String insertSelectionArgs(String selection, String[] selectionArgs) {
         final String methodName = "insertSelectionArgs";
         String result = "";
-        StringBuilder sb = new StringBuilder();
-        String[] selectionArray = selection.split("\\?");
+        if (selectionArgs != null) {
+            StringBuilder sb = new StringBuilder();
+            String[] selectionArray = selection.split("\\?");
 //         if (selectionArray.length != selectionArgs.length){
 //            Log.w(DbHelper.CLASS_NAME,
 //                    String.format("%s: selectionArray.length = %d, selectionArgs.length = %d; ",
 //                            methodName, selectionArray.length, selectionArgs.length));
 //         }
-        for (int i = 0; i < selectionArgs.length; i++) {
-            sb.append(selectionArray[i] + selectionArgs[i]);
+            for (int i = 0; i < selectionArgs.length; i++) {
+                sb.append(selectionArray[i] + selectionArgs[i]);
+            }
+            if (selectionArray.length > selectionArgs.length) {
+                sb.append(selectionArray[selectionArray.length - 1]);
+            }
+            result = sb.toString();
         }
-        if (selectionArray.length > selectionArgs.length) {
-            sb.append(selectionArray[selectionArray.length - 1]);
-        }
-        result = sb.toString();
         return result;
     } // insertSelectionArgs()
 
@@ -740,6 +767,23 @@ public class DbHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
+
+    public Cursor readAllDueReminders() {
+        final String methodName = "readAllDueReminders";
+        Cursor cursor = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT " + Reminder.HEADING + ", " + Reminder.ID
+                + "\nFROM " + Reminder.TABLE + " r"
+                + "\nWHERE " + Reminder.DUE_DATE + " <= date('now')"
+                + "\n\tAND " + Reminder.IS_ACTIVE + " = 1"
+                + "\nORDER BY " + Reminder.HEADING + " ASC";
+        String[] selectionArgs = null;
+        logSql(methodName, sql, selectionArgs);
+        cursor = db.rawQuery(sql, selectionArgs);
+        Log.v(DbHelper.CLASS_NAME,
+                String.format(DbHelper.CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        return cursor;
+    } // readAllDueReminders()
 
     public Cursor readAllQuotesForWatchlist(long watchlistId) {
         final String methodName = "readAllQuotesForWatchlist";

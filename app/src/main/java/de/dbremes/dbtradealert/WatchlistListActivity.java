@@ -45,13 +45,13 @@ public class WatchlistListActivity extends AppCompatActivity
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra(QuoteRefresherService.BROADCAST_EXTRA_NAME);
             if (message.equals(QuoteRefresherService.BROADCAST_EXTRA_REFRESH_COMPLETED)) {
-                Log.d("BroadcastReceiver",
+                Log.v("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver triggered UI update");
                 refreshAllWatchlists();
                 setTitle(APP_NAME + " @ " + getTime());
             } else if (message.startsWith(QuoteRefresherService.BROADCAST_EXTRA_ERROR)) {
                 Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
-                Log.d("BroadcastReceiver",
+                Log.e("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver error = '" + message + "'");
             }
         }
@@ -192,7 +192,8 @@ public class WatchlistListActivity extends AppCompatActivity
     private void refreshAllWatchlists() {
         final String methodName = "refreshAllWatchlists";
         Cursor watchlistsCursor = this.dbHelper.readAllWatchlists();
-        final int watchListIdColumnIndex = watchlistsCursor.getColumnIndex(WatchlistContract.Watchlist.ID);
+        final int watchListIdColumnIndex
+                = watchlistsCursor.getColumnIndex(WatchlistContract.Watchlist.ID);
         while (watchlistsCursor.moveToNext()) {
             long watchListId = watchlistsCursor.getLong(watchListIdColumnIndex);
             RecyclerView recyclerView = (RecyclerView) mViewPager.findViewWithTag(watchListId);
@@ -201,11 +202,11 @@ public class WatchlistListActivity extends AppCompatActivity
                         = (WatchlistRecyclerViewAdapter) recyclerView.getAdapter();
                 Cursor quotesCursor = this.dbHelper.readAllQuotesForWatchlist(watchListId);
                 adapter.swapCursor(quotesCursor);
-                Log.d(CLASS_NAME, String.format(
+                Log.v(CLASS_NAME, String.format(
                         "%s(): changed cursor for recyclerView with tag = %d",
                         methodName, watchListId));
             } else {
-                Log.d(CLASS_NAME, String.format(
+                Log.v(CLASS_NAME, String.format(
                         "%s(): cannot find recyclerView with tag = %d",
                         methodName, watchListId));
             }

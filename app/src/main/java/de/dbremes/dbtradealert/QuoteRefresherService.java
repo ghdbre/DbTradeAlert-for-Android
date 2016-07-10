@@ -28,6 +28,7 @@ import java.util.Calendar;
 import java.util.Locale;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
+import de.dbremes.dbtradealert.DbAccess.ReminderContract;
 
 public class QuoteRefresherService extends IntentService {
     private static final String CLASS_NAME = "QuoteRefresherService";
@@ -75,11 +76,35 @@ public class QuoteRefresherService extends IntentService {
         String signalName = cursor.getString(2);
         float signalValue = cursor.getFloat(3);
         String symbol = cursor.getString(4);
+        // Example: NOVN.VX: low = 79.55; T = 92.07
         result = String.format(Locale.getDefault(),
                 "%s: %s = %01.2f; %s = %01.2f", symbol, actualName,
                 actualValue, signalName, signalValue);
         return result;
     } // buildNotificationLineFromCursor()
+
+    private void configureIntents(NotificationCompat.Builder builder, Context context) {
+        // Specify which intent to show when user taps notification
+        Intent watchlistListIntent = new Intent(this, WatchlistListActivity.class);
+        PendingIntent watchlistListPendingIntent
+                = PendingIntent.getActivity(context, 0, watchlistListIntent, 0);
+        builder.setContentIntent(watchlistListPendingIntent);
+        // Build back stack
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(WatchlistListActivity.class);
+        stackBuilder.addNextIntent(watchlistListIntent);
+    } // configureIntents()
+
+    private NotificationCompat.Builder configureNotificationBuilder(Context context, Integer count) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+                .setColor(Color.GREEN)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setSmallIcon(R.drawable.emo_im_money_mouth);
+        if (count != null) {
+            builder.setNumber(count);
+        }
+        return builder;
+    } // configureNotificationBuilder()
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -95,9 +120,10 @@ public class QuoteRefresherService extends IntentService {
                     quoteCsv = downloadQuotes(url);
                     DbHelper dbHelper = new DbHelper(this);
                     dbHelper.updateOrCreateQuotes(quoteCsv);
-                    // Notify user of triggered signals even if app is sleeping
+                    // Notify user of triggered signals and reminders even if app is sleeping
                     dbHelper.updateSecurityMaxPrice();
                     sendNotificationForTriggeredSignals(dbHelper);
+                    sendDueReminders(dbHelper);
                     Log.d(CLASS_NAME,
                             "onHandleIntent(): quotes updated - initiating screen refresh");
                     sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
@@ -207,20 +233,9 @@ public class QuoteRefresherService extends IntentService {
         Cursor cursor = dbHelper.readAllTriggeredSignals();
         if (cursor.getCount() > 0) {
             Context context = getApplicationContext();
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-                    .setColor(Color.GREEN)
-                    .setDefaults(Notification.DEFAULT_ALL)
-                    .setNumber(cursor.getCount())
-                    .setSmallIcon(R.drawable.emo_im_money_mouth);
-            // Specify which intent to show when user taps notification
-            Intent watchlistListIntent = new Intent(this, WatchlistListActivity.class);
-            PendingIntent watchlistListPendingIntent
-                    = PendingIntent.getActivity(context, 0, watchlistListIntent, 0);
-            builder.setContentIntent(watchlistListPendingIntent);
-            // Build back stack
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-            stackBuilder.addParentStack(WatchlistListActivity.class);
-            stackBuilder.addNextIntent(watchlistListIntent);
+            NotificationCompat.Builder builder
+                    = configureNotificationBuilder(context, cursor.getCount());
+            configureIntents(builder, context);
             // Create notification
             if (cursor.getCount() == 1) {
                 cursor.moveToFirst();
@@ -240,7 +255,7 @@ public class QuoteRefresherService extends IntentService {
             // Show notification
             NotificationManager notificationManager = (NotificationManager) context
                     .getSystemService(Context.NOTIFICATION_SERVICE);
-            // Show new notification or update pending one
+            // Update pending notification if existing
             final int notificationId = 1234;
             notificationManager.notify(notificationId, builder.build());
         }
@@ -248,4 +263,34 @@ public class QuoteRefresherService extends IntentService {
                 String.format("%s(): created %d notifications", methodName, cursor.getCount()));
         DbHelper.closeCursor(cursor);
     } // sendNotificationForTriggeredSignals()
+
+    private void sendDueReminders(DbHelper dbHelper) {
+        final String methodName = "sendDueReminders";
+        Cursor cursor = dbHelper.readAllDueReminders();
+        try {
+            if (cursor.getCount() > 0) {
+                Context context = getApplicationContext();
+                NotificationCompat.Builder builder
+                        = configureNotificationBuilder(context, cursor.getCount());
+                configureIntents(builder, context);
+                // Create and show reminders
+                NotificationManager notificationManager = (NotificationManager) context
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                while (cursor.moveToNext()) {
+                    String reminderHeader = cursor.getString(0);
+                    builder.setContentTitle("Reminder").setContentText(reminderHeader);
+                    Log.v(CLASS_NAME,
+                            String.format("%s(): Reminder = %s", methodName, reminderHeader));
+                    // Avoid showing more than one notification for a reminder
+                    int reminderId = cursor.getInt(1);
+                    int notificationId = reminderId;
+                    notificationManager.notify(notificationId, builder.build());
+                }
+            }
+            Log.d(CLASS_NAME,
+                    String.format("%s(): created %d reminders", methodName, cursor.getCount()));
+        } finally {
+            DbHelper.closeCursor(cursor);
+        }
+    } // sendDueReminders()
 } // class QuoteRefresherService

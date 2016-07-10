@@ -244,9 +244,12 @@ public class QuoteRefresherService extends IntentService {
                     builder.setContentTitle("Reminder").setContentText(reminderHeader);
                     Log.v(CLASS_NAME,
                             String.format("%s(): Reminder = %s", methodName, reminderHeader));
-                    // Avoid showing more than one notification for a reminder
-                    int reminderId = cursor.getInt(1);
-                    int notificationId = reminderId;
+                    // Avoid showing more than one notification for a reminder; also allows
+                    // removing notification when user deletes reminder
+                    long reminderId = cursor.getLong(1);
+                    // Casting _ID to an int may result in unexpected values as _IDs continue
+                    // to grow
+                    int notificationId = (int) reminderId;
                     notificationManager.notify(notificationId, builder.build());
                 }
             }

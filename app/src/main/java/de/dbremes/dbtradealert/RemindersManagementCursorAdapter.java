@@ -40,8 +40,12 @@ public class RemindersManagementCursorAdapter extends CursorAdapter {
                                     long reminderId = holder.reminderId;
                                     dbHelper.deleteReminder(reminderId);
                                     // Inform RemindersManagementActivity so it can refresh
-                                    // remindersListView
+                                    // remindersListView and remove a possible notification
+                                    // for the deleted reminder
                                     Intent intent = new Intent(REMINDER_DELETED_BROADCAST);
+                                    intent.putExtra(
+                                            RemindersManagementActivity.REMINDER_ID_INTENT_EXTRA,
+                                            reminderId);
                                     LocalBroadcastManager.getInstance(holder.context)
                                             .sendBroadcast(intent);
                                 }

@@ -28,7 +28,6 @@ import java.util.Calendar;
 import java.util.Locale;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
-import de.dbremes.dbtradealert.DbAccess.ReminderContract;
 
 public class QuoteRefresherService extends IntentService {
     private static final String CLASS_NAME = "QuoteRefresherService";
@@ -123,7 +122,7 @@ public class QuoteRefresherService extends IntentService {
                     // Notify user of triggered signals and reminders even if app is sleeping
                     dbHelper.updateSecurityMaxPrice();
                     sendNotificationForTriggeredSignals(dbHelper);
-                    sendDueReminders(dbHelper);
+                    sendNotificationsForDueReminders(dbHelper);
                     Log.d(CLASS_NAME,
                             "onHandleIntent(): quotes updated - initiating screen refresh");
                     sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
@@ -228,6 +227,36 @@ public class QuoteRefresherService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     } // sendLocalBroadcast()
 
+    private void sendNotificationsForDueReminders(DbHelper dbHelper) {
+        final String methodName = "sendNotificationsForDueReminders";
+        Cursor cursor = dbHelper.readAllDueReminders();
+        try {
+            if (cursor.getCount() > 0) {
+                Context context = getApplicationContext();
+                NotificationCompat.Builder builder
+                        = configureNotificationBuilder(context, cursor.getCount());
+                configureIntents(builder, context);
+                // Create and show reminders
+                NotificationManager notificationManager = (NotificationManager) context
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                while (cursor.moveToNext()) {
+                    String reminderHeader = cursor.getString(0);
+                    builder.setContentTitle("Reminder").setContentText(reminderHeader);
+                    Log.v(CLASS_NAME,
+                            String.format("%s(): Reminder = %s", methodName, reminderHeader));
+                    // Avoid showing more than one notification for a reminder
+                    int reminderId = cursor.getInt(1);
+                    int notificationId = reminderId;
+                    notificationManager.notify(notificationId, builder.build());
+                }
+            }
+            Log.d(CLASS_NAME,
+                    String.format("%s(): created %d notifications", methodName, cursor.getCount()));
+        } finally {
+            DbHelper.closeCursor(cursor);
+        }
+    } // sendNotificationsForDueReminders()
+
     private void sendNotificationForTriggeredSignals(DbHelper dbHelper) {
         final String methodName = "sendNotificationForTriggeredSignals";
         Cursor cursor = dbHelper.readAllTriggeredSignals();
@@ -263,34 +292,4 @@ public class QuoteRefresherService extends IntentService {
                 String.format("%s(): created %d notifications", methodName, cursor.getCount()));
         DbHelper.closeCursor(cursor);
     } // sendNotificationForTriggeredSignals()
-
-    private void sendDueReminders(DbHelper dbHelper) {
-        final String methodName = "sendDueReminders";
-        Cursor cursor = dbHelper.readAllDueReminders();
-        try {
-            if (cursor.getCount() > 0) {
-                Context context = getApplicationContext();
-                NotificationCompat.Builder builder
-                        = configureNotificationBuilder(context, cursor.getCount());
-                configureIntents(builder, context);
-                // Create and show reminders
-                NotificationManager notificationManager = (NotificationManager) context
-                        .getSystemService(Context.NOTIFICATION_SERVICE);
-                while (cursor.moveToNext()) {
-                    String reminderHeader = cursor.getString(0);
-                    builder.setContentTitle("Reminder").setContentText(reminderHeader);
-                    Log.v(CLASS_NAME,
-                            String.format("%s(): Reminder = %s", methodName, reminderHeader));
-                    // Avoid showing more than one notification for a reminder
-                    int reminderId = cursor.getInt(1);
-                    int notificationId = reminderId;
-                    notificationManager.notify(notificationId, builder.build());
-                }
-            }
-            Log.d(CLASS_NAME,
-                    String.format("%s(): created %d reminders", methodName, cursor.getCount()));
-        } finally {
-            DbHelper.closeCursor(cursor);
-        }
-    } // sendDueReminders()
 } // class QuoteRefresherService

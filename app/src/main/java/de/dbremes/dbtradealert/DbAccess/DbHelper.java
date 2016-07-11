@@ -787,6 +787,16 @@ public class DbHelper extends SQLiteOpenHelper {
 
     }
 
+    private void putDateInContentValues(
+            ContentValues contentValues, String contentValueKey, Date datevalue) {
+        if (datevalue != null) {
+            SimpleDateFormat dateFormat
+                    = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.getDefault());
+            String dateString = dateFormat.format(datevalue);
+            contentValues.put(contentValueKey, dateString);
+        }
+    } // putDateInContentValues()
+
     public Cursor readAllDueReminders() {
         final String methodName = "readAllDueReminders";
         Cursor cursor = null;
@@ -1013,6 +1023,30 @@ public class DbHelper extends SQLiteOpenHelper {
         return cursor;
     } // readAllWatchlistsAndMarkIfSecurityIsIncluded()
 
+    public Cursor readReminder(long reminderId) {
+        final String methodName = "readReminder";
+        Cursor cursor = null;
+        Log.v(CLASS_NAME,
+                String.format("%s(): reminderId = %d", methodName, reminderId));
+        SQLiteDatabase db = getReadableDatabase();
+        String[] columns = null;
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
+        String selection = Reminder.ID + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(reminderId)};
+        String table = Reminder.TABLE;
+        logSql(methodName, columns, orderBy, selection, selectionArgs, table);
+        cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
+        Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
+        if (cursor.getCount() != 1) {
+            Log.e(CLASS_NAME, String.format(
+                    "%s(): found %d reminders with id = %d; expected 1!", methodName,
+                    cursor.getCount(), reminderId));
+        }
+        return cursor;
+    } // readReminder()
+
     /**
      * Gets all data for the security identified by securityId
      *
@@ -1047,12 +1081,15 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.v(CLASS_NAME,
                 String.format("%s(): watchlistId = %d", methodName, watchlistId));
         SQLiteDatabase db = getReadableDatabase();
+        String[] columns = null;
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
         String selection = Watchlist.ID + " = ?";
         String[] selectionArgs = new String[]{String.valueOf(watchlistId)};
         String table = Watchlist.TABLE;
-        logSql(methodName, null, null, selection, selectionArgs, table);
-        cursor = db.query(table, null, selection, selectionArgs, null, null,
-                null);
+        logSql(methodName, columns, orderBy, selection, selectionArgs, table);
+        cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         if (cursor.getCount() != 1) {
             Log.e(CLASS_NAME, String.format(
@@ -1143,6 +1180,39 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     } // updateOrCreateQuotes()
 
+    public void updateOrCreateReminder(
+            Date dueDate, String heading, boolean isActive, String notes, long reminderId) {
+        final String methodName = "updateOrCreateReminder";
+        Long insertResult = null;
+        String[] whereArgs = new String[]{String.valueOf(reminderId)};
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.beginTransaction();
+            // Save reminder data
+            ContentValues contentValues = new ContentValues();
+            putDateInContentValues(contentValues, Reminder.DUE_DATE, dueDate);
+            contentValues.put(Reminder.HEADING, heading);
+            contentValues.put(Reminder.IS_ACTIVE, isActive);
+            contentValues.put(Reminder.NOTES, notes);
+            Integer updateResult = db.update(Reminder.TABLE,
+                    contentValues, Reminder.ID + " = ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                    methodName, Reminder.TABLE, updateResult));
+            if (updateResult == 0) {
+                insertResult = db.insert(Reminder.TABLE, null, contentValues);
+                Log.v(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                        methodName, Reminder.TABLE, insertResult));
+                reminderId = insertResult;
+                Log.v(CLASS_NAME, String.format("%s(): new reminderId = %d",
+                        methodName, reminderId));
+            }
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + "(): success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // updateOrCreateReminder()
+
     public String updateOrCreateSecurity(Float basePrice, Date basePriceDate,
                                          Float lowerTarget, Float maxPrice, Date maxPriceDate,
                                          String notes, long securityId, String symbol,
@@ -1169,20 +1239,10 @@ public class DbHelper extends SQLiteOpenHelper {
             // Store security data
             ContentValues contentValues = new ContentValues();
             contentValues.put(Security.BASE_PRICE, basePrice);
-            if (basePriceDate != null) {
-                SimpleDateFormat dateFormat
-                        = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.getDefault());
-                String basePriceDateString = dateFormat.format(basePriceDate);
-                contentValues.put(Security.BASE_PRICE_DATE, basePriceDateString);
-            }
+            putDateInContentValues(contentValues, Security.BASE_PRICE_DATE, basePriceDate);
             contentValues.put(Security.LOWER_TARGET, lowerTarget);
             contentValues.put(Security.MAX_PRICE, maxPrice);
-            if (maxPriceDate != null) {
-                SimpleDateFormat dateFormat
-                        = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.getDefault());
-                String maxPriceDateString = dateFormat.format(maxPriceDate);
-                contentValues.put(Security.MAX_PRICE_DATE, maxPriceDateString);
-            }
+            putDateInContentValues(contentValues, Security.MAX_PRICE_DATE, maxPriceDate);
             contentValues.put(Security.NOTES, notes);
             contentValues.put(Security.SYMBOL, symbol);
             contentValues.put(Security.TRAILING_TARGET, trailingTarget);

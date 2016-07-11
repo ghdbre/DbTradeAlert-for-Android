@@ -28,8 +28,7 @@ public class RemindersManagementActivity extends AppCompatActivity {
                 refreshRemindersListView();
                 Bundle extras = intent.getExtras();
                 if (extras != null) {
-                    long reminderId = extras.getLong(
-                            RemindersManagementCursorAdapter.REMINDER_ID_INTENT_EXTRA);
+                    long reminderId = extras.getLong(ReminderEditActivity.REMINDER_ID_INTENT_EXTRA);
                     // Need to pass reminderId as int because notificationManager.cancel()
                     // doesn't work with long
                     removeNotificationForDeletedReminder((int) reminderId);
@@ -37,6 +36,14 @@ public class RemindersManagementActivity extends AppCompatActivity {
             }
         }
     }; // reminderDeletedBroadcastReceiver
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            refreshRemindersListView();
+        }
+    } // onActivityResult()
 
     public void onCancelButtonClick(View view) {
         setResult(RESULT_CANCELED, getIntent());
@@ -63,6 +70,12 @@ public class RemindersManagementActivity extends AppCompatActivity {
         setResult(RESULT_OK, getIntent());
         finish();
     } // onOkButtonClick()
+
+    public void onNewButtonClick(View view) {
+        Intent intent = new Intent(this, ReminderEditActivity.class);
+        intent.putExtra(ReminderEditActivity.REMINDER_ID_INTENT_EXTRA, DbHelper.NEW_ITEM_ID);
+        startActivityForResult(intent, ReminderEditActivity.CREATE_REMINDER_REQUEST_CODE);
+    } // onNewButtonClick()
 
     @Override
     public void onPause() {

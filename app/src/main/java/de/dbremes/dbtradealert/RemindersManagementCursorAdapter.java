@@ -1,5 +1,6 @@
 package de.dbremes.dbtradealert;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,7 +18,6 @@ import de.dbremes.dbtradealert.DbAccess.ReminderContract;
 
 public class RemindersManagementCursorAdapter extends CursorAdapter {
     public static final String REMINDER_DELETED_BROADCAST = "ReminderDeletedBroadcast";
-    public final static String REMINDER_ID_INTENT_EXTRA = "de.dbremes.dbtradealert.reminderId";
     DbHelper dbHelper;
 
     private View.OnClickListener deleteButtonClickListener = new View.OnClickListener() {
@@ -44,7 +44,8 @@ public class RemindersManagementCursorAdapter extends CursorAdapter {
                                     // remindersListView and remove a possible notification
                                     // for the deleted reminder
                                     Intent intent = new Intent(REMINDER_DELETED_BROADCAST);
-                                    intent.putExtra(REMINDER_ID_INTENT_EXTRA, reminderId);
+                                    intent.putExtra(
+                                            ReminderEditActivity.REMINDER_ID_INTENT_EXTRA, reminderId);
                                     LocalBroadcastManager.getInstance(holder.context)
                                             .sendBroadcast(intent);
                                 }
@@ -54,6 +55,18 @@ public class RemindersManagementCursorAdapter extends CursorAdapter {
         } // onClick()
 
     }; // deleteButtonClickListener
+
+    private View.OnClickListener editButtonClickListener = new View.OnClickListener() {
+
+        public void onClick(View v) {
+            RemindersManagementDetailViewHolder holder
+                    = (RemindersManagementDetailViewHolder) ((View) v.getParent()).getTag();
+            Intent intent = new Intent(holder.context, ReminderEditActivity.class);
+            intent.putExtra(ReminderEditActivity.REMINDER_ID_INTENT_EXTRA, holder.reminderId);
+            ((Activity) holder.context).startActivityForResult(intent,
+                    ReminderEditActivity.UPDATE_REMINDER_REQUEST_CODE);
+        }
+    }; // editButtonClickListener
 
     public RemindersManagementCursorAdapter(Context context, Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
@@ -80,7 +93,7 @@ public class RemindersManagementCursorAdapter extends CursorAdapter {
         holder.deleteButton = (Button) view.findViewById(R.id.deleteButton);
         holder.deleteButton.setOnClickListener(deleteButtonClickListener);
         holder.editButton = (Button) view.findViewById(R.id.editButton);
-        //holder.editButton.setOnClickListener(editButtonClickListener);
+        holder.editButton.setOnClickListener(editButtonClickListener);
         holder.headingTextView = (TextView) view.findViewById(R.id.headingTextView);
         holder.reminderId = cursor.getLong(cursor.getColumnIndex(ReminderContract.Reminder.ID));
         view.setTag(holder);

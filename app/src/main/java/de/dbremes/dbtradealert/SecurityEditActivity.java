@@ -53,53 +53,6 @@ public class SecurityEditActivity extends AppCompatActivity {
         editText.setText("");
     } // clearEditTextViews()
 
-    private Date getDateFromEditText(Integer editTextId) {
-        Date result = null;
-        EditText editText = (EditText) findViewById(editTextId);
-        if (editText.length() > 0) {
-            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
-            String text = editText.getText().toString();
-            try {
-                result = dateFormat.parse(text);
-            } catch (ParseException e) {
-                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
-                Toast.makeText(
-                        this, "Error: '" + text + "' is not a valid date", Toast.LENGTH_SHORT)
-                        .show();
-            }
-        }
-        return result;
-    } // getDateFromEditText()
-
-    private String getDateTimeStringFromDbDateTime(
-            Cursor cursor, int columnIndex, boolean includeTime) {
-        // Return something so missing time stamps can be marked
-        String result = "";
-        String dateTimeString = cursor.getString(columnIndex);
-        if (TextUtils.isEmpty(dateTimeString) == false) {
-            SimpleDateFormat databaseFormat;
-            SimpleDateFormat localFormat;
-            if (includeTime) {
-                databaseFormat = new SimpleDateFormat(
-                        DbHelper.DATE_TIME_FORMAT_STRING, Locale.getDefault());
-                localFormat = (SimpleDateFormat) SimpleDateFormat
-                        .getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-            } else {
-                databaseFormat = new SimpleDateFormat(
-                        DbHelper.DATE_FORMAT_STRING, Locale.getDefault());
-                localFormat = (SimpleDateFormat) SimpleDateFormat
-                        .getDateInstance(DateFormat.SHORT);
-            }
-            try {
-                Date dateTime = databaseFormat.parse(dateTimeString);
-                result = localFormat.format(dateTime);
-            } catch (ParseException e) {
-                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
-            }
-        }
-        return result;
-    } // getDateTimeStringFromDbDateTime()
-
     private Float getFloatFromEditText(Integer editTextId) {
         Float result = Float.NaN;
         EditText editText = (EditText) findViewById(editTextId);
@@ -146,19 +99,35 @@ public class SecurityEditActivity extends AppCompatActivity {
     } // onCreate()
 
     public void onOkButtonClick(View view) {
+        String errorMessage = "";
         Float basePrice = getFloatFromEditText(R.id.basePriceEditText);
-        Date basePriceDate = getDateFromEditText(R.id.basePriceDateEditText);
+        Date basePriceDate = null;
+        try {
+            basePriceDate = Utils.getDateFromEditText(this, R.id.basePriceDateEditText);
+        } catch (ParseException e) {
+            errorMessage = e.getMessage();
+        }
         Float lowerTarget = getFloatFromEditText(R.id.lowerTargetEditText);
         Float maxPrice = getFloatFromEditText(R.id.maxPriceEditText);
-        Date maxPriceDate = getDateFromEditText(R.id.maxPriceDateEditText);
+        Date maxPriceDate = null;
+        try {
+            maxPriceDate = Utils.getDateFromEditText(this, R.id.maxPriceDateEditText);
+        } catch (ParseException e) {
+            errorMessage = e.getMessage();
+        }
         String notes = Utils.getStringFromEditText(this, R.id.notesEditText);
         String symbol = Utils.getStringFromEditText(this, R.id.symbolEditText);
+        if (TextUtils.isEmpty(symbol)) {
+            errorMessage = "Please enter a symbol";
+        }
         Float upperTarget = getFloatFromEditText(R.id.upperTargetEditText);
         Float trailingTarget = getFloatFromEditText(R.id.trailingTargetEditText);
         long[] watchlistIds = Utils.getSelectedListViewItemIds(this, R.id.watchlistsListView);
-        String errorMessage = this.dbHelper.updateOrCreateSecurity(basePrice, basePriceDate,
-                lowerTarget, maxPrice, maxPriceDate, notes, this.securityId,
-                symbol, trailingTarget, upperTarget, watchlistIds);
+        if (TextUtils.isEmpty(errorMessage)) {
+            errorMessage = this.dbHelper.updateOrCreateSecurity(basePrice, basePriceDate,
+                    lowerTarget, maxPrice, maxPriceDate, notes, this.securityId,
+                    symbol, trailingTarget, upperTarget, watchlistIds);
+        }
         if (TextUtils.isEmpty(errorMessage)) {
             setResult(RESULT_OK, getIntent());
             finish();
@@ -191,13 +160,6 @@ public class SecurityEditActivity extends AppCompatActivity {
         }
     } // refreshWatchlistsList()
 
-    private void setTextFromDateColumn(Cursor cursor, String columnName, Integer editTextId) {
-        EditText editText = (EditText) findViewById(editTextId);
-        int columnIndex = cursor.getColumnIndex(columnName);
-        String s = getDateTimeStringFromDbDateTime(cursor, columnIndex, false);
-        editText.setText(s);
-    } // setTextFromDateColumn()
-
     private void setTextFromFloatColumn(Cursor cursor, String columnName, Integer editTextId) {
         EditText editText = (EditText) findViewById(editTextId);
         Float value = Utils.readFloatRespectingNull(columnName, cursor);
@@ -208,12 +170,6 @@ public class SecurityEditActivity extends AppCompatActivity {
         editText.setText(valueString);
     } // setTextFromFloatColumn()
 
-    private void setTextFromStringColumn(Cursor cursor, String columnName, Integer editTextId) {
-        EditText editText = (EditText) findViewById(editTextId);
-        String value = cursor.getString(cursor.getColumnIndex(columnName));
-        editText.setText(value);
-    } // setTextFromStringColumn()
-
     private void showSecurityData(long securityId) {
         final String methodName = "showSecurityData";
         Cursor securityCursor = this.dbHelper.readSecurity(securityId);
@@ -221,17 +177,17 @@ public class SecurityEditActivity extends AppCompatActivity {
             securityCursor.moveToFirst();
             setTextFromFloatColumn(securityCursor,
                     SecurityContract.Security.BASE_PRICE, R.id.basePriceEditText);
-            setTextFromDateColumn(securityCursor,
+            Utils.setTextFromDateColumn(this, securityCursor,
                     SecurityContract.Security.BASE_PRICE_DATE, R.id.basePriceDateEditText);
             setTextFromFloatColumn(securityCursor,
                     SecurityContract.Security.LOWER_TARGET, R.id.lowerTargetEditText);
             setTextFromFloatColumn(securityCursor,
                     SecurityContract.Security.MAX_PRICE, R.id.maxPriceEditText);
-            setTextFromDateColumn(securityCursor,
+            Utils.setTextFromDateColumn(this, securityCursor,
                     SecurityContract.Security.MAX_PRICE_DATE, R.id.maxPriceDateEditText);
-            setTextFromStringColumn(securityCursor,
+            Utils.setTextFromStringColumn(this, securityCursor,
                     SecurityContract.Security.NOTES, R.id.notesEditText);
-            setTextFromStringColumn(securityCursor,
+            Utils.setTextFromStringColumn(this, securityCursor,
                     SecurityContract.Security.SYMBOL, R.id.symbolEditText);
             setTextFromFloatColumn(securityCursor,
                     SecurityContract.Security.TRAILING_TARGET, R.id.trailingTargetEditText);

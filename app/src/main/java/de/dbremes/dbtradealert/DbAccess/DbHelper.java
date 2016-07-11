@@ -402,6 +402,27 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d(DbHelper.CLASS_NAME, "createWatchListTable(): created with SQL = " + sql);
     } // createWatchListTable()
 
+    public void deactivateReminder(long reminderId) {
+        final String methodName = "deactivateReminder";
+        Log.v(CLASS_NAME, String.format("%s(): reminderId = %d", methodName, reminderId));
+        String[] whereArgs = new String[]{String.valueOf(reminderId)};
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.beginTransaction();
+            // Set reminder.is_active = 0
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Reminder.IS_ACTIVE, 0);
+            int updateResult = db.update(Reminder.TABLE,
+                    contentValues, Reminder.ID + " = ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                    methodName, Reminder.TABLE, updateResult));
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + "(): success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // deactivateReminder()
+
     public void deleteReminder(long reminderId) {
         final String methodName = "deleteReminder";
         Log.v(CLASS_NAME, String.format("%s(): reminderId = %d", methodName, reminderId));

@@ -32,6 +32,7 @@
         <activity android:name=".WatchlistEditActivity" />
         <activity android:name=".WatchlistsManagementActivity" />
 
+        <receiver android:name=".NotificationActionBroadcastReceiver"/>
         <receiver android:name=".QuoteRefreshAlarmReceiver" />
         <receiver android:name=".QuoteRefreshScheduler">
             <intent-filter>

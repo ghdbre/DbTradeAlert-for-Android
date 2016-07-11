@@ -31,6 +31,10 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
 public class QuoteRefresherService extends IntentService {
     private static final String CLASS_NAME = "QuoteRefresherService";
+    public static final String NOTIFICATION_ACTION_DEACTIVATE_REMINDER_BROADCAST
+            = "DeactivateReminderBroadcast";
+    public static final String NOTIFICATION_ACTION_DELETE_REMINDER_BROADCAST
+            = "DeleteReminderBroadcast";
     public static final String QUOTE_REFRESHER_BROADCAST = "QuoteRefresherBroadcast";
     public static final String QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA = "Error: ";
     public static final String QUOTE_REFRESHER_BROADCAST_NAME_EXTRA = "Message";
@@ -43,6 +47,26 @@ public class QuoteRefresherService extends IntentService {
     public QuoteRefresherService() {
         super("QuoteRefresherService");
     } // ctor()
+
+    private void addActionToNotification(
+            String action, NotificationCompat.Builder builder, long reminderId) {
+        Intent actionIntent
+                = new Intent(this, NotificationActionBroadcastReceiver.class);
+        actionIntent.setAction(action);
+        actionIntent.putExtra(ReminderEditActivity.REMINDER_ID_INTENT_EXTRA, reminderId);
+        PendingIntent actionPendingIntent = PendingIntent.getBroadcast(
+                this, 0, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int icon;
+        String title;
+        if (action.equals(NOTIFICATION_ACTION_DEACTIVATE_REMINDER_BROADCAST)) {
+            icon = android.R.drawable.ic_menu_close_clear_cancel;
+            title = "Deactivate";
+        } else {
+            icon = android.R.drawable.ic_delete;
+            title = "Delete";
+        }
+        builder.addAction(icon, title, actionPendingIntent);
+    } // addActionToNotification()
 
     private boolean areExchangesOpenNow() {
         final String methodName = "areExchangesOpenNow";
@@ -247,9 +271,13 @@ public class QuoteRefresherService extends IntentService {
                     builder.setContentTitle("Reminder").setContentText(reminderHeader);
                     Log.v(CLASS_NAME,
                             String.format("%s(): Reminder = %s", methodName, reminderHeader));
-                    // Avoid showing more than one notification for a reminder; also allows
-                    // removing notification when user deletes reminder
                     long reminderId = cursor.getLong(1);
+                    addActionToNotification(
+                            NOTIFICATION_ACTION_DEACTIVATE_REMINDER_BROADCAST, builder, reminderId);
+                    addActionToNotification(
+                            NOTIFICATION_ACTION_DELETE_REMINDER_BROADCAST, builder, reminderId);
+                    // Using reminderId as notificationId avoids showing more than one notification
+                    // for a reminder; also allows removing notification when user deletes reminder
                     // Casting _ID to an int may result in unexpected values as _IDs continue
                     // to grow
                     int notificationId = (int) reminderId;

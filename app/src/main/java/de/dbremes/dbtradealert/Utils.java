@@ -38,7 +38,7 @@ public class Utils {
         return result;
     } // getDateFromEditText()
 
-    private static String getDateTimeStringFromDbDateTime(
+    public static String getDateTimeStringFromDbDateTime(
             Cursor cursor, int columnIndex, boolean includeTime) {
         // Return something so missing time stamps can be marked
         String result = "";

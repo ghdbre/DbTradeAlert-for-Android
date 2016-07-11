@@ -44,13 +44,16 @@ public class WatchlistListActivity extends AppCompatActivity
     private BroadcastReceiver quotesRefreshedBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String message = intent.getStringExtra(QuoteRefresherService.BROADCAST_EXTRA_NAME);
-            if (message.equals(QuoteRefresherService.BROADCAST_EXTRA_REFRESH_COMPLETED)) {
+            String message = intent.getStringExtra(
+                    QuoteRefresherService.QUOTE_REFRESHER_BROADCAST_NAME_EXTRA);
+            if (message.equals(
+                    QuoteRefresherService.QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA)) {
                 Log.v("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver triggered UI update");
                 refreshAllWatchlists();
                 setTitle(APP_NAME + " @ " + getTime());
-            } else if (message.startsWith(QuoteRefresherService.BROADCAST_EXTRA_ERROR)) {
+            } else if (message.startsWith(
+                    QuoteRefresherService.QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA)) {
                 Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
                 Log.e("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver error = '" + message + "'");
@@ -152,7 +155,8 @@ public class WatchlistListActivity extends AppCompatActivity
                 setTitle(APP_NAME);
                 Context context = getApplicationContext();
                 Intent service = new Intent(context, QuoteRefresherService.class);
-                service.putExtra(QuoteRefresherService.INTENT_EXTRA_IS_MANUAL_REFRESH, true);
+                service.putExtra(
+                        QuoteRefresherService.QUOTE_REFRESHER_BROADCAST_IS_MANUAL_REFRESH_INTENT_EXTRA, true);
                 startService(service);
                 return true;
             }
@@ -191,7 +195,7 @@ public class WatchlistListActivity extends AppCompatActivity
     public void onResume() {
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(quotesRefreshedBroadcastReceiver,
-                new IntentFilter(QuoteRefresherService.BROADCAST_ACTION_NAME));
+                new IntentFilter(QuoteRefresherService.QUOTE_REFRESHER_BROADCAST));
         Log.d(CLASS_NAME, "onResume(): quoteRefresherMessageReceiver registered");
         // Show possibly updated quotes when user returns to app
         refreshAllWatchlists();

@@ -31,11 +31,13 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
 public class QuoteRefresherService extends IntentService {
     private static final String CLASS_NAME = "QuoteRefresherService";
-    public static final String BROADCAST_ACTION_NAME = "QuoteRefresherAction";
-    public static final String BROADCAST_EXTRA_ERROR = "Error: ";
-    public static final String BROADCAST_EXTRA_NAME = "Message";
-    public static final String BROADCAST_EXTRA_REFRESH_COMPLETED = "Refresh completed";
-    public static final String INTENT_EXTRA_IS_MANUAL_REFRESH = "isManualRefresh";
+    public static final String QUOTE_REFRESHER_BROADCAST = "QuoteRefresherBroadcast";
+    public static final String QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA = "Error: ";
+    public static final String QUOTE_REFRESHER_BROADCAST_NAME_EXTRA = "Message";
+    public static final String QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA
+            = "Refresh completed";
+    public static final String QUOTE_REFRESHER_BROADCAST_IS_MANUAL_REFRESH_INTENT_EXTRA
+            = "isManualRefresh";
     private static final String exceptionMessage = "Exception caught";
 
     public QuoteRefresherService() {
@@ -113,7 +115,8 @@ public class QuoteRefresherService extends IntentService {
                 + "&s=" + getSymbolParameterValue();
         String quoteCsv = "";
         try {
-            boolean isManualRefresh = intent.getBooleanExtra(INTENT_EXTRA_IS_MANUAL_REFRESH, false);
+            boolean isManualRefresh = intent.getBooleanExtra(
+                    QUOTE_REFRESHER_BROADCAST_IS_MANUAL_REFRESH_INTENT_EXTRA, false);
             if (isManualRefresh || areExchangesOpenNow()) {
                 if (isConnected()) {
                     quoteCsv = downloadQuotes(url);
@@ -125,10 +128,10 @@ public class QuoteRefresherService extends IntentService {
                     sendNotificationsForDueReminders(dbHelper);
                     Log.d(CLASS_NAME,
                             "onHandleIntent(): quotes updated - initiating screen refresh");
-                    sendLocalBroadcast(BROADCAST_EXTRA_REFRESH_COMPLETED);
+                    sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA);
                 } else {
-                    sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "no Internet!");
-                    Log.d(CLASS_NAME, BROADCAST_EXTRA_ERROR + "no Internet!");
+                    sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
+                    Log.d(CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
                 }
             } else {
                 Log.d(CLASS_NAME,
@@ -140,8 +143,8 @@ public class QuoteRefresherService extends IntentService {
                 // java.net.UnknownHostException:
                 // Unable to resolve host "download.finance.yahoo.com":
                 // No address associated with hostname
-                sendLocalBroadcast(BROADCAST_EXTRA_ERROR + "broken Internet connection!");
-                Log.d(CLASS_NAME, BROADCAST_EXTRA_ERROR + "broken Internet connection!");
+                sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+                Log.d(CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
             }
             // TODO: cannot rethrow in else case as that doesn't match overridden methods signature?
         } finally {
@@ -167,7 +170,7 @@ public class QuoteRefresherService extends IntentService {
                 result = getStringFromStream(inputStream);
                 Log.d(CLASS_NAME, "downloadQuotes(): got " + result.length() + " characters");
             } else {
-                sendLocalBroadcast(BROADCAST_EXTRA_ERROR
+                sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
                         + "download failed (response code " + responseCode + ")!");
             }
         } finally {
@@ -222,8 +225,8 @@ public class QuoteRefresherService extends IntentService {
     } // isConnected()
 
     private void sendLocalBroadcast(String message) {
-        Intent intent = new Intent(BROADCAST_ACTION_NAME);
-        intent.putExtra(BROADCAST_EXTRA_NAME, message);
+        Intent intent = new Intent(QUOTE_REFRESHER_BROADCAST);
+        intent.putExtra(QUOTE_REFRESHER_BROADCAST_NAME_EXTRA, message);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     } // sendLocalBroadcast()
 

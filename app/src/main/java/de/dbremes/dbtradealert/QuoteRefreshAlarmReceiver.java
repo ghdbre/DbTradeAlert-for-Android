@@ -15,5 +15,5 @@ public class QuoteRefreshAlarmReceiver extends WakefulBroadcastReceiver {
                 "onReceive(): quote refresh alarm received; starting QuoteRefresherService");
         Intent service = new Intent(context, QuoteRefresherService.class);
         startWakefulService(context, service);
-    }
-}
+    } // onReceive()
+} // class QuoteRefreshAlarmReceiver

@@ -46,6 +46,15 @@ public class QuoteRefresherService extends IntentService {
         super("QuoteRefresherService");
     } // ctor()
 
+    private void addOpenManageRemindersScreenAction(NotificationCompat.Builder builder) {
+        Intent remindersManagementIntent = new Intent(this, RemindersManagementActivity.class);
+        PendingIntent remindersManagementPendingIntent
+                = PendingIntent.getActivity(this, 0, remindersManagementIntent, 0);
+        int icon = R.drawable.ic_go_search_api_holo_light;
+        String title = "Reminders";
+        builder.addAction(icon, title, remindersManagementPendingIntent);
+    } // addOpenManageRemindersScreenAction()
+
     private boolean areExchangesOpenNow() {
         final String methodName = "areExchangesOpenNow";
         boolean result = false;
@@ -279,6 +288,9 @@ public class QuoteRefresherService extends IntentService {
                         String s = buildNotificationFromTriggeredSignal(triggeredSignalsCursor);
                         inboxStyle.addLine(s);
                         Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
+                    }
+                    if (dueRemindersCursor.getCount() > 0) {
+                        addOpenManageRemindersScreenAction(builder);
                     }
                 }
                 // Show notification

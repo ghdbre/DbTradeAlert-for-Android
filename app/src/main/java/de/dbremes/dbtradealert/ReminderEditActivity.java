@@ -84,10 +84,7 @@ public class ReminderEditActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(errorMessage)) {
             this.dbHelper.updateOrCreateReminder(
                     dueDate, heading, isReminderActive, notes, this.reminderId);
-            Intent intent = getIntent();
-            intent.putExtra(
-                    ReminderEditActivity.REMINDER_ID_INTENT_EXTRA, this.reminderId);
-            setResult(RESULT_OK, intent);
+            setResult(RESULT_OK, getIntent());
             finish();
         } else {
             Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();

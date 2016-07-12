@@ -34,13 +34,6 @@ public class RemindersManagementActivity extends AppCompatActivity {
             if (intent.getAction().equals(
                     RemindersManagementCursorAdapter.REMINDER_DELETED_BROADCAST)) {
                 refreshRemindersListView();
-                Bundle extras = intent.getExtras();
-                if (extras != null) {
-                    long reminderId = extras.getLong(ReminderEditActivity.REMINDER_ID_INTENT_EXTRA);
-                    // Need to pass reminderId as int because notificationManager.cancel()
-                    // doesn't work with long
-                    removeNotificationForDeletedReminder((int) reminderId);
-                }
             }
         }
     }; // reminderDeletedBroadcastReceiver
@@ -50,15 +43,6 @@ public class RemindersManagementActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             refreshRemindersListView();
-            if (requestCode == ReminderEditActivity.UPDATE_REMINDER_REQUEST_CODE) {
-                Bundle extras = data.getExtras();
-                if (extras != null) {
-                    long reminderId = extras.getLong(ReminderEditActivity.REMINDER_ID_INTENT_EXTRA);
-                    // Need to pass reminderId as int because notificationManager.cancel()
-                    // doesn't work with long
-                    removeNotificationForUpdatedReminder((int) reminderId);
-                }
-            }
         }
     } // onActivityResult()
 

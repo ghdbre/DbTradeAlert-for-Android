@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
@@ -28,6 +29,7 @@ import java.util.Calendar;
 import java.util.Locale;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
+import de.dbremes.dbtradealert.DbAccess.ReminderContract;
 
 public class QuoteRefresherService extends IntentService {
     private static final String CLASS_NAME = "QuoteRefresherService";
@@ -70,7 +72,15 @@ public class QuoteRefresherService extends IntentService {
         return result;
     }// areExchangesOpenNow()
 
-    private String buildNotificationLineFromCursor(Cursor cursor) {
+    private String buildNotificationFromDueReminder(Cursor dueRemindersCursor) {
+        String result = "";
+        int headingColumnIndex
+                = dueRemindersCursor.getColumnIndex(ReminderContract.Reminder.HEADING);
+        result = dueRemindersCursor.getString(headingColumnIndex);
+        return result;
+    } // buildNotificationFromDueReminder()
+
+    private String buildNotificationFromTriggeredSignal(Cursor cursor) {
         String result = "";
         String actualName = cursor.getString(0);
         float actualValue = cursor.getFloat(1);
@@ -82,7 +92,7 @@ public class QuoteRefresherService extends IntentService {
                 "%s: %s = %01.2f; %s = %01.2f", symbol, actualName,
                 actualValue, signalName, signalValue);
         return result;
-    } // buildNotificationLineFromCursor()
+    } // buildNotificationFromTriggeredSignal()
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -101,13 +111,13 @@ public class QuoteRefresherService extends IntentService {
                     dbHelper.updateOrCreateQuotes(quoteCsv);
                     // Notify user of triggered signals and reminders even if app is sleeping
                     dbHelper.updateSecurityMaxPrice();
-                    sendNotificationForTriggeredSignals(dbHelper);
+                    sendNotification(dbHelper);
                     Log.d(CLASS_NAME,
                             "onHandleIntent(): quotes updated - initiating screen refresh");
                     sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA);
                 } else {
                     sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
-                    Log.d(CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
+                    Log.e(CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
                 }
             } else {
                 Log.d(CLASS_NAME,
@@ -119,8 +129,10 @@ public class QuoteRefresherService extends IntentService {
                 // java.net.UnknownHostException:
                 // Unable to resolve host "download.finance.yahoo.com":
                 // No address associated with hostname
-                sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
-                Log.e(CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+                sendLocalBroadcast(
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+                Log.e(CLASS_NAME,
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!", e);
             }
             // TODO: cannot rethrow in else case as that doesn't match overridden methods signature?
         } finally {
@@ -140,14 +152,25 @@ public class QuoteRefresherService extends IntentService {
             conn.setDoInput(true);
             // Starts the query
             conn.connect();
-            int responseCode = conn.getResponseCode();
-            if (responseCode == 200) {
+            int responseCode = -1;
+            try {
+                responseCode = conn.getResponseCode();
+            } catch (SocketTimeoutException e) {
+                sendLocalBroadcast(
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+                Log.e(CLASS_NAME,
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!", e);
+            }
+            if (responseCode == HttpURLConnection.HTTP_OK) {
                 inputStream = conn.getInputStream();
                 result = getStringFromStream(inputStream);
                 Log.d(CLASS_NAME, "downloadQuotes(): got " + result.length() + " characters");
             } else {
                 sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
                         + "download failed (response code " + responseCode + ")!");
+                Log.e(CLASS_NAME,
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
+                                + "download failed (response code " + responseCode + ")!");
             }
         } finally {
             if (inputStream != null) {
@@ -206,50 +229,71 @@ public class QuoteRefresherService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     } // sendLocalBroadcast()
 
-    private void sendNotificationForTriggeredSignals(DbHelper dbHelper) {
-        final String methodName = "sendNotificationForTriggeredSignals";
-        Cursor cursor = dbHelper.readAllTriggeredSignals();
-        if (cursor.getCount() > 0) {
-            Context context = getApplicationContext();
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-                    .setColor(Color.GREEN)
-                    .setDefaults(Notification.DEFAULT_ALL)
-                    .setNumber(cursor.getCount())
-                    .setSmallIcon(R.drawable.emo_im_money_mouth);
-            // Specify which intent to show when user taps notification
-            Intent watchlistListIntent = new Intent(this, WatchlistListActivity.class);
-            PendingIntent watchlistListPendingIntent
-                    = PendingIntent.getActivity(context, 0, watchlistListIntent, 0);
-            builder.setContentIntent(watchlistListPendingIntent);
-            // Build back stack
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-            stackBuilder.addParentStack(WatchlistListActivity.class);
-            stackBuilder.addNextIntent(watchlistListIntent);
-            // Create notification
-            if (cursor.getCount() == 1) {
-                cursor.moveToFirst();
-                String s = buildNotificationLineFromCursor(cursor);
-                builder.setContentTitle("Target hit").setContentText(s);
-                Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
-            } else {
-                builder.setContentTitle(cursor.getCount() + " Targets hit");
-                NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-                builder.setStyle(inboxStyle);
-                while (cursor.moveToNext()) {
-                    String s = buildNotificationLineFromCursor(cursor);
-                    inboxStyle.addLine(s);
-                    Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
+    private void sendNotification(DbHelper dbHelper) {
+        final String methodName = "sendNotification";
+        Cursor dueRemindersCursor = dbHelper.readAllDueReminders();
+        Cursor triggeredSignalsCursor = dbHelper.readAllTriggeredSignals();
+        try {
+            int notificationCount
+                    = triggeredSignalsCursor.getCount() + dueRemindersCursor.getCount();
+            if (notificationCount > 0) {
+                Context context = getApplicationContext();
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+                        .setColor(Color.GREEN)
+                        .setDefaults(Notification.DEFAULT_ALL)
+                        .setNumber(notificationCount)
+                        .setSmallIcon(R.drawable.emo_im_money_mouth);
+                // Tapping notification should lead to app's main screen
+                Intent watchlistListIntent = new Intent(this, WatchlistListActivity.class);
+                PendingIntent watchlistListPendingIntent
+                        = PendingIntent.getActivity(context, 0, watchlistListIntent, 0);
+                builder.setContentIntent(watchlistListPendingIntent);
+                // Build back stack
+                TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+                stackBuilder.addParentStack(WatchlistListActivity.class);
+                stackBuilder.addNextIntent(watchlistListIntent);
+                // Create notification
+                if (notificationCount == 1) {
+                    String contentText;
+                    if (dueRemindersCursor.getCount() == 1) {
+                        dueRemindersCursor.moveToFirst();
+                        contentText = buildNotificationFromDueReminder(dueRemindersCursor);
+                    } else {
+                        triggeredSignalsCursor.moveToFirst();
+                        contentText = buildNotificationFromTriggeredSignal(triggeredSignalsCursor);
+                    }
+                    builder.setContentTitle("Notification").setContentText(contentText);
+                    Log.v(CLASS_NAME,
+                            String.format("%s(): Notification = %s", methodName, contentText));
+                } else {
+                    // Wrap all notifications into one inboxStyle notification
+                    builder.setContentTitle(notificationCount + " Notifications");
+                    NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+                    builder.setStyle(inboxStyle);
+                    while (dueRemindersCursor.moveToNext()) {
+                        String s = buildNotificationFromDueReminder(dueRemindersCursor);
+                        inboxStyle.addLine(s);
+                        Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
+                    }
+                    while (triggeredSignalsCursor.moveToNext()) {
+                        String s = buildNotificationFromTriggeredSignal(triggeredSignalsCursor);
+                        inboxStyle.addLine(s);
+                        Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
+                    }
                 }
+                // Show notification
+                NotificationManager notificationManager = (NotificationManager) context
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                // Update pending notification if existing
+                final int notificationId = 1234;
+                notificationManager.notify(notificationId, builder.build());
             }
-            // Show notification
-            NotificationManager notificationManager = (NotificationManager) context
-                    .getSystemService(Context.NOTIFICATION_SERVICE);
-            // Update pending notification if existing
-            final int notificationId = 1234;
-            notificationManager.notify(notificationId, builder.build());
+            Log.d(CLASS_NAME, String.format(
+                    "%s(): created notification for %d reminders + signals",
+                    methodName, notificationCount));
+        } finally {
+            DbHelper.closeCursor(dueRemindersCursor);
+            DbHelper.closeCursor(triggeredSignalsCursor);
         }
-        Log.d(CLASS_NAME, String.format(
-                "%s(): created notification for %d signals", methodName, cursor.getCount()));
-        DbHelper.closeCursor(cursor);
-    } // sendNotificationForTriggeredSignals()
+    } // sendNotification()
 } // class QuoteRefresherService

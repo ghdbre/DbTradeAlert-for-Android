@@ -26,7 +26,7 @@ public class QuoteRefreshScheduler extends BroadcastReceiver {
             alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                     60 * 60 * 1000, pendingIntent);
         }
-        // Use only for testing Dozw and App Standby modes!
+        // Use only for testing Doze and App Standby modes!
 //        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
 //                1 * 60 * 1000, 1 * 60 * 1000, pendingIntent);
         // Log what was done

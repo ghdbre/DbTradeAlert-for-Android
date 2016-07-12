@@ -52,10 +52,13 @@ public class QuoteRefresherService extends IntentService {
             String action, NotificationCompat.Builder builder, long reminderId) {
         Intent actionIntent
                 = new Intent(this, NotificationActionBroadcastReceiver.class);
-        actionIntent.setAction(action);
+        actionIntent.setAction(action + "_" + String.valueOf(reminderId));
+        //actionIntent.setAction(action);
         actionIntent.putExtra(ReminderEditActivity.REMINDER_ID_INTENT_EXTRA, reminderId);
+//        PendingIntent actionPendingIntent = PendingIntent.getBroadcast(
+//                this, 0, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent actionPendingIntent = PendingIntent.getBroadcast(
-                this, 0, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                this, (int)reminderId, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         int icon;
         String title;
         if (action.equals(NOTIFICATION_ACTION_DEACTIVATE_REMINDER_BROADCAST)) {
@@ -108,16 +111,22 @@ public class QuoteRefresherService extends IntentService {
         return result;
     } // buildNotificationLineFromCursor()
 
-    private void configureIntents(NotificationCompat.Builder builder, Context context) {
+    private void configureIntents(NotificationCompat.Builder builder, Class activityClass,
+                                  Context context, long reminderId) {
         // Specify which intent to show when user taps notification
-        Intent watchlistListIntent = new Intent(this, WatchlistListActivity.class);
-        PendingIntent watchlistListPendingIntent
-                = PendingIntent.getActivity(context, 0, watchlistListIntent, 0);
-        builder.setContentIntent(watchlistListPendingIntent);
+        Intent intent = new Intent(this, activityClass);
+        if (activityClass.equals(ReminderEditActivity.class)) {
+            intent.putExtra(ReminderEditActivity.REMINDER_ID_INTENT_EXTRA, reminderId);
+            // Hack to create a new intent and not just overwrite an existing one with new data
+            // Assumes an explicit intent. Use Category otherwise?
+            intent.setAction(String.valueOf(reminderId));
+        }
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, (int) reminderId, intent, 0);
+        builder.setContentIntent(pendingIntent);
         // Build back stack
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(WatchlistListActivity.class);
-        stackBuilder.addNextIntent(watchlistListIntent);
+        stackBuilder.addParentStack(activityClass);
+        stackBuilder.addNextIntent(intent);
     } // configureIntents()
 
     private NotificationCompat.Builder configureNotificationBuilder(Context context, Integer count) {
@@ -168,7 +177,7 @@ public class QuoteRefresherService extends IntentService {
                 // Unable to resolve host "download.finance.yahoo.com":
                 // No address associated with hostname
                 sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
-                Log.d(CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+                Log.e(CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
             }
             // TODO: cannot rethrow in else case as that doesn't match overridden methods signature?
         } finally {
@@ -260,18 +269,18 @@ public class QuoteRefresherService extends IntentService {
         try {
             if (cursor.getCount() > 0) {
                 Context context = getApplicationContext();
-                NotificationCompat.Builder builder
-                        = configureNotificationBuilder(context, cursor.getCount());
-                configureIntents(builder, context);
-                // Create and show reminders
                 NotificationManager notificationManager = (NotificationManager) context
                         .getSystemService(Context.NOTIFICATION_SERVICE);
+                // Create and show notifications
                 while (cursor.moveToNext()) {
+                    NotificationCompat.Builder builder
+                            = configureNotificationBuilder(context, cursor.getCount());
                     String reminderHeader = cursor.getString(0);
                     builder.setContentTitle("Reminder").setContentText(reminderHeader);
                     Log.v(CLASS_NAME,
                             String.format("%s(): Reminder = %s", methodName, reminderHeader));
                     long reminderId = cursor.getLong(1);
+                    configureIntents(builder, ReminderEditActivity.class, context, reminderId);
                     addActionToNotification(
                             NOTIFICATION_ACTION_DEACTIVATE_REMINDER_BROADCAST, builder, reminderId);
                     addActionToNotification(
@@ -298,7 +307,9 @@ public class QuoteRefresherService extends IntentService {
             Context context = getApplicationContext();
             NotificationCompat.Builder builder
                     = configureNotificationBuilder(context, cursor.getCount());
-            configureIntents(builder, context);
+            // reminderId only valid for reminder notifications
+            long reminderId = -1;
+            configureIntents(builder, WatchlistListActivity.class, context, reminderId);
             // Create notification
             if (cursor.getCount() == 1) {
                 cursor.moveToFirst();

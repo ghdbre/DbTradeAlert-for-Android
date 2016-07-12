@@ -16,9 +16,13 @@ public class NotificationActionBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         final String methodName = "onReceive";
-        boolean isDeactivateReminderAction = intent.getAction().equals(
+//        boolean isDeactivateReminderAction = intent.getAction().equals(
+//                QuoteRefresherService.NOTIFICATION_ACTION_DEACTIVATE_REMINDER_BROADCAST);
+//        boolean isDeleteReminderAction = intent.getAction().equals(
+//                QuoteRefresherService.NOTIFICATION_ACTION_DELETE_REMINDER_BROADCAST);
+        boolean isDeactivateReminderAction = intent.getAction().startsWith(
                 QuoteRefresherService.NOTIFICATION_ACTION_DEACTIVATE_REMINDER_BROADCAST);
-        boolean isDeleteReminderAction = intent.getAction().equals(
+        boolean isDeleteReminderAction = intent.getAction().startsWith(
                 QuoteRefresherService.NOTIFICATION_ACTION_DELETE_REMINDER_BROADCAST);
         if (isDeactivateReminderAction || isDeleteReminderAction) {
             Bundle extras = intent.getExtras();

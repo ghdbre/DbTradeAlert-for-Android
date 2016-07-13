@@ -29,7 +29,12 @@
         <activity android:name=".RemindersManagementActivity" />
         <activity android:name=".SecuritiesManagementActivity" />
         <activity android:name=".SecurityEditActivity" />
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".SettingsActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MANAGE_NETWORK_USAGE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity android:name=".WatchlistEditActivity" />
         <activity android:name=".WatchlistsManagementActivity" />
 

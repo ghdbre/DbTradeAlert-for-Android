@@ -29,6 +29,7 @@
         <activity android:name=".RemindersManagementActivity" />
         <activity android:name=".SecuritiesManagementActivity" />
         <activity android:name=".SecurityEditActivity" />
+        <activity android:name=".SettingsActivity"></activity>
         <activity android:name=".WatchlistEditActivity" />
         <activity android:name=".WatchlistsManagementActivity" />
 
@@ -40,7 +41,6 @@
         </receiver>
 
         <service android:name=".QuoteRefresherService" />
-
     </application>
 
 </manifest>

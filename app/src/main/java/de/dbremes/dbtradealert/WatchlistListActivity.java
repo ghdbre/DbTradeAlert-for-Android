@@ -174,6 +174,8 @@ public class WatchlistListActivity extends AppCompatActivity
                 return true;
             }
             case R.id.action_settings: {
+                intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
                 return true;
             }
             default:

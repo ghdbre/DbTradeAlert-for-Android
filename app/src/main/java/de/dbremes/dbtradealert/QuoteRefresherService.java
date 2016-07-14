@@ -6,10 +6,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -26,7 +28,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Set;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.ReminderContract;
@@ -59,25 +64,12 @@ public class QuoteRefresherService extends IntentService {
         final String methodName = "areExchangesOpenNow";
         boolean result = false;
         Calendar now = Calendar.getInstance();
-        int hourOfDay = now.get(Calendar.HOUR_OF_DAY);
-        if (hourOfDay >= 9 && hourOfDay <= 18) {
-            int dayOfWeek = now.get(Calendar.DAY_OF_WEEK);
-            if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
-                result = true;
-            } else {
-                Log.d(CLASS_NAME, String.format(
-                        "%s(): Exchanges closed on weekends (day = %d)",
-                        methodName, dayOfWeek));
-            }
-        } else {
-            Log.d(CLASS_NAME, String.format(
-                    "%s(): Exchanges closed after hours (hour = %d)",
-                    methodName, hourOfDay));
+        boolean isBusinessHour = isBusinessHour(now);
+        if (isBusinessHour) {
+            result = isBusinessDay(now);
         }
-        if (result) {
-            Log.d(CLASS_NAME, String.format(
-                    "%s(): Exchanges open", methodName));
-        }
+        Log.d(CLASS_NAME, String.format(
+                "%s(): Exchanges %sopen", methodName, result ? "" : "not "));
         return result;
     }// areExchangesOpenNow()
 
@@ -102,6 +94,42 @@ public class QuoteRefresherService extends IntentService {
                 actualValue, signalName, signalValue);
         return result;
     } // buildNotificationFromTriggeredSignal()
+
+    private boolean isBusinessDay(Calendar now) {
+        boolean result = false;
+        int thisDayOfWeek = now.get(Calendar.DAY_OF_WEEK);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        Set businessDays = sharedPreferences.getStringSet(
+                "business_days_preference", Collections.<String>emptySet());
+        if (businessDays != null) {
+            Iterator<String> iterator = businessDays.iterator();
+            while (iterator.hasNext()) {
+                String businessDayString = iterator.next();
+                if (Integer.valueOf(businessDayString).equals(thisDayOfWeek)) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+        // Log result details
+        String s = String.valueOf(thisDayOfWeek) + (result ? " is" : " is not")
+                + " a business day (" + businessDays.toString() + ")";
+        Log.v(CLASS_NAME, s);
+        return result;
+    } // isBusinessDay()
+
+    private boolean isBusinessHour(Calendar now) {
+        boolean result = false;
+        int hourOfDay = now.get(Calendar.HOUR_OF_DAY);
+        if (hourOfDay >= 9 && hourOfDay <= 18) {
+            result = true;
+        }
+        // Log result details
+        String s = String.valueOf(hourOfDay) + (result ? " is" : " is not")
+                + " in business hours (09 - 18)";
+        Log.v(CLASS_NAME, s);
+        return result;
+    }
 
     @Override
     protected void onHandleIntent(Intent intent) {

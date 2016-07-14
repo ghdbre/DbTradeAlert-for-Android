@@ -2,7 +2,14 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <CheckBoxPreference
         android:key="auto_refresh_preference"
-        android:title="Auto Refresh"
+        android:defaultValue="true"
         android:summary="Download quotes every hour"
-        android:defaultValue="true" />
+        android:title="Auto Refresh"/>
+    <MultiSelectListPreference
+        android:key="business_days_preference"
+        android:defaultValue="@array/business_days_preference_default_values"
+        android:entries="@array/business_days_preference_entries"
+        android:entryValues="@array/business_days_preference_values"
+        android:summary="Days on which auto refresh is active"
+        android:title="Business Days" />
 </PreferenceScreen>

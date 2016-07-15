@@ -68,13 +68,22 @@ public class SettingsActivity extends AppCompatActivity
     } // onResume()
 
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        Log.d(CLASS_NAME, "onSharedPreferenceChanged: key = " + key);
-        if (key.equals("auto_refresh_preference")) {
-            Intent intent = new Intent(this, QuoteRefreshScheduler.class);
-            sendBroadcast(intent);
+        final String METHOD_NAME = "onSharedPreferenceChanged";
+        Log.d(CLASS_NAME, METHOD_NAME + "(): key = " + key);
+        switch (key) {
+            case "auto_refresh_preference": {
+                Intent intent = new Intent(this, QuoteRefreshScheduler.class);
+                sendBroadcast(intent);
+                break;
+            }
+            case BUSINESS_DAYS_PREFERENCE_KEY:
+            case BUSINESS_HOURS_PREFERENCE_KEY:
+                setBusinessTimesPreferenceSummary(key);
+                break;
+            default:
+                Log.e(CLASS_NAME, METHOD_NAME + "(): Unexpected key= " + key);
+                break;
         }
-        setBusinessTimesPreferenceSummary(BUSINESS_DAYS_PREFERENCE_KEY);
-        setBusinessTimesPreferenceSummary(BUSINESS_HOURS_PREFERENCE_KEY);
     } // onSharedPreferenceChanged()
 
 } // class SettingsActivity

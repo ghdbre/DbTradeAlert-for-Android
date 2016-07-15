@@ -29,7 +29,6 @@ import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
@@ -102,34 +101,46 @@ public class QuoteRefresherService extends IntentService {
         Set businessDays = sharedPreferences.getStringSet(
                 "business_days_preference", Collections.<String>emptySet());
         if (businessDays != null) {
-            Iterator<String> iterator = businessDays.iterator();
-            while (iterator.hasNext()) {
-                String businessDayString = iterator.next();
-                if (Integer.valueOf(businessDayString).equals(thisDayOfWeek)) {
-                    result = true;
-                    break;
-                }
-            }
+            Utils.BusinessTimesPreferenceExtremes
+                    btpe = Utils.getBusinessTimesPreferenceExtremes(businessDays);
+            result = (btpe.getFirstBusinessTime() <= thisDayOfWeek
+                    && btpe.getLastBusinessTime() >= thisDayOfWeek);
+            // Log result details
+            String s = String.valueOf(thisDayOfWeek) + (result ? " is" : " is not")
+                    + String.format(" in business days (%d - %d)",
+                    btpe.getFirstBusinessTime(),
+                    btpe.getLastBusinessTime()
+            );
+            Log.v(CLASS_NAME, s);
+        } else {
+            Log.e(CLASS_NAME, "business_days_preference not found");
         }
-        // Log result details
-        String s = String.valueOf(thisDayOfWeek) + (result ? " is" : " is not")
-                + " a business day (" + businessDays.toString() + ")";
-        Log.v(CLASS_NAME, s);
         return result;
     } // isBusinessDay()
 
     private boolean isBusinessHour(Calendar now) {
         boolean result = false;
         int hourOfDay = now.get(Calendar.HOUR_OF_DAY);
-        if (hourOfDay >= 9 && hourOfDay <= 18) {
-            result = true;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        Set businessHours = sharedPreferences.getStringSet(
+                "business_hours_preference", Collections.<String>emptySet());
+        if (businessHours != null) {
+            Utils.BusinessTimesPreferenceExtremes
+                    btpe = Utils.getBusinessTimesPreferenceExtremes(businessHours);
+            result = (btpe.getFirstBusinessTime() <= hourOfDay
+                    && btpe.getLastBusinessTime() >= hourOfDay);
+            // Log result details
+            String s = String.valueOf(hourOfDay) + (result ? " is" : " is not")
+                    + String.format(" in business hours (%02d - %02d)",
+                    btpe.getFirstBusinessTime(),
+                    btpe.getLastBusinessTime()
+            );
+            Log.v(CLASS_NAME, s);
+        } else {
+            Log.e(CLASS_NAME, "business_hours_preference not found");
         }
-        // Log result details
-        String s = String.valueOf(hourOfDay) + (result ? " is" : " is not")
-                + " in business hours (09 - 18)";
-        Log.v(CLASS_NAME, s);
         return result;
-    }
+    } // isBusinessHour()
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -299,23 +310,23 @@ public class QuoteRefresherService extends IntentService {
                         triggeredSignalsCursor.moveToFirst();
                         contentText = buildNotificationFromTriggeredSignal(triggeredSignalsCursor);
                     }
-                    builder.setContentTitle("Notification").setContentText(contentText);
+                    builder.setContentTitle("Trade alert").setContentText(contentText);
                     Log.v(CLASS_NAME,
-                            String.format("%s(): Notification = %s", methodName, contentText));
+                            String.format("%s(): Trade alert = %s", methodName, contentText));
                 } else {
                     // Wrap all notifications into one inboxStyle notification
-                    builder.setContentTitle(notificationCount + " Notifications");
+                    builder.setContentTitle(notificationCount + " Trade alerts");
                     NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
                     builder.setStyle(inboxStyle);
                     while (dueRemindersCursor.moveToNext()) {
                         String s = buildNotificationFromDueReminder(dueRemindersCursor);
                         inboxStyle.addLine(s);
-                        Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
+                        Log.v(CLASS_NAME, String.format("%s(): trade alert = %s", methodName, s));
                     }
                     while (triggeredSignalsCursor.moveToNext()) {
                         String s = buildNotificationFromTriggeredSignal(triggeredSignalsCursor);
                         inboxStyle.addLine(s);
-                        Log.v(CLASS_NAME, String.format("%s(): Notification = %s", methodName, s));
+                        Log.v(CLASS_NAME, String.format("%s(): trade alert = %s", methodName, s));
                     }
                     if (dueRemindersCursor.getCount() > 0) {
                         addOpenManageRemindersScreenAction(builder);
@@ -329,7 +340,7 @@ public class QuoteRefresherService extends IntentService {
                 notificationManager.notify(notificationId, builder.build());
             }
             Log.d(CLASS_NAME, String.format(
-                    "%s(): created notification for %d reminders + signals",
+                    "%s(): created trade alert for %d reminders + signals",
                     methodName, notificationCount));
         } finally {
             DbHelper.closeCursor(dueRemindersCursor);

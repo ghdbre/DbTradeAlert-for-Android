@@ -12,4 +12,11 @@
         android:entryValues="@array/business_days_preference_values"
         android:summary="Days on which auto refresh is active"
         android:title="Business Days" />
+    <MultiSelectListPreference
+        android:key="business_hours_preference"
+        android:defaultValue="@array/business_hours_preference_default_values"
+        android:entries="@array/business_hours_preference_entries"
+        android:entryValues="@array/business_hours_preference_values"
+        android:summary="Hours on which auto refresh is active"
+        android:title="Business Hours" />
 </PreferenceScreen>

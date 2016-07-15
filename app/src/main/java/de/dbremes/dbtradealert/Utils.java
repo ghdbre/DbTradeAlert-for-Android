@@ -7,14 +7,15 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Set;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
@@ -67,6 +68,24 @@ public class Utils {
         return result;
     } // getDateTimeStringFromDbDateTime()
 
+    /**
+     * getBusinessTimesPreferenceExtremes() returns
+     * - the first and last business day of the week (for business_days_preference)
+     * or
+     * - the first and last business hour of the day (for business_hours_preference)
+     * @param businessTimesSet must not be null
+     */
+    public static BusinessTimesPreferenceExtremes getBusinessTimesPreferenceExtremes(
+            Set businessTimesSet) {
+        ArrayList<String> businessTimesArray = new ArrayList<String>(businessTimesSet);
+        Collections.sort(businessTimesArray);
+        String firstBusinessTime = businessTimesArray.get(0);
+        String lastBusinessTime = businessTimesArray.get(businessTimesArray.size() - 1);
+        return new BusinessTimesPreferenceExtremes(
+                Integer.valueOf(firstBusinessTime),
+                Integer.valueOf(lastBusinessTime));
+    } // getBusinessTimesPreferenceExtremes()
+
     public static long[] getSelectedListViewItemIds(Activity activity, Integer listViewId) {
         ListView listView = (ListView) activity.findViewById(listViewId);
         return listView.getCheckedItemIds();
@@ -108,4 +127,28 @@ public class Utils {
         editText.setText(value);
     } // setTextFromStringColumn()
 
+    /**
+     * BusinessTimesPreferenceExtremes holds
+     * - the first and last business day of the week (for business_days_preference)
+     * or
+     * - the first and last business hour of the day (for business_hours_preference)
+     */
+    public static final class BusinessTimesPreferenceExtremes {
+        private final Integer firstBusinessTime;
+        private final Integer lastBusinessTime;
+
+        public BusinessTimesPreferenceExtremes(
+                Integer firstBusinessTime, Integer lastBusinessTime) {
+            this.firstBusinessTime = firstBusinessTime;
+            this.lastBusinessTime = lastBusinessTime;
+        }
+
+        public Integer getFirstBusinessTime() {
+            return firstBusinessTime;
+        }
+
+        public Integer getLastBusinessTime() {
+            return lastBusinessTime;
+        }
+    } // class BusinessTimesPreferenceExtremes
 } // class Utils

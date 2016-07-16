@@ -32,7 +32,8 @@ public class WatchlistListActivity extends AppCompatActivity
     private static final String CLASS_NAME = "WatchlistListActivity";
     private static final int REMINDERS_MANAGEMENT_REQUEST = 1;
     private static final int SECURITIES_MANAGEMENT_REQUEST = 2;
-    private static final int WATCHLISTS_MANAGEMENT_REQUEST = 3;
+    private static final int SECURITY_EDIT_REQUEST = 3;
+    private static final int WATCHLISTS_MANAGEMENT_REQUEST = 4;
     private DbHelper dbHelper = null;
     private WatchlistListPagerAdapter watchlistListPagerAdapter;
 
@@ -98,6 +99,7 @@ public class WatchlistListActivity extends AppCompatActivity
                 watchlistListPagerAdapter.notifyDataSetChanged();
                 break;
             case SECURITIES_MANAGEMENT_REQUEST:
+            case SECURITY_EDIT_REQUEST:
                 if (resultCode == RESULT_OK) {
                     refreshAllWatchlists();
                 }
@@ -139,9 +141,12 @@ public class WatchlistListActivity extends AppCompatActivity
     }
 
     @Override
-    public void onListFragmentInteraction(String item) {
-
-    }
+    public void onListFragmentInteraction(String symbol) {
+        Intent intent = new Intent(this, SecurityEditActivity.class);
+        long securityId = dbHelper.getSecurityIdFromSymbol(symbol);
+        intent.putExtra(SecurityEditActivity.SECURITY_ID_INTENT_EXTRA, securityId);
+        startActivityForResult(intent, SECURITY_EDIT_REQUEST);
+    } // onListFragmentInteraction()
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

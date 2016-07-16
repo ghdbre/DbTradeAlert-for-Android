@@ -650,6 +650,12 @@ public class DbHelper extends SQLiteOpenHelper {
         return result;
     } // getQuoteIdFromSymbol()
 
+    public Long getSecurityIdFromSymbol(String symbol) {
+        final String methodName = "getSecurityIdFromSymbol";
+        SQLiteDatabase db = this.getReadableDatabase();
+        return getQuoteIdFromSymbol(db, symbol);
+    } // getSecurityIdFromSymbol()
+
     private Long getSecurityIdFromSymbol(SQLiteDatabase db, String symbol) {
         final String methodName = "getSecurityIdFromSymbol";
         Long securityId = NewItemId;

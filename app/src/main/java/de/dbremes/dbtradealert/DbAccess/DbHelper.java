@@ -924,7 +924,7 @@ public class DbHelper extends SQLiteOpenHelper {
         // sq.days_high, Quote.DAYS_LOW will be stored as NULL if Yahoo returned n/a
         // SQLite auto-converts Float.NaN to NULL
         String sql = "/* Lower target signal */ "
-                + "\nSELECT 'low' AS actual_name, " + Quote.DAYS_LOW + " AS actual_value,"
+                + "\nSELECT 'Low' AS actual_name, " + Quote.DAYS_LOW + " AS actual_value,"
                 + " 'L' AS signal_name, " + Security.LOWER_TARGET + " AS target_value,"
                 + " s." + Security.SYMBOL
                 + "\nFROM " + Security.TABLE + " s"
@@ -940,7 +940,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 + "\n\t) "
                 + "\nUNION ALL "
                 + "\n/* Upper target signal */ "
-                + "\nSELECT 'high' AS actual_name, " + Quote.DAYS_HIGH + " AS actual_value,"
+                + "\nSELECT 'High' AS actual_name, " + Quote.DAYS_HIGH + " AS actual_value,"
                 + " 'U' AS signal_name, " + Security.UPPER_TARGET + " AS target_value,"
                 + " s." + Security.SYMBOL
                 + "\nFROM " + Security.TABLE + " s"
@@ -956,7 +956,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 + "\n\t) "
                 + "\nUNION ALL "
                 + "\n/* Trailing stop loss signal */"
-                + "\nSELECT 'low' AS actual_name, " + Quote.DAYS_LOW + " AS actual_value,"
+                + "\nSELECT 'Low' AS actual_name, " + Quote.DAYS_LOW + " AS actual_value,"
                 + " 'T' AS signal_name, " + Security.MAX_PRICE
                 + " * (100 - " + Security.TRAILING_TARGET + ") / 100 AS target_value,"
                 + " s." + Security.SYMBOL

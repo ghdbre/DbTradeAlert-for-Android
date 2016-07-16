@@ -44,9 +44,9 @@ public class WatchlistRecyclerViewAdapter
         boolean result = false;
         int columnIndex = cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME);
         String s = cursor.getString(columnIndex);
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+        SimpleDateFormat dbFormat = new SimpleDateFormat(DbHelper.DATE_TIME_FORMAT_STRING);
         try {
-            Date lastTradeDateTime = format.parse(s);
+            Date lastTradeDateTime = dbFormat.parse(s);
             Date oneDayAgo = new Date(System.currentTimeMillis() - (24 * 60 * 60 * 1000));
             if (lastTradeDateTime.before(oneDayAgo)) {
                 result = true;
@@ -86,8 +86,9 @@ public class WatchlistRecyclerViewAdapter
         float lastPrice = this.cursor.getFloat(
                 this.cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE));
         // LastPriceDateTimeTextView
-        viewHolder.LastPriceDateTimeTextView.setText(this.cursor.getString(
-                this.cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME)));
+        int columnIndex = cursor.getColumnIndex(QuoteContract.Quote.LAST_PRICE_DATE_TIME);
+        String s = Utils.getDateTimeStringFromDbDateTime(cursor, columnIndex, true);
+        viewHolder.LastPriceDateTimeTextView.setText(s);
         if (isLastTradeOlderThanOneDay) {
             viewHolder.LastPriceDateTimeTextView.setBackgroundResource(R.color.colorWarn);
         } else {

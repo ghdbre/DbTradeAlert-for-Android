@@ -220,7 +220,7 @@ public class WatchlistListActivity extends AppCompatActivity
                 WatchlistRecyclerViewAdapter adapter
                         = (WatchlistRecyclerViewAdapter) recyclerView.getAdapter();
                 Cursor quotesCursor = this.dbHelper.readAllQuotesForWatchlist(watchListId);
-                adapter.swapCursor(quotesCursor);
+                adapter.changeCursor(quotesCursor);
                 Log.v(CLASS_NAME, String.format(
                         "%s(): changed cursor for recyclerView with tag = %d",
                         methodName, watchListId));

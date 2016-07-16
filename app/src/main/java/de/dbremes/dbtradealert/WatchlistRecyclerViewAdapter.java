@@ -244,13 +244,13 @@ public class WatchlistRecyclerViewAdapter
         textView.setText(String.format(formatString, percentValue, textToAdd));
     } // setPercentageText()
 
-    public void swapCursor(Cursor newCursor) {
+    public void changeCursor(Cursor newCursor) {
         if (newCursor != this.cursor) {
             DbHelper.closeCursor(this.cursor);
             this.cursor = newCursor;
             notifyDataSetChanged();
         }
-    } // swapCursor()
+    } // changeCursor()
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final TextView LastPriceDateTimeTextView;

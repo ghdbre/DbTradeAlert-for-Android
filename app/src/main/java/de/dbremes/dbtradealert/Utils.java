@@ -73,6 +73,7 @@ public class Utils {
      * - the first and last business day of the week (for business_days_preference)
      * or
      * - the first and last business hour of the day (for business_hours_preference)
+     *
      * @param businessTimesSet must not be null
      */
     public static BusinessTimesPreferenceExtremes getBusinessTimesPreferenceExtremes(

@@ -328,9 +328,9 @@ public class QuoteRefresherService extends IntentService {
                         inboxStyle.addLine(s);
                         Log.v(CLASS_NAME, String.format("%s(): trade alert = %s", methodName, s));
                     }
-                    if (dueRemindersCursor.getCount() > 0) {
-                        addOpenManageRemindersScreenAction(builder);
-                    }
+                }
+                if (dueRemindersCursor.getCount() > 0) {
+                    addOpenManageRemindersScreenAction(builder);
                 }
                 // Show notification
                 NotificationManager notificationManager = (NotificationManager) context

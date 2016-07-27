@@ -20,7 +20,7 @@ public class QuoteRefreshScheduler extends BroadcastReceiver {
                 newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         boolean isAutoRefreshEnabled = PreferenceManager
-                .getDefaultSharedPreferences(context).getBoolean("auto_refresh_preference", false);
+                .getDefaultSharedPreferences(context).getBoolean("auto_refresh_preference", true);
         if (isAutoRefreshEnabled == false) {
             alarmManager.cancel(pendingIntent);
             Log.d(CLASS_NAME, "onReceive(): quote refresh cancelled");

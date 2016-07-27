@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -116,6 +117,11 @@ public class WatchlistListActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_watchlist_list);
+
+        // Without this the app's preferences will be empty until the user opens
+        // it's Settings screen for the 1st time
+        boolean readAgain = false;
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, readAgain);
 
         this.dbHelper = new DbHelper(this);
 

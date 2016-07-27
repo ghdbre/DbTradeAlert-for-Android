@@ -100,21 +100,17 @@ public class QuoteRefresherService extends IntentService {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         Set businessDays = sharedPreferences.getStringSet(
                 "business_days_preference", Collections.<String>emptySet());
-        if (businessDays != null) {
-            Utils.BusinessTimesPreferenceExtremes
-                    btpe = Utils.getBusinessTimesPreferenceExtremes(businessDays);
-            result = (btpe.getFirstBusinessTime() <= thisDayOfWeek
-                    && btpe.getLastBusinessTime() >= thisDayOfWeek);
-            // Log result details
-            String s = String.valueOf(thisDayOfWeek) + (result ? " is" : " is not")
-                    + String.format(" in business days (%d - %d)",
-                    btpe.getFirstBusinessTime(),
-                    btpe.getLastBusinessTime()
-            );
-            Log.v(CLASS_NAME, s);
-        } else {
-            Log.e(CLASS_NAME, "business_days_preference not found");
-        }
+        Utils.BusinessTimesPreferenceExtremes
+                btpe = Utils.getBusinessTimesPreferenceExtremes(businessDays);
+        result = (btpe.getFirstBusinessTime() <= thisDayOfWeek
+                && btpe.getLastBusinessTime() >= thisDayOfWeek);
+        // Log result details
+        String s = String.valueOf(thisDayOfWeek) + (result ? " is" : " is not")
+                + String.format(" in business days (%d - %d)",
+                btpe.getFirstBusinessTime(),
+                btpe.getLastBusinessTime()
+        );
+        Log.v(CLASS_NAME, s);
         return result;
     } // isBusinessDay()
 
@@ -124,21 +120,17 @@ public class QuoteRefresherService extends IntentService {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         Set businessHours = sharedPreferences.getStringSet(
                 "business_hours_preference", Collections.<String>emptySet());
-        if (businessHours != null) {
-            Utils.BusinessTimesPreferenceExtremes
-                    btpe = Utils.getBusinessTimesPreferenceExtremes(businessHours);
-            result = (btpe.getFirstBusinessTime() <= hourOfDay
-                    && btpe.getLastBusinessTime() >= hourOfDay);
-            // Log result details
-            String s = String.valueOf(hourOfDay) + (result ? " is" : " is not")
-                    + String.format(" in business hours (%02d - %02d)",
-                    btpe.getFirstBusinessTime(),
-                    btpe.getLastBusinessTime()
-            );
-            Log.v(CLASS_NAME, s);
-        } else {
-            Log.e(CLASS_NAME, "business_hours_preference not found");
-        }
+        Utils.BusinessTimesPreferenceExtremes
+                btpe = Utils.getBusinessTimesPreferenceExtremes(businessHours);
+        result = (btpe.getFirstBusinessTime() <= hourOfDay
+                && btpe.getLastBusinessTime() >= hourOfDay);
+        // Log result details
+        String s = String.valueOf(hourOfDay) + (result ? " is" : " is not")
+                + String.format(" in business hours (%02d - %02d)",
+                btpe.getFirstBusinessTime(),
+                btpe.getLastBusinessTime()
+        );
+        Log.v(CLASS_NAME, s);
         return result;
     } // isBusinessHour()
 

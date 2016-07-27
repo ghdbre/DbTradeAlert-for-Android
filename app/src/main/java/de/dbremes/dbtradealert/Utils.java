@@ -73,6 +73,7 @@ public class Utils {
      * - the first and last business day of the week (for business_days_preference)
      * or
      * - the first and last business hour of the day (for business_hours_preference)
+     * If businessTimesSet is empty 0 will be returned for both extremes
      *
      * @param businessTimesSet must not be null
      */
@@ -80,8 +81,15 @@ public class Utils {
             Set businessTimesSet) {
         ArrayList<String> businessTimesArray = new ArrayList<String>(businessTimesSet);
         Collections.sort(businessTimesArray);
-        String firstBusinessTime = businessTimesArray.get(0);
-        String lastBusinessTime = businessTimesArray.get(businessTimesArray.size() - 1);
+        String firstBusinessTime = "0";
+        String lastBusinessTime = "0";
+        if (businessTimesArray.size() > 0) {
+            firstBusinessTime = businessTimesArray.get(0);
+            lastBusinessTime = businessTimesArray.get(businessTimesArray.size() - 1);
+        }
+        Log.v(CLASS_NAME, String.format(
+                "%s(): firstBusinessTime=%s; lastBusinessTime=%s",
+                "getBusinessTimesPreferenceExtremes", firstBusinessTime, lastBusinessTime));
         return new BusinessTimesPreferenceExtremes(
                 Integer.valueOf(firstBusinessTime),
                 Integer.valueOf(lastBusinessTime));

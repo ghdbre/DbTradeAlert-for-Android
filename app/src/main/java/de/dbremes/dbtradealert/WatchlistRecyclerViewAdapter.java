@@ -2,6 +2,7 @@ package de.dbremes.dbtradealert;
 
 import android.database.Cursor;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -74,6 +75,7 @@ public class WatchlistRecyclerViewAdapter
                             WatchlistRecyclerViewAdapter.CLASS_NAME, "onBindViewHolder",
                             reportPosition, this.cursor.getCount()));
         }
+        Drawable originaltextViewbackground = viewHolder.LastPriceTextView.getBackground();
         boolean isLastTradeOlderThanOneDay = this.isLastTradeOlderThanOneDay(this.cursor);
         // lastPrice is guaranteed to be not null because DbTradeAlert ignores data without
         // lastPrice specified -> lastPrice can use float variable (small f).
@@ -92,8 +94,8 @@ public class WatchlistRecyclerViewAdapter
         if (isLastTradeOlderThanOneDay) {
             viewHolder.LastPriceDateTimeTextView.setBackgroundResource(R.color.colorWarn);
         } else {
-            viewHolder.LastPriceDateTimeTextView
-                    .setBackgroundColor(android.R.attr.editTextBackground);
+            resetTextViewBackground(
+                    originaltextViewbackground, viewHolder.LastPriceDateTimeTextView);
         }
         // LastPriceTextView
         String currency = this.cursor.getString(
@@ -132,8 +134,8 @@ public class WatchlistRecyclerViewAdapter
             if (percentDailyVolume == 0) {
                 viewHolder.PercentDailyVolumeTextView.setBackgroundResource(R.color.colorWarn);
             } else {
-                viewHolder.PercentDailyVolumeTextView
-                        .setBackgroundColor(android.R.attr.editTextBackground);
+                resetTextViewBackground(
+                        originaltextViewbackground, viewHolder.PercentDailyVolumeTextView);
             }
         }
         // endregion PercentDailyVolumeTextView
@@ -204,7 +206,7 @@ public class WatchlistRecyclerViewAdapter
             }
             signalTextView.setVisibility(View.VISIBLE);
         } else {
-            signalTextView.setBackgroundColor(android.R.attr.editTextBackground);
+            resetTextViewBackground(originaltextViewbackground, signalTextView);
             if (trailingTargetPercentage.isNaN()) {
                 signalTextView.setVisibility(View.GONE);
             }
@@ -237,6 +239,15 @@ public class WatchlistRecyclerViewAdapter
         }
         return result;
     }
+
+    private void resetTextViewBackground(
+            Drawable originalTextViewBackground, TextView textView) {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            textView.setBackgroundDrawable(originalTextViewBackground);
+        } else {
+            textView.setBackground(originalTextViewBackground);
+        }
+    } // resetTextViewBackground()
 
     private void setPercentageText(
             boolean isSmallText, float percentValue, String textToAdd, TextView textView) {

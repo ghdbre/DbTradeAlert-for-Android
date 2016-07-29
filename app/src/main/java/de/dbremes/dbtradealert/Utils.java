@@ -110,7 +110,7 @@ public class Utils {
     } // getStringFromEditText()
 
     public static boolean isAndroidBeforeMarshmallow() {
-        return Build.VERSION.SDK_INT < 23;
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
     } // isAndroidBeforeMarshmallow()
 
     public static Float readFloatRespectingNull(String columnName, Cursor cursor) {

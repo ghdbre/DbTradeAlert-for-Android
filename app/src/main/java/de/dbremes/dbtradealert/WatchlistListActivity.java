@@ -136,7 +136,7 @@ public class WatchlistListActivity extends AppCompatActivity
         ensureExemptionFromBatteryOptimizations();
         // Create initial quote refresh schedule (just overwrite existing ones)
         Log.d(CLASS_NAME, "onCreate(): creating quote refresh schedule");
-        startQuoteRefreshScheduleCreation();
+        createQuoteRefreshSchedule();
     } // onCreate()
 
     @Override
@@ -239,11 +239,10 @@ public class WatchlistListActivity extends AppCompatActivity
         DbHelper.closeCursor(watchlistsCursor);
     } // refreshAllWatchlists()
 
-    private void startQuoteRefreshScheduleCreation() {
+    private void createQuoteRefreshSchedule() {
         Context context = getApplicationContext();
         Intent intent = new Intent(context, QuoteRefreshScheduler.class);
-        // LocalBroadcastManager won't work for statically registered receiver:
-        //LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        intent.setAction("WatchlistListActivity.createQuoteRefreshSchedule()");
         sendBroadcast(intent);
-    } // startQuoteRefreshScheduleCreation()
-}
+    } // createQuoteRefreshSchedule()
+} // class WatchlistListActivity

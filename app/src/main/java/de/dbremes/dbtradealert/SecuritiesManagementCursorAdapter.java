@@ -38,7 +38,7 @@ public class SecuritiesManagementCursorAdapter extends CursorAdapter {
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setMessage(
                             String.format(
-                                    "Delete %s ('%s'), it's quotes and connections to watchlists?",
+                                    "Delete %s ('%s'), its quotes and connections to watchlists?",
                                     securitySymbol, securityName))
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton(android.R.string.yes,

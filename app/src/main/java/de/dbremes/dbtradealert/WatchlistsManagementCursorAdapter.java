@@ -30,7 +30,7 @@ public class WatchlistsManagementCursorAdapter extends CursorAdapter {
                     .setTitle("Delete?")
                     .setMessage(
                             String.format(
-                                    "Delete watchlist '%s' and it's connections to securities?",
+                                    "Delete watchlist '%s' and its connections to securities?",
                                     watchListName))
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setPositiveButton(android.R.string.yes,

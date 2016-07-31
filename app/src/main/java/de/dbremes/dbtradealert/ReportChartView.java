@@ -202,7 +202,7 @@ public class ReportChartView extends View {
         int width = getWidth();
         int currentY = this.paddingY;
         // Upper chart shows quote data:
-        // - for lastPrice it's value is printed above the chart line
+        // - for lastPrice its value is printed above the chart line
         // - for all other prices a marker is printed below the chart line
         // - spread marked with black rectangle on chart line
         drawPrice(canvas, this.quoteExtremes, currentY, this.lastPrice, "a", this.ask, width);

@@ -119,7 +119,7 @@ public class WatchlistListActivity extends AppCompatActivity
         setContentView(R.layout.activity_watchlist_list);
 
         // Without this the app's preferences will be empty until the user opens
-        // it's Settings screen for the 1st time
+        // its Settings screen for the 1st time
         boolean readAgain = false;
         PreferenceManager.setDefaultValues(this, R.xml.preferences, readAgain);
 

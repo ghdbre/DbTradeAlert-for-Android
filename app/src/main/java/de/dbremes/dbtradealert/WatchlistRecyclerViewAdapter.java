@@ -75,7 +75,6 @@ public class WatchlistRecyclerViewAdapter
                             WatchlistRecyclerViewAdapter.CLASS_NAME, "onBindViewHolder",
                             reportPosition, this.cursor.getCount()));
         }
-        Drawable originaltextViewbackground = viewHolder.LastPriceTextView.getBackground();
         boolean isLastTradeOlderThanOneDay = this.isLastTradeOlderThanOneDay(this.cursor);
         // lastPrice is guaranteed to be not null because DbTradeAlert ignores data without
         // lastPrice specified -> lastPrice can use float variable (small f).
@@ -94,8 +93,7 @@ public class WatchlistRecyclerViewAdapter
         if (isLastTradeOlderThanOneDay) {
             viewHolder.LastPriceDateTimeTextView.setBackgroundResource(R.color.colorWarn);
         } else {
-            resetTextViewBackground(
-                    originaltextViewbackground, viewHolder.LastPriceDateTimeTextView);
+            resetTextViewBackground(viewHolder.LastPriceDateTimeTextView);
         }
         // LastPriceTextView
         String currency = this.cursor.getString(
@@ -134,8 +132,7 @@ public class WatchlistRecyclerViewAdapter
             if (percentDailyVolume == 0) {
                 viewHolder.PercentDailyVolumeTextView.setBackgroundResource(R.color.colorWarn);
             } else {
-                resetTextViewBackground(
-                        originaltextViewbackground, viewHolder.PercentDailyVolumeTextView);
+                resetTextViewBackground(viewHolder.PercentDailyVolumeTextView);
             }
         }
         // endregion PercentDailyVolumeTextView
@@ -206,7 +203,7 @@ public class WatchlistRecyclerViewAdapter
             }
             signalTextView.setVisibility(View.VISIBLE);
         } else {
-            resetTextViewBackground(originaltextViewbackground, signalTextView);
+            resetTextViewBackground(signalTextView);
             if (trailingTargetPercentage.isNaN()) {
                 signalTextView.setVisibility(View.GONE);
             }
@@ -240,12 +237,11 @@ public class WatchlistRecyclerViewAdapter
         return result;
     }
 
-    private void resetTextViewBackground(
-            Drawable originalTextViewBackground, TextView textView) {
+    private void resetTextViewBackground(TextView textView) {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            textView.setBackgroundDrawable(originalTextViewBackground);
+            textView.setBackgroundDrawable(null);
         } else {
-            textView.setBackground(originalTextViewBackground);
+            textView.setBackground(null);
         }
     } // resetTextViewBackground()
 

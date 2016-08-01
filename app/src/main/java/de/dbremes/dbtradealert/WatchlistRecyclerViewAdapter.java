@@ -2,7 +2,6 @@ package de.dbremes.dbtradealert;
 
 import android.database.Cursor;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -237,6 +236,7 @@ public class WatchlistRecyclerViewAdapter
         return result;
     }
 
+    @SuppressWarnings("deprecation")
     private void resetTextViewBackground(TextView textView) {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
             textView.setBackgroundDrawable(null);

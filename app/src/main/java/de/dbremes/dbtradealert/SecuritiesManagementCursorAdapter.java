@@ -16,7 +16,6 @@ import android.widget.TextView;
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.QuoteContract;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract;
-import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class SecuritiesManagementCursorAdapter extends CursorAdapter {
     public static final String SECURITY_DELETED_BROADCAST = "SecurityDeletedBroadcast";

@@ -217,26 +217,30 @@ public class WatchlistListActivity extends AppCompatActivity
     private void refreshAllWatchlists() {
         final String methodName = "refreshAllWatchlists";
         Cursor watchlistsCursor = this.dbHelper.readAllWatchlists();
-        final int watchListIdColumnIndex
-                = watchlistsCursor.getColumnIndex(WatchlistContract.Watchlist.ID);
-        while (watchlistsCursor.moveToNext()) {
-            long watchListId = watchlistsCursor.getLong(watchListIdColumnIndex);
-            RecyclerView recyclerView = (RecyclerView) mViewPager.findViewWithTag(watchListId);
-            if (recyclerView != null) {
-                WatchlistRecyclerViewAdapter adapter
-                        = (WatchlistRecyclerViewAdapter) recyclerView.getAdapter();
-                Cursor quotesCursor = this.dbHelper.readAllQuotesForWatchlist(watchListId);
-                adapter.changeCursor(quotesCursor);
-                Log.v(CLASS_NAME, String.format(
-                        "%s(): changed cursor for recyclerView with tag = %d",
-                        methodName, watchListId));
-            } else {
-                Log.v(CLASS_NAME, String.format(
-                        "%s(): cannot find recyclerView with tag = %d",
-                        methodName, watchListId));
+        try {
+            final int watchListIdColumnIndex
+                    = watchlistsCursor.getColumnIndex(WatchlistContract.Watchlist.ID);
+            while (watchlistsCursor.moveToNext()) {
+                long watchListId = watchlistsCursor.getLong(watchListIdColumnIndex);
+                RecyclerView recyclerView = (RecyclerView) mViewPager.findViewWithTag(watchListId);
+                if (recyclerView != null) {
+                    WatchlistRecyclerViewAdapter adapter
+                            = (WatchlistRecyclerViewAdapter) recyclerView.getAdapter();
+                    Cursor quotesCursor = this.dbHelper.readAllQuotesForWatchlist(watchListId);
+                    adapter.changeCursor(quotesCursor);
+                    Log.v(CLASS_NAME, String.format(
+                            "%s(): changed cursor for recyclerView with tag = %d",
+                            methodName, watchListId));
+                } else {
+                    Log.v(CLASS_NAME, String.format(
+                            "%s(): cannot find recyclerView with tag = %d",
+                            methodName, watchListId));
+                }
             }
         }
-        DbHelper.closeCursor(watchlistsCursor);
+        finally {
+            DbHelper.closeCursor(watchlistsCursor);
+        }
     } // refreshAllWatchlists()
 
     private void createQuoteRefreshSchedule() {

@@ -63,6 +63,14 @@ public class WatchlistListActivity extends AppCompatActivity
         }
     };
 
+
+    private void createQuoteRefreshSchedule() {
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, QuoteRefreshScheduler.class);
+        intent.setAction("WatchlistListActivity.createQuoteRefreshSchedule()");
+        sendBroadcast(intent);
+    } // createQuoteRefreshSchedule()
+
     @SuppressWarnings("NewApi")
     private void ensureExemptionFromBatteryOptimizations() {
         if (Utils.isAndroidBeforeMarshmallow() == false) {
@@ -242,11 +250,4 @@ public class WatchlistListActivity extends AppCompatActivity
             DbHelper.closeCursor(watchlistsCursor);
         }
     } // refreshAllWatchlists()
-
-    private void createQuoteRefreshSchedule() {
-        Context context = getApplicationContext();
-        Intent intent = new Intent(context, QuoteRefreshScheduler.class);
-        intent.setAction("WatchlistListActivity.createQuoteRefreshSchedule()");
-        sendBroadcast(intent);
-    } // createQuoteRefreshSchedule()
 } // class WatchlistListActivity

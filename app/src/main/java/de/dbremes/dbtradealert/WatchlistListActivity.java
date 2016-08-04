@@ -129,22 +129,28 @@ public class WatchlistListActivity extends AppCompatActivity
     private void copyDatabase(boolean isExport) {
         File sourceDb;
         File targetDb;
-        if (isExport) {
-            sourceDb = getDatabasePath(DbHelper.DB_NAME);
-            targetDb = new File(getExternalFilesDir(null), DbHelper.DB_NAME);
+        String message;
+        File externalFilesDir = getExternalFilesDir(null);
+        if (externalFilesDir != null) {
+            if (isExport) {
+                sourceDb = getDatabasePath(DbHelper.DB_NAME);
+                targetDb = new File(externalFilesDir, DbHelper.DB_NAME);
+            } else {
+                sourceDb = new File(externalFilesDir, DbHelper.DB_NAME);
+                targetDb = getDatabasePath(DbHelper.DB_NAME);
+            }
+            long bytesCopied = copyFile(sourceDb, targetDb);
+            if (isExport) {
+                MediaScannerConnection.scanFile(WatchlistListActivity.this,
+                        new String[]{targetDb.getAbsolutePath()}, null, null);
+            }
+            message = (isExport ? "Exported to " : "Imported from ")
+                    + targetDb + " (" + bytesCopied + " bytes copied)";
         } else {
-            sourceDb = new File(getExternalFilesDir(null), DbHelper.DB_NAME);
-            targetDb = getDatabasePath(DbHelper.DB_NAME);
+            message = "External files directory not available. SD card unmounted?";
         }
-        long bytesCopied = copyFile(sourceDb, targetDb);
-        if (isExport) {
-            MediaScannerConnection.scanFile(WatchlistListActivity.this,
-                    new String[]{targetDb.getAbsolutePath()}, null, null);
-        }
-        String s = (isExport ? "Exported to " : "Imported from ")
-                + targetDb + " (" + bytesCopied + " bytes copied)";
-        Log.d(CLASS_NAME, s);
-        Toast.makeText(this, s, Toast.LENGTH_LONG).show();
+        Log.d(CLASS_NAME, message);
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     } // copyDatabase()
 
     private String getTime() {

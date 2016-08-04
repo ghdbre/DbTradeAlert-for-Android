@@ -2,14 +2,17 @@ package de.dbremes.dbtradealert;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -21,6 +24,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -64,6 +72,38 @@ public class WatchlistListActivity extends AppCompatActivity
     };
 
 
+    private long copyFile(File sourceFile, File targetFile) {
+        final String methodName = "copyFile";
+        long bytesTransferred = 0;
+        FileChannel sourceChannel = null;
+        FileChannel targetChannel = null;
+        try {
+            try {
+                sourceChannel = new FileInputStream(sourceFile).getChannel();
+                Log.v(CLASS_NAME, String.format(
+                        "%s(): sourcefile = %s", methodName, sourceFile));
+                targetChannel = new FileOutputStream(targetFile).getChannel();
+                Log.v(CLASS_NAME, String.format(
+                        "%s(): targetFile = %s", methodName, targetFile));
+                bytesTransferred
+                        = targetChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+                Log.v(CLASS_NAME, String.format(
+                        "%s(): bytesTransferred = %d", methodName, bytesTransferred));
+            } finally {
+                if (sourceChannel != null) {
+                    sourceChannel.close();
+                }
+                if (targetChannel != null) {
+                    targetChannel.close();
+                }
+            }
+        } catch (IOException e) {
+            Log.e(CLASS_NAME, "Exception caught", e);
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+        }
+        return bytesTransferred;
+    } // copyFile()
+
     private void createQuoteRefreshSchedule() {
         Context context = getApplicationContext();
         Intent intent = new Intent(context, QuoteRefreshScheduler.class);
@@ -85,6 +125,27 @@ public class WatchlistListActivity extends AppCompatActivity
             }
         }
     } // ensureExemptionFromBatteryOptimizations()
+
+    private void copyDatabase(boolean isExport) {
+        File sourceDb;
+        File targetDb;
+        if (isExport) {
+            sourceDb = getDatabasePath(DbHelper.DB_NAME);
+            targetDb = new File(getExternalFilesDir(null), DbHelper.DB_NAME);
+        } else {
+            sourceDb = new File(getExternalFilesDir(null), DbHelper.DB_NAME);
+            targetDb = getDatabasePath(DbHelper.DB_NAME);
+        }
+        long bytesCopied = copyFile(sourceDb, targetDb);
+        if (isExport) {
+            MediaScannerConnection.scanFile(WatchlistListActivity.this,
+                    new String[]{targetDb.getAbsolutePath()}, null, null);
+        }
+        String s = (isExport ? "Exported to " : "Imported from ")
+                + targetDb + " (" + bytesCopied + " bytes copied)";
+        Log.d(CLASS_NAME, s);
+        Toast.makeText(this, s, Toast.LENGTH_LONG).show();
+    } // copyDatabase()
 
     private String getTime() {
         String result = "";
@@ -170,6 +231,28 @@ public class WatchlistListActivity extends AppCompatActivity
         Intent intent;
         int id = item.getItemId();
         switch (id) {
+            case R.id.action_export_database: {
+                boolean isExport = true;
+                copyDatabase(isExport);
+                return true;
+            }
+            case R.id.action_import_database: {
+                // Have user confirm overwrite of DB by import
+                new AlertDialog.Builder(this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setMessage("Overwrite existing database? No undo!")
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton(android.R.string.yes,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        boolean isExport = false;
+                                        copyDatabase(isExport);
+                                    }
+                                })
+                        .setTitle("Overwrite DB?")
+                        .show();
+                return true;
+            }
             case R.id.action_refresh: {
                 setTitle(APP_NAME);
                 Context context = getApplicationContext();
@@ -245,8 +328,7 @@ public class WatchlistListActivity extends AppCompatActivity
                             methodName, watchListId));
                 }
             }
-        }
-        finally {
+        } finally {
             DbHelper.closeCursor(watchlistsCursor);
         }
     } // refreshAllWatchlists()

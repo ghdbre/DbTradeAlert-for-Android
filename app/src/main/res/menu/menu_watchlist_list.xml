@@ -5,9 +5,9 @@
     <item
         android:id="@+id/action_refresh"
         android:icon="@drawable/ic_action_refresh"
-        app:showAsAction="ifRoom"
         android:title="Refresh"
-        android:titleCondensed="Refresh" />
+        android:titleCondensed="Refresh"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_reminders_management"
         android:title="Manage Reminders"
@@ -20,6 +20,19 @@
         android:id="@+id/action_watchlists_management"
         android:title="Manage Watchlists"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_copy_database"
+        android:title="Copy Database"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/action_export_database"
+                android:title="Export Database" />
+            <item
+                android:id="@+id/action_import_database"
+                android:title="Import Database" />
+        </menu>
+    </item>
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"

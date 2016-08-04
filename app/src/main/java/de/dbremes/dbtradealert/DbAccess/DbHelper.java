@@ -28,7 +28,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String CLASS_NAME = "DbHelper";
     public final static String DATE_FORMAT_STRING = "yyyy-MM-dd";
     public final static String DATE_TIME_FORMAT_STRING = DATE_FORMAT_STRING + "'T'HH:mm";
-    private static final String DB_NAME = "dbtradealert.db";
+    public static final String DB_NAME = "dbtradealert.db";
     private static final int DB_VERSION = 1;
     public final static long NEW_ITEM_ID = -1L;
     // Format strings for logging

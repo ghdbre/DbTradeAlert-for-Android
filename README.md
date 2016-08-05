@@ -1,7 +1,7 @@
 # DbTradeAlert for Android
 DbTradeAlert alerts you to securities reaching a specified price or at a specified date. 
 
-This post consists of a Quick Start followed by a description of the app’s Screens and a Glossary.
+This post consists of a Quick Start followed by a description of the app’s [Screens](#Screens) and a [Glossary](#Glossary).
 
 ## Quick Start
 
@@ -45,7 +45,7 @@ Please note that Android will automatically delete the database copy in internal
 ### Target Group
 DbTradeAlert is meant for people who check their portfolio maybe once a week. If your portfolio needs more attention you probably need a more sophisticated app. It’s also butlerlike discreet: neither the database nor the UI including notifications provide any clues about your portfolio’s worth – or whether you have a portfolio at all.
 
-## Screens
+## <a name="Screens">Screens</a>
 
 ### Edit Reminder Screen
 You use the Edit Reminder screen to add or change reminders. At the specified date the specified heading is shown if the reminder is active.
@@ -130,7 +130,7 @@ Tap and hold a report to go to the Edit Security screen. Swipe right or left to 
 
 The top of the screen shows the timestamp of the last update and provides access to the Refresh button as well as to the app’s menu.
 
-## Glossary
+## <a name="Glossary">Glossary</a>
 
 ### Base price
 The base price is a price you want to remember like the price you paid for a security. You can edit it in the Edit Security screen. DbTradeAlert shows this price in a watchlist’s reports.

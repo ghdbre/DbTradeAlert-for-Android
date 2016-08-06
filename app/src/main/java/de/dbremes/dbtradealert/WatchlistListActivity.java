@@ -104,28 +104,6 @@ public class WatchlistListActivity extends AppCompatActivity
         return bytesTransferred;
     } // copyFile()
 
-    private void createQuoteRefreshSchedule() {
-        Context context = getApplicationContext();
-        Intent intent = new Intent(context, QuoteRefreshScheduler.class);
-        intent.setAction("WatchlistListActivity.createQuoteRefreshSchedule()");
-        sendBroadcast(intent);
-    } // createQuoteRefreshSchedule()
-
-    @SuppressWarnings("NewApi")
-    private void ensureExemptionFromBatteryOptimizations() {
-        if (Utils.isAndroidBeforeMarshmallow() == false) {
-            String packageName = getPackageName();
-            PowerManager powerManager = getSystemService(PowerManager.class);
-            if (powerManager.isIgnoringBatteryOptimizations(packageName) == false) {
-                String explanation = "DbTradeAlert needs to download quotes even when in background!";
-                Toast.makeText(this, explanation, Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                        .setData(Uri.parse("package:" + packageName));
-                startActivity(intent);
-            }
-        }
-    } // ensureExemptionFromBatteryOptimizations()
-
     private void copyDatabase(boolean isExport) {
         File sourceDb;
         File targetDb;
@@ -152,6 +130,28 @@ public class WatchlistListActivity extends AppCompatActivity
         Log.d(CLASS_NAME, message);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     } // copyDatabase()
+
+    private void createQuoteRefreshSchedule() {
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, QuoteRefreshScheduler.class);
+        intent.setAction("WatchlistListActivity.createQuoteRefreshSchedule()");
+        sendBroadcast(intent);
+    } // createQuoteRefreshSchedule()
+
+    @SuppressWarnings("NewApi")
+    private void ensureExemptionFromBatteryOptimizations() {
+        if (Utils.isAndroidBeforeMarshmallow() == false) {
+            String packageName = getPackageName();
+            PowerManager powerManager = getSystemService(PowerManager.class);
+            if (powerManager.isIgnoringBatteryOptimizations(packageName) == false) {
+                String explanation = "DbTradeAlert needs to download quotes even when in background!";
+                Toast.makeText(this, explanation, Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                        .setData(Uri.parse("package:" + packageName));
+                startActivity(intent);
+            }
+        }
+    } // ensureExemptionFromBatteryOptimizations()
 
     private String getTime() {
         String result = "";

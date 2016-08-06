@@ -242,6 +242,11 @@ public class WatchlistListActivity extends AppCompatActivity
                 copyDatabase(isExport);
                 return true;
             }
+            case R.id.action_help: {
+                intent = new Intent(this, HelpActivity.class);
+                startActivity(intent);
+                return true;
+            }
             case R.id.action_import_database: {
                 // Have user confirm overwrite of DB by import
                 new AlertDialog.Builder(this)

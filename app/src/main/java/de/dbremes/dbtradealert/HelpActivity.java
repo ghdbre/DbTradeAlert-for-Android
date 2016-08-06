@@ -2,9 +2,7 @@ package de.dbremes.dbtradealert;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
 public class HelpActivity extends AppCompatActivity {
 

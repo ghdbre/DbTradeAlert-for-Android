@@ -223,8 +223,6 @@ public class WatchlistListActivity extends AppCompatActivity
 
     @Override
     public void onListFragmentInteraction(String symbol) {
-        int actionId = 0;
-        PlayStoreHelper.reportAction(getApplicationContext(), "Long tap security", actionId);
         Intent intent = new Intent(this, SecurityEditActivity.class);
         long securityId = dbHelper.getSecurityIdFromSymbol(symbol);
         intent.putExtra(SecurityEditActivity.SECURITY_ID_INTENT_EXTRA, securityId);
@@ -238,8 +236,6 @@ public class WatchlistListActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         Intent intent;
         int id = item.getItemId();
-        PlayStoreHelper.reportAction(
-                getApplicationContext(), item.getTitle().toString(), id);
         switch (id) {
             case R.id.action_export_database: {
                 boolean isExport = true;

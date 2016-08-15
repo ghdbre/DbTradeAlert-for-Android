@@ -19,4 +19,9 @@
         android:entryValues="@array/business_hours_preference_values"
         android:summary="Hours on which auto refresh is active"
         android:title="Business Hours" />
+    <CheckBoxPreference
+        android:key="tracking_preference"
+        android:defaultValue="true"
+        android:summary="Permit tracking so the app can be tailored to actual usage scenarios"
+        android:title="Enable Tracking"/>
 </PreferenceScreen>

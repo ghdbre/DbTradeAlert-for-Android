@@ -1,5 +1,6 @@
 package de.dbremes.dbtradealert;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.MultiSelectListPreference;
@@ -18,6 +19,7 @@ public class SettingsActivity extends AppCompatActivity
     private static final String SETTINGS_FRAGMENT_TAG = "SettingsFragmentTag";
     private static final String BUSINESS_DAYS_PREFERENCE_KEY = "business_days_preference";
     private static final String BUSINESS_HOURS_PREFERENCE_KEY = "business_hours_preference";
+    public static final String TRACKING_PREFERENCE_KEY = "tracking_preference";
 
     private void setBusinessTimesPreferenceSummary(String businessTimesPreferenceKey) {
         SettingsFragment settingsFragment
@@ -80,8 +82,15 @@ public class SettingsActivity extends AppCompatActivity
             case BUSINESS_HOURS_PREFERENCE_KEY:
                 setBusinessTimesPreferenceSummary(key);
                 break;
+            case "tracking_preference": {
+                boolean isEnabled = sharedPreferences.getBoolean(key, true);
+                Context context = getApplicationContext();
+                PlayStoreHelper.setBooleanUserProperty(
+                        context, PlayStoreHelper.IS_TRACKING_ENABLED_USERPROPERY, isEnabled);
+                break;
+            }
             default:
-                Log.e(CLASS_NAME, METHOD_NAME + "(): Unexpected key= " + key);
+                Log.e(CLASS_NAME, METHOD_NAME + "(): Unexpected key = " + key);
                 break;
         }
     } // onSharedPreferenceChanged()

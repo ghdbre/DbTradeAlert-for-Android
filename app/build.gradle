@@ -36,6 +36,7 @@ dependencies {
     compile 'com.android.support:support-v4:23.3.0'
     compile 'com.android.support:recyclerview-v7:23.3.0'
     playStoreCompile 'com.google.firebase:firebase-core:9.4.0'
+    compile 'org.jetbrains:annotations-java5:15.0'
 }
 
 // Remove apply plugin: 'com.google.gms.google-services' when building naked variants.

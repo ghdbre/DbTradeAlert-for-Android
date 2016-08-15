@@ -10,6 +10,7 @@ import de.dbremes.dbtradealert.Utils;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
@@ -649,6 +650,14 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor.close();
         return result;
     } // getQuoteIdFromSymbol()
+
+    public long getRecordCount(String tableName) {
+        long result = -1;
+        SQLiteDatabase db = this.getReadableDatabase();
+        result = DatabaseUtils.queryNumEntries(db, tableName);
+        Log.v(CLASS_NAME, tableName + " table has " + result + " records");
+        return result;
+    } // getRecordCount()
 
     public Long getSecurityIdFromSymbol(String symbol) {
         final String methodName = "getSecurityIdFromSymbol";

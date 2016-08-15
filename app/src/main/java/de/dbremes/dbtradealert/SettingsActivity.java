@@ -86,7 +86,7 @@ public class SettingsActivity extends AppCompatActivity
                 boolean isEnabled = sharedPreferences.getBoolean(key, true);
                 Context context = getApplicationContext();
                 PlayStoreHelper.setBooleanUserProperty(
-                        context, PlayStoreHelper.IS_TRACKING_ENABLED_USERPROPERY, isEnabled);
+                        context, PlayStoreHelper.IS_TRACKING_ENABLED_USERPROPERTY, isEnabled);
                 break;
             }
             default:

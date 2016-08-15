@@ -33,6 +33,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
+import de.dbremes.dbtradealert.DbAccess.ReminderContract;
+import de.dbremes.dbtradealert.DbAccess.SecurityContract;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class WatchlistListActivity extends AppCompatActivity
@@ -165,16 +167,27 @@ public class WatchlistListActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         final String methodName = "onActivityResult";
+        Context context = getApplicationContext();
+        long recordCount;
         switch (requestCode) {
             case REMINDERS_MANAGEMENT_REQUEST:
-                // Nothing to do
+                recordCount = this.dbHelper.getRecordCount(ReminderContract.Reminder.TABLE);
+                PlayStoreHelper.setLongUserProperty(
+                        context, PlayStoreHelper.REMINDER_COUNT_USERPROPERTY, recordCount);
+                // Nothing else to do
                 break;
             case WATCHLISTS_MANAGEMENT_REQUEST:
                 // Even if user tapped Cancel in Manage Watchlists screen he may have OK'd
                 // changes in Edit Watchlist screen
                 watchlistListPagerAdapter.notifyDataSetChanged();
+                recordCount = this.dbHelper.getRecordCount(WatchlistContract.Watchlist.TABLE);
+                PlayStoreHelper.setLongUserProperty(
+                        context, PlayStoreHelper.WATCHLIST_COUNT_USERPROPERTY, recordCount);
                 break;
             case SECURITIES_MANAGEMENT_REQUEST:
+                recordCount = this.dbHelper.getRecordCount(SecurityContract.Security.TABLE);
+                PlayStoreHelper.setLongUserProperty(
+                        context, PlayStoreHelper.SECURITY_COUNT_USERPROPERTY, recordCount);
             case SECURITY_EDIT_REQUEST:
                 if (resultCode == RESULT_OK) {
                     refreshAllWatchlists();

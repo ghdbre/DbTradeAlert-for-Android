@@ -39,7 +39,6 @@ import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
-    private static final String APP_NAME = "DbTradeAlert";
     private static final String CLASS_NAME = "WatchlistListActivity";
     private static final int REMINDERS_MANAGEMENT_REQUEST = 1;
     private static final int SECURITIES_MANAGEMENT_REQUEST = 2;
@@ -63,7 +62,8 @@ public class WatchlistListActivity extends AppCompatActivity
                 Log.v("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver triggered UI update");
                 refreshAllWatchlists();
-                setTitle(APP_NAME + " @ " + getTime());
+                boolean addTimestamp = true;
+                updateTitle(addTimestamp);
             } else if (message.startsWith(
                     QuoteRefresherService.QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA)) {
                 Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
@@ -282,7 +282,8 @@ public class WatchlistListActivity extends AppCompatActivity
                 return true;
             }
             case R.id.action_refresh: {
-                setTitle(APP_NAME);
+                boolean addTimestamp = false;
+                updateTitle(addTimestamp);
                 Context context = getApplicationContext();
                 Intent service = new Intent(context, QuoteRefresherService.class);
                 service.putExtra(
@@ -360,4 +361,10 @@ public class WatchlistListActivity extends AppCompatActivity
             DbHelper.closeCursor(watchlistsCursor);
         }
     } // refreshAllWatchlists()
+
+    private void updateTitle(boolean addTimestamp) {
+        int resId = getApplicationContext().getApplicationInfo().labelRes;
+        String appName = getApplicationContext().getString(resId);
+        setTitle(appName + (addTimestamp ? " @ " + getTime() : ""));
+    } // updateTitle()
 } // class WatchlistListActivity

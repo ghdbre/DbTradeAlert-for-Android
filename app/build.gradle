@@ -19,17 +19,18 @@ android {
         }
     }
     productFlavors {
-        naked {
-            // empty
-        }
+        naked
         playStore {
             applicationId = "${android.defaultConfig.applicationId}.playStore"
         }
     }
+    sourceSets {
+        playStore.java.srcDirs = ['src/common/java']
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.3.0'
     compile 'com.android.support:design:23.3.0'

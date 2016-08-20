@@ -23,9 +23,13 @@ android {
         playStore {
             applicationId = "${android.defaultConfig.applicationId}.playStore"
         }
+        withAds {
+            applicationId = "${android.defaultConfig.applicationId}.withAds"
+        }
     }
     sourceSets {
         playStore.java.srcDirs = ['src/common/java']
+        withAds.java.srcDirs = ['src/common/java']
     }
 }
 
@@ -37,6 +41,8 @@ dependencies {
     compile 'com.android.support:support-v4:23.3.0'
     compile 'com.android.support:recyclerview-v7:23.3.0'
     playStoreCompile 'com.google.firebase:firebase-core:9.4.0'
+    withAdsCompile 'com.google.firebase:firebase-core:9.4.0'
+    withAdsCompile 'com.google.firebase:firebase-ads:9.4.0'
     compile 'org.jetbrains:annotations-java5:15.0'
 }
 

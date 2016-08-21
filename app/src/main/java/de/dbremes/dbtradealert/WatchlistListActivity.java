@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -21,9 +20,11 @@ import android.support.v7.widget.Toolbar;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
@@ -231,9 +232,13 @@ public class WatchlistListActivity extends AppCompatActivity
         AdHelper.initialize(getApplicationContext());
         View adView = AdHelper.getAdView(getApplicationContext());
         if (adView != null) {
-            CoordinatorLayout coordinatorLayout
-                    = (CoordinatorLayout) findViewById(R.id.main_content);
-            coordinatorLayout.addView(adView);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.gravity = Gravity.BOTTOM | Gravity.CENTER;
+            adView.setLayoutParams(lp);
+            LinearLayout ll = (LinearLayout) findViewById(R.id.main_linear_layout);
+            ll.addView(adView);
         }
     } // onCreate()
 

@@ -29,7 +29,7 @@ android {
     }
     sourceSets {
         playStore.java.srcDirs = ['src/common/java']
-        withAds.java.srcDirs = ['src/common/java']
+        withAds.java.srcDirs = ['src/common/java', 'src/withAds/java']
     }
 }
 

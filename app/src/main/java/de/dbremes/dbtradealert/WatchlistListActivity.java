@@ -19,6 +19,7 @@ import android.support.v7.widget.Toolbar;
 
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -43,11 +44,13 @@ import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
     private static final String CLASS_NAME = "WatchlistListActivity";
+    private static final String TITLE = "Title";
     private static final int REMINDERS_MANAGEMENT_REQUEST = 1;
     private static final int SECURITIES_MANAGEMENT_REQUEST = 2;
     private static final int SECURITY_EDIT_REQUEST = 3;
     private static final int WATCHLISTS_MANAGEMENT_REQUEST = 4;
     private DbHelper dbHelper = null;
+    private String title;
     private WatchlistListPagerAdapter watchlistListPagerAdapter;
 
     /**
@@ -209,6 +212,14 @@ public class WatchlistListActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_watchlist_list);
 
+        // Set app title as it may have an added timestamp indicating the last refresh
+        if (savedInstanceState != null) {
+            this.title = savedInstanceState.getString(TITLE);
+        }
+        if (TextUtils.isEmpty(this.title) == false) {
+            setTitle(this.title);
+        }
+
         // Without this the app's preferences will be empty until the user opens
         // its Settings screen for the 1st time
         boolean readAgain = false;
@@ -349,6 +360,14 @@ public class WatchlistListActivity extends AppCompatActivity
         refreshAllWatchlists();
     } // onResume()
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString(TITLE, this.title);
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    } // onSaveInstanceState()
+
     private void refreshAllWatchlists() {
         final String methodName = "refreshAllWatchlists";
         Cursor watchlistsCursor = this.dbHelper.readAllWatchlists();
@@ -380,6 +399,7 @@ public class WatchlistListActivity extends AppCompatActivity
     private void updateTitle(boolean addTimestamp) {
         int resId = getApplicationContext().getApplicationInfo().labelRes;
         String appName = getApplicationContext().getString(resId);
-        setTitle(appName + (addTimestamp ? " @ " + getTime() : ""));
+        this.title = appName + (addTimestamp ? " @ " + getTime() : "");
+        setTitle(this.title);
     } // updateTitle()
 } // class WatchlistListActivity

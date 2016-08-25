@@ -38,10 +38,22 @@ public class PlayStoreHelper {
 
     public static void setBooleanUserProperty(
             @NotNull Context context, @NotNull String propertyName, boolean propertyValue) {
-        FirebaseAnalytics.getInstance(context).setUserProperty(
-                propertyName, String.valueOf(propertyValue));
         if (propertyName.equals(IS_TRACKING_ENABLED_USERPROPERTY)) {
-            FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(propertyValue);
+            // Disabled tracking will ignore updates of user properties
+            if (propertyValue) {
+                FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(propertyValue);
+                FirebaseAnalytics.getInstance(context).setUserProperty(
+                        propertyName, String.valueOf(propertyValue));
+            }
+            else {
+                FirebaseAnalytics.getInstance(context).setUserProperty(
+                        propertyName, String.valueOf(propertyValue));
+                FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(propertyValue);
+            }
+        }
+        else {
+            FirebaseAnalytics.getInstance(context).setUserProperty(
+                    propertyName, String.valueOf(propertyValue));
         }
         Log.v(CLASS_NAME, String.format("%s(): %s=%s; %s=%b", "setBooleanUserProperty",
                 "propertyName", propertyName, "propertyValue", propertyValue));

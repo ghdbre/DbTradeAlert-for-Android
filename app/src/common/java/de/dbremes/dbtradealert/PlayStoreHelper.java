@@ -24,7 +24,7 @@ public class PlayStoreHelper {
 
     public static void logAsDebugMessage(String tag, String message) {
         FirebaseCrash.logcat(Log.DEBUG, tag, message);
-    } // logAsError()
+    } // logAsDebugMessage()
 
     public static void logAsDebugMessage(Exception e) {
         String message = "";

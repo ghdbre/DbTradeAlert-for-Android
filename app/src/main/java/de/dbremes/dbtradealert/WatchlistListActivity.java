@@ -220,8 +220,6 @@ public class WatchlistListActivity extends AppCompatActivity
         if (TextUtils.isEmpty(this.title) == false) {
             setTitle(this.title);
         }
-        PlayStoreHelper.reportException(new Exception("Just a test exception"));
-        PlayStoreHelper.logAsDebugMessage(new Exception("Another test exception"));
 
         // Without this the app's preferences will be empty until the user opens
         // its Settings screen for the 1st time

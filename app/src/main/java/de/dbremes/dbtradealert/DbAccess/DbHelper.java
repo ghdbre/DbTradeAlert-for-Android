@@ -5,6 +5,7 @@ import de.dbremes.dbtradealert.DbAccess.ReminderContract.Reminder;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract.Security;
 import de.dbremes.dbtradealert.DbAccess.SecuritiesInWatchlistsContract.SecuritiesInWatchlists;
 import de.dbremes.dbtradealert.DbAccess.WatchlistContract.Watchlist;
+import de.dbremes.dbtradealert.PlayStoreHelper;
 import de.dbremes.dbtradealert.Utils;
 
 import android.content.ContentValues;
@@ -542,7 +543,7 @@ public class DbHelper extends SQLiteOpenHelper {
             try {
                 lastTradeDate = lastTradeDateFormat.parse(lastTradeDateString);
             } catch (ParseException e) {
-                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
+                PlayStoreHelper.logAsDebugMessage(e);
             }
             // Step 2: calculate lastTradeTime
             // SimpleDateFormat can't handle missing space between time and am / pm
@@ -554,7 +555,7 @@ public class DbHelper extends SQLiteOpenHelper {
             try {
                 lastTradeTime = lastTradeTimeFormat.parse(lastTradeTimeString);
             } catch (ParseException e) {
-                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
+                PlayStoreHelper.logAsDebugMessage(e);
             }
         }
         // Step 3: combine lastTradeDate and lastTradeTime
@@ -583,7 +584,7 @@ public class DbHelper extends SQLiteOpenHelper {
         } catch (NumberFormatException x) {
             // Probably empty string or "n/a" - return Float.NaN;
             if ("N/A".equals(s) == false) {
-                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, x);
+                PlayStoreHelper.logAsDebugMessage(x);
             }
         }
         return result;
@@ -595,7 +596,7 @@ public class DbHelper extends SQLiteOpenHelper {
             result = Integer.parseInt(s);
         } catch (NumberFormatException x) {
             // Probably empty string or "n/a" - return null;
-            Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, x);
+            PlayStoreHelper.logAsDebugMessage(x);
         }
         return result;
     } // getIntegerFromString()
@@ -1055,7 +1056,7 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         if (cursor.getCount() != 1) {
-            Log.e(CLASS_NAME, String.format(
+            PlayStoreHelper.logAsError(CLASS_NAME, String.format(
                     "%s(): found %d reminders with id = %d; expected 1!", methodName,
                     cursor.getCount(), reminderId));
         }
@@ -1083,7 +1084,7 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.rawQuery(selection, selectionArgs);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         if (cursor.getCount() != 1) {
-            Log.e(CLASS_NAME, String.format(
+            PlayStoreHelper.logAsError(CLASS_NAME, String.format(
                     "%s(): found %d securities with id = %d; expected 1!", methodName,
                     cursor.getCount(), securityId));
         }
@@ -1107,7 +1108,7 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         if (cursor.getCount() != 1) {
-            Log.e(CLASS_NAME, String.format(
+            PlayStoreHelper.logAsError(CLASS_NAME, String.format(
                     "%s(): found %d watchlists with id = %d; expected 1!", methodName,
                     cursor.getCount(), watchlistId));
         }

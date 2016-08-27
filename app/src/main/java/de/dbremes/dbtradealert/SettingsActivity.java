@@ -90,7 +90,7 @@ public class SettingsActivity extends AppCompatActivity
                 break;
             }
             default:
-                Log.e(CLASS_NAME, METHOD_NAME + "(): Unexpected key = " + key);
+                PlayStoreHelper.logAsError(CLASS_NAME, METHOD_NAME + "(): Unexpected key = " + key);
                 break;
         }
     } // onSharedPreferenceChanged()

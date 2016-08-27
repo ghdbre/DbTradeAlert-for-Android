@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -16,8 +15,6 @@ import java.util.Date;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.ReminderContract;
-import de.dbremes.dbtradealert.DbAccess.SecurityContract;
-import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 
 public class ReminderEditActivity extends AppCompatActivity {
     private final static String CLASS_NAME = "ReminderEditActivity";
@@ -112,7 +109,7 @@ public class ReminderEditActivity extends AppCompatActivity {
             Utils.setTextFromStringColumn(this, reminderCursor,
                     ReminderContract.Reminder.NOTES, R.id.notesEditText);
         } else {
-            Log.e(CLASS_NAME,
+            PlayStoreHelper.logAsError(CLASS_NAME,
                     String.format(
                             "%s: readReminder() found %d reminders with id = %d; expected 1!",
                             methodName, reminderCursor.getCount(), reminderId));

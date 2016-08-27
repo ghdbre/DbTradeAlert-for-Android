@@ -157,24 +157,26 @@ public class QuoteRefresherService extends IntentService {
                     sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA);
                 } else {
                     sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
-                    Log.e(CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
+                    PlayStoreHelper.logAsDebugMessage(
+                            CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
                 }
             } else {
                 Log.d(CLASS_NAME,
                         "onHandleIntent(): exchanges closed and not a manual refresh - skipping alarm");
             }
         } catch (IOException e) {
-            Log.e(CLASS_NAME, exceptionMessage, e);
+            // To reduce the amount of log spew that apps do in the non-error condition of the
+            // network being unavailable Log.e() doesn't print UnknownHostException.
             if (e instanceof UnknownHostException) {
                 // java.net.UnknownHostException:
                 // Unable to resolve host "download.finance.yahoo.com":
                 // No address associated with hostname
                 sendLocalBroadcast(
                         QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
-                Log.e(CLASS_NAME,
-                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!", e);
+                PlayStoreHelper.logAsDebugMessage(e);
+            } else {
+                PlayStoreHelper.reportException(e);
             }
-            // TODO: cannot rethrow in else case as that doesn't match overridden methods signature?
         } finally {
             QuoteRefreshAlarmReceiver.completeWakefulIntent(intent);
         }
@@ -198,8 +200,8 @@ public class QuoteRefresherService extends IntentService {
             } catch (SocketTimeoutException e) {
                 sendLocalBroadcast(
                         QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
-                Log.e(CLASS_NAME,
-                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!", e);
+                Log.d(CLASS_NAME,
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
             }
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 inputStream = conn.getInputStream();
@@ -208,7 +210,7 @@ public class QuoteRefresherService extends IntentService {
             } else {
                 sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
                         + "download failed (response code " + responseCode + ")!");
-                Log.e(CLASS_NAME,
+                PlayStoreHelper.logAsError(CLASS_NAME,
                         QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
                                 + "download failed (response code " + responseCode + ")!");
             }
@@ -251,7 +253,7 @@ public class QuoteRefresherService extends IntentService {
             symbols = URLEncoder.encode(symbols, "UTF-8");
             result += symbols;
         } catch (UnsupportedEncodingException e) {
-            Log.e(CLASS_NAME, exceptionMessage, e);
+            PlayStoreHelper.reportException(e);
         }
         return result;
     } // getSymbolParameterValue()

@@ -6,18 +6,14 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 import de.dbremes.dbtradealert.DbAccess.DbHelper;
 import de.dbremes.dbtradealert.DbAccess.SecurityContract;
@@ -61,7 +57,7 @@ public class SecurityEditActivity extends AppCompatActivity {
             try {
                 result = Float.valueOf(text);
             } catch (NumberFormatException e) {
-                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
+                PlayStoreHelper.logAsDebugMessage(e);
                 Toast.makeText(
                         this, "Error: '" + text + "' is not a valid number", Toast.LENGTH_SHORT)
                         .show();
@@ -194,7 +190,7 @@ public class SecurityEditActivity extends AppCompatActivity {
             setTextFromFloatColumn(securityCursor,
                     SecurityContract.Security.UPPER_TARGET, R.id.upperTargetEditText);
         } else {
-            Log.e(CLASS_NAME,
+            PlayStoreHelper.logAsError(CLASS_NAME,
                     String.format(
                             "%s: readSecurity() found %d securities with id = %d; expected 1!",
                             methodName, securityCursor.getCount(), securityId));

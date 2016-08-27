@@ -121,7 +121,7 @@ public class RemindersManagementActivity extends AppCompatActivity {
             try {
                 dueDate = sdf.parse(dueDateString);
             } catch (ParseException e) {
-                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
+                PlayStoreHelper.logAsDebugMessage(e);
             }
             Date today = new Date();
             boolean isReminderDue = today.after(dueDate);

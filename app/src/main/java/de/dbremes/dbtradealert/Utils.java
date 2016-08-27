@@ -21,7 +21,6 @@ import de.dbremes.dbtradealert.DbAccess.DbHelper;
 
 public class Utils {
     private final static String CLASS_NAME = "Utils";
-    public static final String EXCEPTION_CAUGHT = "Exception caught";
 
     public static Date getDateFromEditText(Activity activity, Integer editTextId)
             throws ParseException {
@@ -62,7 +61,7 @@ public class Utils {
                 Date dateTime = databaseFormat.parse(dateTimeString);
                 result = localFormat.format(dateTime);
             } catch (ParseException e) {
-                Log.e(CLASS_NAME, Utils.EXCEPTION_CAUGHT, e);
+                PlayStoreHelper.logAsDebugMessage(e);
             }
         }
         return result;

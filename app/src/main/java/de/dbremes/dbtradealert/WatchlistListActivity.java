@@ -73,7 +73,7 @@ public class WatchlistListActivity extends AppCompatActivity
             } else if (message.startsWith(
                     QuoteRefresherService.QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA)) {
                 Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
-                Log.e("BroadcastReceiver",
+                PlayStoreHelper.logAsError("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver error = '" + message + "'");
             }
         }
@@ -106,7 +106,7 @@ public class WatchlistListActivity extends AppCompatActivity
                 }
             }
         } catch (IOException e) {
-            Log.e(CLASS_NAME, "Exception caught", e);
+            PlayStoreHelper.reportException(e);
             Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
         }
         return bytesTransferred;
@@ -200,7 +200,8 @@ public class WatchlistListActivity extends AppCompatActivity
                 }
                 break;
             default:
-                Log.e(CLASS_NAME, String.format("%s(): unexpected requestCode = %d",
+                PlayStoreHelper.logAsError(
+                        CLASS_NAME, String.format("%s(): unexpected requestCode = %d",
                         methodName, requestCode));
                 break;
         }
@@ -219,6 +220,8 @@ public class WatchlistListActivity extends AppCompatActivity
         if (TextUtils.isEmpty(this.title) == false) {
             setTitle(this.title);
         }
+        PlayStoreHelper.reportException(new Exception("Just a test exception"));
+        PlayStoreHelper.logAsDebugMessage(new Exception("Another test exception"));
 
         // Without this the app's preferences will be empty until the user opens
         // its Settings screen for the 1st time

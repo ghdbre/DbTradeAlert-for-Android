@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.crash.FirebaseCrash;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -20,6 +21,24 @@ public class PlayStoreHelper {
     private PlayStoreHelper() {
         // Hide default construcor
     }
+
+    public static void logAsDebugMessage(String tag, String message) {
+        FirebaseCrash.logcat(Log.DEBUG, tag, message);
+    } // logAsError()
+
+    public static void logAsDebugMessage(Exception e) {
+        String message = "";
+        String stackTrace = "";
+        if (e != null) {
+            message = e.getMessage();
+            stackTrace = Log.getStackTraceString(e);
+            FirebaseCrash.logcat(Log.DEBUG, message, stackTrace);
+        }
+    } // logAsDebugMessage()
+
+    public static void logAsError(String tag, String message) {
+        FirebaseCrash.logcat(Log.ERROR, tag, message);
+    } // logAsError()
 
     public static void reportAction(
             @NotNull Context context, @NotNull String actionTitle, int actionId) {
@@ -36,6 +55,10 @@ public class PlayStoreHelper {
         }
     } // reportAction()
 
+    public static void reportException(Exception e) {
+        FirebaseCrash.report(e);
+    } // reportException()
+
     public static void setBooleanUserProperty(
             @NotNull Context context, @NotNull String propertyName, boolean propertyValue) {
         if (propertyName.equals(IS_TRACKING_ENABLED_USERPROPERTY)) {
@@ -44,14 +67,12 @@ public class PlayStoreHelper {
                 FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(propertyValue);
                 FirebaseAnalytics.getInstance(context).setUserProperty(
                         propertyName, String.valueOf(propertyValue));
-            }
-            else {
+            } else {
                 FirebaseAnalytics.getInstance(context).setUserProperty(
                         propertyName, String.valueOf(propertyValue));
                 FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(propertyValue);
             }
-        }
-        else {
+        } else {
             FirebaseAnalytics.getInstance(context).setUserProperty(
                     propertyName, String.valueOf(propertyValue));
         }

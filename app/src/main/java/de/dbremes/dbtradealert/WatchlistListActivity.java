@@ -50,7 +50,7 @@ public class WatchlistListActivity extends AppCompatActivity
     private static final int SECURITY_EDIT_REQUEST = 3;
     private static final int WATCHLISTS_MANAGEMENT_REQUEST = 4;
     private DbHelper dbHelper = null;
-    private String title;
+    private static String title;
     private WatchlistListPagerAdapter watchlistListPagerAdapter;
 
     /**
@@ -215,10 +215,10 @@ public class WatchlistListActivity extends AppCompatActivity
 
         // Set app title as it may have an added timestamp indicating the last refresh
         if (savedInstanceState != null) {
-            this.title = savedInstanceState.getString(TITLE);
+            title = savedInstanceState.getString(TITLE);
         }
-        if (TextUtils.isEmpty(this.title) == false) {
-            setTitle(this.title);
+        if (TextUtils.isEmpty(title) == false) {
+            setTitle(title);
         }
 
         // Without this the app's preferences will be empty until the user opens
@@ -363,7 +363,7 @@ public class WatchlistListActivity extends AppCompatActivity
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putString(TITLE, this.title);
+        savedInstanceState.putString(TITLE, title);
 
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
@@ -400,7 +400,7 @@ public class WatchlistListActivity extends AppCompatActivity
     private void updateTitle(boolean addTimestamp) {
         int resId = getApplicationContext().getApplicationInfo().labelRes;
         String appName = getApplicationContext().getString(resId);
-        this.title = appName + (addTimestamp ? " @ " + getTime() : "");
-        setTitle(this.title);
+        title = appName + (addTimestamp ? " @ " + getTime() : "");
+        setTitle(title);
     } // updateTitle()
 } // class WatchlistListActivity

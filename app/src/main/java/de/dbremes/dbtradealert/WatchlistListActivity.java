@@ -50,6 +50,9 @@ public class WatchlistListActivity extends AppCompatActivity
     private static final int SECURITY_EDIT_REQUEST = 3;
     private static final int WATCHLISTS_MANAGEMENT_REQUEST = 4;
     private DbHelper dbHelper = null;
+    // title is static to survive a user switching off the screen because
+    // Android will only use savedInstanceState when the activity is about
+    // to be recreated
     private static String title;
     private WatchlistListPagerAdapter watchlistListPagerAdapter;
 

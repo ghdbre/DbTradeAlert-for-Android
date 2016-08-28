@@ -44,7 +44,7 @@ import de.dbremes.dbtradealert.DbAccess.WatchlistContract;
 public class WatchlistListActivity extends AppCompatActivity
         implements WatchlistFragment.OnListFragmentInteractionListener {
     private static final String CLASS_NAME = "WatchlistListActivity";
-    private static final String TITLE = "Title";
+    private static final String TITLE_INSTANCE_STATE = "Title";
     private static final int REMINDERS_MANAGEMENT_REQUEST = 1;
     private static final int SECURITIES_MANAGEMENT_REQUEST = 2;
     private static final int SECURITY_EDIT_REQUEST = 3;
@@ -215,7 +215,7 @@ public class WatchlistListActivity extends AppCompatActivity
 
         // Set app title as it may have an added timestamp indicating the last refresh
         if (savedInstanceState != null) {
-            title = savedInstanceState.getString(TITLE);
+            title = savedInstanceState.getString(TITLE_INSTANCE_STATE);
         }
         if (TextUtils.isEmpty(title) == false) {
             setTitle(title);
@@ -363,7 +363,7 @@ public class WatchlistListActivity extends AppCompatActivity
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putString(TITLE, title);
+        savedInstanceState.putString(TITLE_INSTANCE_STATE, title);
 
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);

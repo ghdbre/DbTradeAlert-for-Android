@@ -284,6 +284,11 @@ public class WatchlistListActivity extends AppCompatActivity
         PlayStoreHelper.reportAction(
                 getApplicationContext(), item.getTitle().toString(), id);
         switch (id) {
+            case R.id.action_about: {
+                intent = new Intent(this, AboutActivity.class);
+                startActivity(intent);
+                return true;
+            }
             case R.id.action_export_database: {
                 boolean isExport = true;
                 copyDatabase(isExport);

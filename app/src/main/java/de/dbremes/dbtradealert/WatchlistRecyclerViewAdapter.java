@@ -51,6 +51,8 @@ public class WatchlistRecyclerViewAdapter
                 result = true;
             }
         } catch (ParseException x) {
+            PlayStoreHelper.logAsDebugMessage(x);
+        } catch (NullPointerException x) {
             // Assume null for missing time stamp
             PlayStoreHelper.logAsDebugMessage(x);
         }

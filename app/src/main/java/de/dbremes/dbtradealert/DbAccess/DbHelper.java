@@ -535,7 +535,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String lastTradeDateTimeString = null;
         Date lastTradeDate = null; // d1
         Date lastTradeTime = null; // t1
-        if (lastTradeDateString.compareTo("N/A") != 0) {
+        if ("N/A".equals(lastTradeDateString) == false) {
             // Step 1: calculate lastTradeDate
             // It seems timezone matches the app's timezone so no conversion needed
             // lastTradeDateString is formatted as US date, e.g. 5/26/2016
@@ -546,16 +546,18 @@ public class DbHelper extends SQLiteOpenHelper {
                 PlayStoreHelper.logAsDebugMessage(e);
             }
             // Step 2: calculate lastTradeTime
-            // SimpleDateFormat can't handle missing space between time and am / pm
-            lastTradeTimeString = lastTradeTimeString.replace("am", " am").replace("pm", " pm");
-            // lastTradeDate is in 12 hour format, e.g. 1:50pm
-            // Need to specify Locale.US to avoid ParseException on am / pm part when that isn't
-            // used in the default locale
-            SimpleDateFormat lastTradeTimeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
-            try {
-                lastTradeTime = lastTradeTimeFormat.parse(lastTradeTimeString);
-            } catch (ParseException e) {
-                PlayStoreHelper.logAsDebugMessage(e);
+            if ("N/A".equals(lastTradeTimeString) == false) {
+                // SimpleDateFormat can't handle missing space between time and am / pm
+                lastTradeTimeString = lastTradeTimeString.replace("am", " am").replace("pm", " pm");
+                // lastTradeDate is in 12 hour format, e.g. 1:50pm
+                // Need to specify Locale.US to avoid ParseException on am / pm part when that isn't
+                // used in the default locale
+                SimpleDateFormat lastTradeTimeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
+                try {
+                    lastTradeTime = lastTradeTimeFormat.parse(lastTradeTimeString);
+                } catch (ParseException e) {
+                    PlayStoreHelper.logAsDebugMessage(e);
+                }
             }
         }
         // Step 3: combine lastTradeDate and lastTradeTime
@@ -582,7 +584,7 @@ public class DbHelper extends SQLiteOpenHelper {
         try {
             result = Float.parseFloat(s);
         } catch (NumberFormatException x) {
-            // Probably empty string or "n/a" - return Float.NaN;
+            // Probably empty string or "N/A" - return Float.NaN;
             if ("N/A".equals(s) == false) {
                 PlayStoreHelper.logAsDebugMessage(x);
             }
@@ -595,8 +597,10 @@ public class DbHelper extends SQLiteOpenHelper {
         try {
             result = Integer.parseInt(s);
         } catch (NumberFormatException x) {
-            // Probably empty string or "n/a" - return null;
-            PlayStoreHelper.logAsDebugMessage(x);
+            // Probably empty string or "N/A" - return null;
+            if ("N/A".equals(s) == false) {
+                PlayStoreHelper.logAsDebugMessage(x);
+            }
         }
         return result;
     } // getIntegerFromString()
@@ -1157,36 +1161,41 @@ public class DbHelper extends SQLiteOpenHelper {
                 String symbol = values[12]; // s
                 Integer volume = getIntegerFromString(values[14]); // v
                 String stockExchangeName = values[15]; // x
-                long securityId = getSecurityIdFromSymbol(db, symbol);
-                // Store values (ordered alphabetically)
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(Quote.ASK, ask);
-                contentValues.put(Quote.AVERAGE_DAILY_VOLUME, averageDailyVolume);
-                contentValues.put(Quote.BID, bid);
-                contentValues.put(Quote.CURRENCY, currency);
-                contentValues.put(Quote.DAYS_HIGH, daysHigh);
-                contentValues.put(Quote.DAYS_LOW, daysLow);
-                contentValues.put(Quote.LAST_PRICE, lastTrade);
-                contentValues.put(Quote.LAST_PRICE_DATE_TIME, lastTradeDateTime);
-                contentValues.put(Quote.NAME, name);
-                contentValues.put(Quote.OPEN, open);
-                contentValues.put(Quote.PERCENT_CHANGE, percentChange);
-                contentValues.put(Quote.STOCK_EXCHANGE_NAME, stockExchangeName);
-                contentValues.put(Quote.PREVIOUS_CLOSE, previousClose);
-                contentValues.put(Quote.SECURITY_ID, securityId);
-                contentValues.put(Quote.SYMBOL, symbol);
-                contentValues.put(Quote.VOLUME, volume);
-                // Just try an Update as this will only fail for a newly added security
-                int updateResult = db.update(Quote.TABLE,
-                        contentValues, Quote.SECURITY_ID + " = ?",
-                        new String[]{String.valueOf(securityId)});
-                Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
-                        methodName, Quote.TABLE, updateResult));
-                if (updateResult == 0) {
-                    Long insertResult = db.insert(Quote.TABLE,
-                            null, contentValues);
-                    Log.v(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
-                            methodName, Quote.TABLE, insertResult));
+                if (Float.isNaN(lastTrade) == false) {
+                    long securityId = getSecurityIdFromSymbol(db, symbol);
+                    // Store values (ordered alphabetically)
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(Quote.ASK, ask);
+                    contentValues.put(Quote.AVERAGE_DAILY_VOLUME, averageDailyVolume);
+                    contentValues.put(Quote.BID, bid);
+                    contentValues.put(Quote.CURRENCY, currency);
+                    contentValues.put(Quote.DAYS_HIGH, daysHigh);
+                    contentValues.put(Quote.DAYS_LOW, daysLow);
+                    contentValues.put(Quote.LAST_PRICE, lastTrade);
+                    contentValues.put(Quote.LAST_PRICE_DATE_TIME, lastTradeDateTime);
+                    contentValues.put(Quote.NAME, name);
+                    contentValues.put(Quote.OPEN, open);
+                    contentValues.put(Quote.PERCENT_CHANGE, percentChange);
+                    contentValues.put(Quote.STOCK_EXCHANGE_NAME, stockExchangeName);
+                    contentValues.put(Quote.PREVIOUS_CLOSE, previousClose);
+                    contentValues.put(Quote.SECURITY_ID, securityId);
+                    contentValues.put(Quote.SYMBOL, symbol);
+                    contentValues.put(Quote.VOLUME, volume);
+                    // Just try an Update as this will only fail for a newly added security
+                    int updateResult = db.update(Quote.TABLE,
+                            contentValues, Quote.SECURITY_ID + " = ?",
+                            new String[]{String.valueOf(securityId)});
+                    Log.v(CLASS_NAME, String.format(UPDATE_RESULT_FORMAT,
+                            methodName, Quote.TABLE, updateResult));
+                    if (updateResult == 0) {
+                        Long insertResult = db.insert(Quote.TABLE,
+                                null, contentValues);
+                        Log.v(CLASS_NAME, String.format(INSERT_RESULT_FORMAT,
+                                methodName, Quote.TABLE, insertResult));
+                    }
+                } else {
+                    PlayStoreHelper.logAsDebugMessage(CLASS_NAME,
+                            String.format("%s(): Invalid symbol '%s'", methodName, symbol));
                 }
             }
             db.setTransactionSuccessful();
@@ -1450,4 +1459,4 @@ public class DbHelper extends SQLiteOpenHelper {
             return minPercent;
         }
     } // class Extremes
-}
+} // class DbHelper

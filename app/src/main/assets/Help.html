@@ -16,8 +16,13 @@
 <ol>
     <li>In the main screen's overflow menu tap Manage Securities</li>
     <li>In the Manage Securities screen tap New</li>
-    <li>In the Edit Security screen type in the security's symbol. As the quotes are delivered by Yahoo you need to specify a symbol that Yahoo supports. The easiest way to find a symbol is to open http://finance.yahoo.com/ and use the Quote lookup field.<br />
-        Additionally you can specify data like a base price as well as a lower, upper, or trailing target. Then add the security to one or more watchlists which you create similar to adding securities.</li>
+    <li>In the Edit Security screen:
+        <ol type="a">
+            <li>Type in the security's symbol. As the quotes are delivered by Yahoo you need to specify a symbol that Yahoo supports. The easiest way to find a symbol is to open http://finance.yahoo.com/ and use the Quote lookup field.</li>
+			<li>Additionally you can specify data like a base price as well as a lower, upper, or trailing target.</li>
+            <li>Then add the security to one or more watchlists which you create similar to adding securities.</li>
+        </ol>
+    </li>
 </ol>
 <p>Tap OK in the Edit Security screen and close the Manage Securities screen to go back to the main screen. Then tap the Refresh button in the top right corner to update the reports. If any of the specified targets are hit you will also get a trade alert.</p>
 <p>You can also tell DbTradeAlert to remind you of a specific date. For this go to the Edit Reminder screen like described above for securities and type in the reminder's date, heading and optionally a note. Also activate the reminder and finally tap OK.</p>
@@ -32,7 +37,7 @@
     <li>Make shure DbTradeAlert doesn't write to the database &#8212; check the last update's timestamp or halt the automatic quote updates temporarily in settings</li>
     <li>In DbTradeAlert's menu select Copy Database | Export Database &#8212; a Toast shows how many bytes were copied and to which directory</li>
     <li>With your computer's Explorer navigate to the phone's Internal Storage\Android\data\de.dbremes.dbtradealert\files folder</li>
-    <li>Copy dbtradealert.db to a folder on your computer &#8212; the database is readonly at it's current location</li>
+    <li>Copy dbtradealert.db to a folder on your computer &#8212; the database is readonly at its current location</li>
 </ol>
 <p>To copy the database back to your device:</p>
 <ol>
@@ -48,7 +53,8 @@
 
 <h2><a name="Screens"></a>Screens</h2>
 <h3>Edit Reminder Screen</h3>
-<p>You use the Edit Reminder screen to add or change reminders. At the specified date the specified heading is shown if the reminder is active.</p>
+<p>You use the Edit Reminder screen to add or change reminders. The heading will show in trade alerts while the notes are not used by DbTradeAlert. Due date and Is active are used to determine when to show a trade alert.</p>
+
 <p>To access the Edit Reminder screen:</p>
 <ol>
     <li>In the app's overflow menu select Manage Reminders</li>
@@ -62,9 +68,9 @@
 <ul>
     <li>base price: will show in the report's chart</li>
     <li>base price date: doesn't show up in DbTradeAlert anywhere else</li>
-    <li>maximum price: will show in the report's chart</li>
+    <li>maximum price: doesn't show up in DbTradeAlert directly but is used to calculate trailing targets and the percentage of maximum price shown in the report's chart</li>
     <li>maximum price date: doesn't show up in DbTradeAlert anywhere else</li>
-    <li>targets: when triggered they show up in the report and you get a trade alert
+    <li>targets: when triggered they show up in the security's reports and you get a trade alert
         <ul>
             <li>lower target</li>
             <li>upper target</li>
@@ -73,7 +79,7 @@
     </li>
 </ul>
 <p>To remove the base or maximum prices, their dates, or a target clear the respective field.</p>
-<p>You will also want to add the security to a watchlist.</p>
+<p>You will also want to add the security to a watchlist. Note that if you entered an invalid symbol the security will be ignored and not show up in any watchlists.</p>
 <p>The security's name and currency symbol come with the quotes so you don't need to provide them.</p>
 <p>To access the Edit Security screen:</p>
 <ol>
@@ -111,9 +117,9 @@
 <p>Gaps in the settings for business days and hours have no effect. DbTradeAlert uses the first and last day / hour of the setting to decide whether it should auto refresh.</p>
 <p>To access the Settings screen select Settings in the app's overflow menu.</p>
 
-<h3>Trade Alert Window</h3>
-<p>The trade alerts window contains a line for each triggered signal and each due reminder. Tapping the window will take you to the main screen.</p>
-<p>Example for a trade alert based on a target: &#8220;NOVN.VX: low = 79.55; T = 92.07&#8221; means that Novartis named shares have a trailing target coresponding to 92.07 (CHF) which is hit because the day's low was at 79.55 (CHF). The trade alert window will have one line like this for each signal.</p>
+<h3>Trade Alerts Window</h3>
+<p>The trade alerts window contains a line for each trade alert and each due reminder. Tapping the window will take you to the main screen.</p>
+<p>Example for a trade alert based on a target: &#8220;NOVN.VX: low = 79.55; T = 92.07&#8221; means that Novartis named shares have a trailing target coresponding to 92.07 (CHF) which is hit because the day's low was at 79.55 (CHF). The trade alerts window will have one line like this for each trade alert.</p>
 <p>Each due reminder will show its heading as a line. And if the window shows one or more reminder-related trade alerts it will also have a Reminders button. Tapping that button will take you to the Manage Reminders screen.</p>
 
 <h3>Watchlist Screen</h3>
@@ -124,13 +130,13 @@
 
 <h2><a name="Glossary"></a>Glossary</h2>
 <h3>Base price</h3>
-<p>The base price is a price you want to remember like the price you paid for a security. You can edit it in the Edit Security screen. DbTradeAlert shows this price in a watchlist's reports.</p>
+<p>The base price is a price you want to remember like the price you paid for a security. You can edit it in the Edit Security screen. Reports show this price marked with "B".</p>
 
 <h3>Base price date</h3>
 <p>The base price date is a date you want to remember like the date you bought a security. You can edit it in the Edit Security screen. This date is for your information only and not used by DbTradeAlert.</p>
 
 <h3>Maximum price</h3>
-<p>When you add a security DbTradeAlert will automatically start recording the highest price. Only if you want to use a historical price that was reached before you added the security you need to specify it in the Edit Security screen. DbTradeAlert shows this price in a watchlist's reports.</p>
+<p>When you add a security DbTradeAlert will automatically start recording the highest price. Only if you want to use a historical price that was reached before you added the security you need to specify it in the Edit Security screen. Doesn't show up in DbTradeAlert directly but is used to calculate trailing targets and the percentage of maximum price shown in the report's chart.</p>
 
 <h3>Maximum price date</h3>
 <p>The maximum price date is the date on which the security's maximum price was reached. Like the maximum price its date is updated automatically. This date is for your information only and not used by DbTradeAlert.</p>
@@ -140,36 +146,36 @@
 
 <h3>Quote</h3>
 <p>A quote is information about a security that DbTradeAlert aquires online every hour or upon manual request. DbTradeAlert shows this information in its main screen for each security in a watchlist. Quote data is updated even when a security is in no watchlist.<br />
-    Note that quotes will occasionally have missing or incorrectly formatted values which DbTradeAlert will ignore. If the value for last trade (current price) is missing or incorrectly formatted the whole quote will be ignored.</p>
+    Note that quotes will occasionally have missing or incorrectly formatted values which DbTradeAlert will ignore. If the value for last trade (current price) is missing or incorrectly formatted the whole quote will be ignored. Quotes for invalid symbols will also be ignored.</p>
 
 <h3>Refresh</h3>
 <p>Refresh means to download quotes, evaluate targets and reminders, and update reports and trade alerts. By default DbTradeAlert does that once an hour but you can tap the main screen's Refresh button at any time. Auto refresh is limited to exchange's opening hours to save battery and network usage. The default values for those opening hours are monday to friday from 9 am to 7 pm. You can change the opening hours and whether DbTradeAlert auto refreshes at all in its Settings screen. Consider auto refresh's delay of up to 1 hour and timezone differences when you set opening hours.</p>
 
 <h3>Reminder</h3>
 <p>You create a reminder for a date you want to act on. That could be a bond's maturity date or a date where the issuer can call the bond. But you don't directly connect a reminder to a security.</p>
-<p>When the date is reached and the reminder is active its heading will show in a trade alert like those for signals.</p>
+<p>If the reminder is active its heading is shown in a trade alert starting at the specified date. So make shure the heading only contains information bystaders may see.</p>
 
 <h3>Report</h3>
 <p>Watchlists show a report for each security added to them. A report's upper part shows these values (from left to right and top to bottom):</p>
 <ul>
     <li>Name</li>
-    <li>Signals triggered:
+    <li>Trade alerts:
         <ul>
             <li>L: lower target hit</li>
             <li>T: trailing target hit</li>
             <li>U: upper target hit<br />
-                Targets are evaluated in the order shown above and only the last of the resulting signals will show.<br />
-                If a trailing target is specified the signals field will always show an underscore.</li>
+                Targets are evaluated in the order shown above and only the last of the resulting trade alerts will show.<br />
+                If a trailing target is specified the trade alerts field will always show an underscore.</li>
         </ul>
     </li>
     <li>Percent changed from last day's closing to current price</li>
     <li>Symbol</li>
-    <li>Last trade (current price)</li>
+    <li>Last trade (current price) including currency</li>
     <li>Timestamp of last trade</li>
-    <li>Percentage changed from maximum price</li>
-    <li>Percentage of average volume traded today</li>
+    <li>Percentage changed from maximum price (MH)</li>
+    <li>Percentage of average volume traded today (V)</li>
 </ul>
-<p>If a quote is older than 24 hours its timestamp and signals will have a sepia background color. Missing values will be shown as hyphens.</p>
+<p>If a quote is older than 24 hours its timestamp and trade alerts fileds will have a sepia background color. Missing values will be shown as hyphens.</p>
 <p>A report's lower part provides two charts:</p>
 <ul>
     <li>The upper chart shows a line visualizing the security's quote data (open, ask and bid, current price, day's high and low, previous close)
@@ -193,22 +199,19 @@
 <h3>Security</h3>
 <p>A security can be any financial instrument like stocks, bonds, currency pairs, funds or indexes. It's identified by a security symbol and edited in the Edit Security screen. To add a new security use the Manage Securities screen.</p>
 
-<h3>Signal</h3>
-<p>When a target is hit it triggers a signal which shows up in the security's report. You'll also get a trade alert which will contain a line for each signal.</p>
-
 <h3>Symbol</h3>
-<p>A symbol identifies not only the security but also the exchange &#8212; for example NESN.VX means Nestle AG registered shares at SIX Swiss Exchange. Symbols have to be unique in DbTradeAlert. As the quotes are delivered by Yahoo the symbol needs to be supported by Yahoo.</p>
+<p>A symbol identifies not only the security but also the exchange &#8212; for example NESN.VX means Nestle AG registered shares at SIX Swiss Exchange. Symbols have to be unique in DbTradeAlert. As the quotes are delivered by Yahoo the symbol needs to be supported by Yahoo. If you enter an invalid symbol it will be ignored and its reports will not show in any watchlist.</p>
 
 <h3>Target</h3>
-<p>A target is a condition you want to act upon. When a target is reached it triggers a signal. Reminding you of those is DbTradeAlerts main purpose. While your bank or broker provide stop loss orders and the like you probably won't want to use them for low-volume securities especially if they trigger market orders.</p>
-<p>Targets and resulting signals are shown in each report of a watchlist. If one or more signals are triggered you'll also receive a trade alert.</p>
+<p>A target is a condition you want to act upon. When a target is reached it triggers a trade alert. Reminding you of those is DbTradeAlerts main purpose. While your bank or broker provide stop loss orders and the like you probably won't want to use them for low-volume securities especially if they trigger market orders.</p>
+<p>Targets and resulting trade alerts are shown in each report of a watchlist. If one or more targets are hit you'll also receive a notification.</p>
 <p>You specify targets in the Edit Security screen.</p>
 
 <h3>Trade Alert</h3>
-<p>A trade alert is the thing that gave DbTradeAlert its name. If a target is hit or a reminder is due you'll receive a trade alert. Trade alerts use an Android feature called notification that consists of a small window showing messages. It is usually accompanied by a sound and optionally vibration. DbTradeAlert issues trade alerts for all its signals and due reminders directly after a manual or scheduled refresh.</p>
+<p>A trade alert is the thing that gave DbTradeAlert its name. If a target is hit or a reminder is due you'll receive a trade alert. Trade alerts use an Android feature called notification that consists of a small window showing messages. It is usually accompanied by a sound and optionally vibration. DbTradeAlert issues trade alerts for all its hit targets and due reminders directly after a manual or scheduled refresh.</p>
 
 <h3>Trailing Target</h3>
-<p>A trailing target a.k.a. trailing stop or trailing stop loss trails the security's maximum price. For example if you specify a trailing target of 10 % in the Edit Security screen and the security's maximum price is 100 EUR the signal will be triggered when the security's price drops to 90 EUR or below. But if the security's maximum price rises to 110 EUR the trailing target of 10 % will equal 99 EUR. So a trailing target simply avoids having to constantly adjust a lower target.</p>
+<p>A trailing target a.k.a. trailing stop or trailing stop loss trails the security's maximum price. For example if you specify a trailing target of 10 % in the Edit Security screen and the security's maximum price is 100 EUR the trade alert will be triggered when the security's price drops to 90 EUR or below. But if the security's maximum price meanwhile rose to 110 EUR the trailing target of 10 % will equal 99 EUR. So a trailing target simply avoids having to constantly adjust a lower target.</p>
 
 <h3>Watchlist</h3>
 <p>A watchlist is a named list of reports on securities ordered by their names. A security can be in any number of watchlists. It can also be in no watchlist at all for example if you want to keep the notes and targets but don't currently follow the security.</p>
@@ -225,6 +228,7 @@
     <li>Number of reminders, securities, and watchlists</li>
 </ul>
 <p>It does <strong>not</strong> track any data you entered nor does it track your settings.</p>
+<p>The app currently tracks <strong>invalid symbols</strong> to figure out whether assistance is needed to enter them.</p>
 
 <h3>Tracking by Google</h3>
 <p>Google tracks and shares aggregates of this data with its partners which includes app publishers. This topic shows all the data available to app publishers: <a href="https://support.google.com/firebase/answer/7029846?hl=en&ref_topic=7029512">BigQuery Export for Firebase Analytics</a>.</p>

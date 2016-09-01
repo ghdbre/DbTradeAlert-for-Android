@@ -53,6 +53,7 @@ public class SettingsActivity extends AppCompatActivity
         getFragmentManager().executePendingTransactions();
         setBusinessTimesPreferenceSummary(BUSINESS_DAYS_PREFERENCE_KEY);
         setBusinessTimesPreferenceSummary(BUSINESS_HOURS_PREFERENCE_KEY);
+        setTitle("Settings");
     } // onCreate()
 
     @Override

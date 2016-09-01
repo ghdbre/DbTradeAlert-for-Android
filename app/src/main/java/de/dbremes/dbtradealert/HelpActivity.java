@@ -12,5 +12,6 @@ public class HelpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_help);
         WebView webView = (WebView) findViewById(R.id.webView);
         webView.loadUrl("file:///android_asset/Help.html");
+        setTitle("Help");
     } // onCreate()
 } // class HelpActivity

@@ -16,12 +16,12 @@ public class AboutActivity extends AppCompatActivity {
         String applicationId = BuildConfig.APPLICATION_ID;
         int versionCode = BuildConfig.VERSION_CODE;
         String versionName = BuildConfig.VERSION_NAME;
-        setTitle("About " + appName);
         String s = String.format(
                 "appName = %s\napplicationId = %s\nversionCode = %s\nversionName = %s",
                 appName, applicationId, versionCode, versionName);
         TextView editTextView = (TextView) findViewById(R.id.editTextView);
         editTextView.setText(s);
+        setTitle("About");
     } // onCreate()
 
     public void onOkButtonClick(View view) {

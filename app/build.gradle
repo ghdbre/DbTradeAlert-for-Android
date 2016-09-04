@@ -19,7 +19,9 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            // ProGuard is off
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // Keep actual ad unit Id secret by loading it from file outside of Git repo
             Properties props = new Properties()
             props.load(new FileInputStream("$project.rootDir/../../DbTradeAlert/project.properties"))
             buildConfigField "String", "AD_UNIT_ID", "\"${props.getProperty("ad_unit_id")}\""

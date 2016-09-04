@@ -1,3 +1,4 @@
+
 apply plugin: 'com.android.application'
 
 android {
@@ -11,11 +12,17 @@ android {
         versionCode 1
         versionName "1.0"
         archivesBaseName = "${parent.name}-${android.defaultConfig.versionName}"
+        // Ad unit Id for sample ads from
+        // https://firebase.google.com/docs/admob/android/google-services.json
+        buildConfigField "String", "AD_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\""
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            Properties props = new Properties()
+            props.load(new FileInputStream("$project.rootDir/../../DbTradeAlert/project.properties"))
+            buildConfigField "String", "AD_UNIT_ID", "\"${props.getProperty("ad_unit_id")}\""
         }
     }
     productFlavors {

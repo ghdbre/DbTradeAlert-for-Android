@@ -16,6 +16,10 @@ public class PlayStoreHelper {
         // Hide default construcor
     }
 
+    public static void initialize(boolean isDeveloperModeEnabled) {
+        // NOP
+    } // initialize()
+
     public static void logConnectionError(String tag, String message) {
         logError(tag, message);
     } // logConnectionError()

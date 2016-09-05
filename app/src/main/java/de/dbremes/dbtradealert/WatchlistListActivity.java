@@ -33,6 +33,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -229,12 +230,14 @@ public class WatchlistListActivity extends AppCompatActivity
         boolean readAgain = false;
         PreferenceManager.setDefaultValues(this, R.xml.preferences, readAgain);
 
-        // This is needed to provide local default values until RemoteConfigHelper.fetch() has
-        // has returned and to control cache expiration with isDeveloperModeEnabled
+        // This is needed to provide local default values until fetching remote config values
+        // is complete and to control cache expiration with isDeveloperModeEnabled
         boolean isDeveloperModeEnabled = true;
-        RemoteConfigHelper.initialize(isDeveloperModeEnabled && BuildConfig.DEBUG);
+        PlayStoreHelper.initialize(isDeveloperModeEnabled && BuildConfig.DEBUG);
 
-        PlayStoreHelper.logConnectionError(CLASS_NAME, "No worries, just a test");
+        // This will be called before fetching remote config values is complete
+//        PlayStoreHelper.logConnectionError(CLASS_NAME, "No worries, just a test");
+//        PlayStoreHelper.logParsingError(CLASS_NAME, new ParseException("ParseException-test", 0));
 
         this.dbHelper = new DbHelper(this);
 

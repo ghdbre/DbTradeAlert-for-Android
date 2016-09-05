@@ -51,9 +51,11 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:23.3.0'
     playStoreCompile 'com.google.firebase:firebase-core:9.4.0'
     playStoreCompile 'com.google.firebase:firebase-crash:9.4.0'
+    playStoreCompile 'com.google.firebase:firebase-config:9.4.0'
     withAdsCompile 'com.google.firebase:firebase-core:9.4.0'
     withAdsCompile 'com.google.firebase:firebase-ads:9.4.0'
     withAdsCompile 'com.google.firebase:firebase-crash:9.4.0'
+    withAdsCompile 'com.google.firebase:firebase-config:9.4.0'
     compile 'org.jetbrains:annotations-java5:15.0'
 }
 

@@ -229,6 +229,13 @@ public class WatchlistListActivity extends AppCompatActivity
         boolean readAgain = false;
         PreferenceManager.setDefaultValues(this, R.xml.preferences, readAgain);
 
+        // This is needed to provide local default values until RemoteConfigHelper.fetch() has
+        // has returned and to control cache expiration with isDeveloperModeEnabled
+        boolean isDeveloperModeEnabled = true;
+        RemoteConfigHelper.initialize(isDeveloperModeEnabled);
+
+//        PlayStoreHelper.logConnectionError(CLASS_NAME, "No worries, just a test");
+
         this.dbHelper = new DbHelper(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);

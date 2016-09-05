@@ -543,7 +543,7 @@ public class DbHelper extends SQLiteOpenHelper {
             try {
                 lastTradeDate = lastTradeDateFormat.parse(lastTradeDateString);
             } catch (ParseException e) {
-                PlayStoreHelper.logAsDebugMessage(e);
+                PlayStoreHelper.logParsingError(CLASS_NAME, e);
             }
             // Step 2: calculate lastTradeTime
             if ("N/A".equals(lastTradeTimeString) == false) {
@@ -556,7 +556,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 try {
                     lastTradeTime = lastTradeTimeFormat.parse(lastTradeTimeString);
                 } catch (ParseException e) {
-                    PlayStoreHelper.logAsDebugMessage(e);
+                    PlayStoreHelper.logParsingError(CLASS_NAME, e);
                 }
             }
         }
@@ -586,7 +586,7 @@ public class DbHelper extends SQLiteOpenHelper {
         } catch (NumberFormatException x) {
             // Probably empty string or "N/A" - return Float.NaN;
             if ("N/A".equals(s) == false) {
-                PlayStoreHelper.logAsDebugMessage(x);
+                PlayStoreHelper.logParsingError(CLASS_NAME, x);
             }
         }
         return result;
@@ -599,7 +599,7 @@ public class DbHelper extends SQLiteOpenHelper {
         } catch (NumberFormatException x) {
             // Probably empty string or "N/A" - return null;
             if ("N/A".equals(s) == false) {
-                PlayStoreHelper.logAsDebugMessage(x);
+                PlayStoreHelper.logParsingError(CLASS_NAME, x);
             }
         }
         return result;

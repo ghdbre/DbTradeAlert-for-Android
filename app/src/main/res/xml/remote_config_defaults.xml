@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<defaultsMap>
+    <entry>
+        <key>is_connection_error_logging_enabled</key>
+        <value>true</value>
+    </entry>
+    <entry>
+        <key>is_parsing_error_logging_enabled</key>
+        <value>true</value>
+    </entry>
+</defaultsMap>

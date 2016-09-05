@@ -40,6 +40,28 @@ public class PlayStoreHelper {
         FirebaseCrash.logcat(Log.ERROR, tag, message);
     } // logAsError()
 
+    public static void logConnectionError(String tag, String message) {
+        boolean isConnectionErrorLoggingEnabled
+                = RemoteConfigHelper.isConnectionErrorLoggingEnabled();
+        if (isConnectionErrorLoggingEnabled) {
+            logAsDebugMessage(tag, message);
+        } else {
+            Log.e(tag, message);
+        }
+    } // logConnectionError()
+
+
+    public static void logParsingError(String tag, Exception e) {
+        final String EXCEPTION_CAUGHT = "Exception caught";
+        boolean isParsingErrorLoggingEnabled
+                = RemoteConfigHelper.isParsingErrorLoggingEnabled();
+        if (isParsingErrorLoggingEnabled) {
+            logAsDebugMessage(e);
+        } else {
+            Log.e(tag, EXCEPTION_CAUGHT, e);
+        }
+    } // logParsingError()
+
     public static void reportAction(
             @NotNull Context context, @NotNull String actionTitle, int actionId) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);

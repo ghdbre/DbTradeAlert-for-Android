@@ -157,7 +157,7 @@ public class QuoteRefresherService extends IntentService {
                     sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA);
                 } else {
                     sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
-                    PlayStoreHelper.logAsDebugMessage(
+                    PlayStoreHelper.logConnectionError(
                             CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
                 }
             } else {
@@ -173,7 +173,8 @@ public class QuoteRefresherService extends IntentService {
                 // No address associated with hostname
                 sendLocalBroadcast(
                         QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
-                PlayStoreHelper.logAsDebugMessage(e);
+                PlayStoreHelper.logConnectionError(CLASS_NAME,
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
             } else {
                 PlayStoreHelper.reportException(e);
             }

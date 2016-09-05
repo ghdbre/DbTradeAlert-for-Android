@@ -34,6 +34,15 @@ public class PlayStoreHelper {
         Log.e(tag, message);
     } // logAsError()
 
+    public static void logConnectionError(String tag, String message) {
+        logAsError(tag, message);
+    } // logConnectionError()
+
+
+    public static void logParsingError(String tag, Exception e) {
+        reportException(e);
+    } // logParsingError()
+
     public static void reportAction(
             @NotNull Context context, @NotNull String actionTitle, int actionId) {
         // NOP

@@ -61,7 +61,7 @@ public class Utils {
                 Date dateTime = databaseFormat.parse(dateTimeString);
                 result = localFormat.format(dateTime);
             } catch (ParseException e) {
-                PlayStoreHelper.logAsDebugMessage(e);
+                PlayStoreHelper.logParsingError(CLASS_NAME, e);
             }
         }
         return result;

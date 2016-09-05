@@ -232,7 +232,7 @@ public class WatchlistListActivity extends AppCompatActivity
         // This is needed to provide local default values until RemoteConfigHelper.fetch() has
         // has returned and to control cache expiration with isDeveloperModeEnabled
         boolean isDeveloperModeEnabled = true;
-        RemoteConfigHelper.initialize(isDeveloperModeEnabled);
+        RemoteConfigHelper.initialize(isDeveloperModeEnabled && BuildConfig.DEBUG);
 
         PlayStoreHelper.logConnectionError(CLASS_NAME, "No worries, just a test");
 

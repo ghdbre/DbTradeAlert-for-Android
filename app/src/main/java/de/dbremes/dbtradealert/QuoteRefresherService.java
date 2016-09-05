@@ -176,7 +176,7 @@ public class QuoteRefresherService extends IntentService {
                 PlayStoreHelper.logConnectionError(CLASS_NAME,
                         QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
             } else {
-                PlayStoreHelper.reportException(e);
+                PlayStoreHelper.logError(e);
             }
         } finally {
             QuoteRefreshAlarmReceiver.completeWakefulIntent(intent);
@@ -211,7 +211,7 @@ public class QuoteRefresherService extends IntentService {
             } else {
                 sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
                         + "download failed (response code " + responseCode + ")!");
-                PlayStoreHelper.logAsError(CLASS_NAME,
+                PlayStoreHelper.logError(CLASS_NAME,
                         QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
                                 + "download failed (response code " + responseCode + ")!");
             }
@@ -254,7 +254,7 @@ public class QuoteRefresherService extends IntentService {
             symbols = URLEncoder.encode(symbols, "UTF-8");
             result += symbols;
         } catch (UnsupportedEncodingException e) {
-            PlayStoreHelper.reportException(e);
+            PlayStoreHelper.logError(e);
         }
         return result;
     } // getSymbolParameterValue()

@@ -54,7 +54,7 @@ public class WatchlistRecyclerViewAdapter
             PlayStoreHelper.logParsingError(CLASS_NAME, x);
         } catch (NullPointerException x) {
             // Assume null for missing time stamp
-            PlayStoreHelper.logAsDebugMessage(x);
+            PlayStoreHelper.logDebugMessage(x);
         }
         return result;
     } // isLastTradeOlderThanOneDay()

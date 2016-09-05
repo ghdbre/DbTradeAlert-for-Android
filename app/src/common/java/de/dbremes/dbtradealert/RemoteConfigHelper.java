@@ -29,7 +29,7 @@ public class RemoteConfigHelper {
                         if (task.isSuccessful()) {
                             FirebaseRemoteConfig.getInstance().activateFetched();
                         } else {
-                            PlayStoreHelper.reportException(task.getException());
+                            PlayStoreHelper.logError(task.getException());
                         }
                     }
                 });

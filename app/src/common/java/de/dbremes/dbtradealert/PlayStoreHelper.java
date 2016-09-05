@@ -22,11 +22,21 @@ public class PlayStoreHelper {
         // Hide default construcor
     }
 
-    public static void logAsDebugMessage(String tag, String message) {
-        FirebaseCrash.logcat(Log.DEBUG, tag, message);
-    } // logAsDebugMessage()
+    public static void logConnectionError(String tag, String message) {
+        boolean isConnectionErrorLoggingEnabled
+                = RemoteConfigHelper.isConnectionErrorLoggingEnabled();
+        if (isConnectionErrorLoggingEnabled) {
+            logDebugMessage(tag, message);
+        } else {
+            Log.e(tag, message);
+        }
+    } // logConnectionError()
 
-    public static void logAsDebugMessage(Exception e) {
+    public static void logDebugMessage(String tag, String message) {
+        FirebaseCrash.logcat(Log.DEBUG, tag, message);
+    } // logDebugMessage()
+
+    public static void logDebugMessage(Exception e) {
         String message = "";
         String stackTrace = "";
         if (e != null) {
@@ -34,29 +44,22 @@ public class PlayStoreHelper {
             stackTrace = Log.getStackTraceString(e);
             FirebaseCrash.logcat(Log.DEBUG, message, stackTrace);
         }
-    } // logAsDebugMessage()
+    } // logDebugMessage()
 
-    public static void logAsError(String tag, String message) {
+    public static void logError(String tag, String message) {
         FirebaseCrash.logcat(Log.ERROR, tag, message);
-    } // logAsError()
+    } // logError()
 
-    public static void logConnectionError(String tag, String message) {
-        boolean isConnectionErrorLoggingEnabled
-                = RemoteConfigHelper.isConnectionErrorLoggingEnabled();
-        if (isConnectionErrorLoggingEnabled) {
-            logAsDebugMessage(tag, message);
-        } else {
-            Log.e(tag, message);
-        }
-    } // logConnectionError()
-
+    public static void logError(Exception e) {
+        FirebaseCrash.report(e);
+    } // logError()
 
     public static void logParsingError(String tag, Exception e) {
         final String EXCEPTION_CAUGHT = "Exception caught";
         boolean isParsingErrorLoggingEnabled
                 = RemoteConfigHelper.isParsingErrorLoggingEnabled();
         if (isParsingErrorLoggingEnabled) {
-            logAsDebugMessage(e);
+            logDebugMessage(e);
         } else {
             Log.e(tag, EXCEPTION_CAUGHT, e);
         }
@@ -76,10 +79,6 @@ public class PlayStoreHelper {
                     "ITEM_ID", actionId, "CONTENT_TYPE", actionTitle));
         }
     } // reportAction()
-
-    public static void reportException(Exception e) {
-        FirebaseCrash.report(e);
-    } // reportException()
 
     public static void setBooleanUserProperty(
             @NotNull Context context, @NotNull String propertyName, boolean propertyValue) {

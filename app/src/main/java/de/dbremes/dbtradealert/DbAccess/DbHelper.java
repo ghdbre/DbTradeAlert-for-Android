@@ -1060,7 +1060,7 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         if (cursor.getCount() != 1) {
-            PlayStoreHelper.logAsError(CLASS_NAME, String.format(
+            PlayStoreHelper.logError(CLASS_NAME, String.format(
                     "%s(): found %d reminders with id = %d; expected 1!", methodName,
                     cursor.getCount(), reminderId));
         }
@@ -1088,7 +1088,7 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.rawQuery(selection, selectionArgs);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         if (cursor.getCount() != 1) {
-            PlayStoreHelper.logAsError(CLASS_NAME, String.format(
+            PlayStoreHelper.logError(CLASS_NAME, String.format(
                     "%s(): found %d securities with id = %d; expected 1!", methodName,
                     cursor.getCount(), securityId));
         }
@@ -1112,7 +1112,7 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
         Log.v(CLASS_NAME, String.format(CURSOR_COUNT_FORMAT, methodName, cursor.getCount()));
         if (cursor.getCount() != 1) {
-            PlayStoreHelper.logAsError(CLASS_NAME, String.format(
+            PlayStoreHelper.logError(CLASS_NAME, String.format(
                     "%s(): found %d watchlists with id = %d; expected 1!", methodName,
                     cursor.getCount(), watchlistId));
         }
@@ -1194,7 +1194,7 @@ public class DbHelper extends SQLiteOpenHelper {
                                 methodName, Quote.TABLE, insertResult));
                     }
                 } else {
-                    PlayStoreHelper.logAsDebugMessage(CLASS_NAME,
+                    PlayStoreHelper.logDebugMessage(CLASS_NAME,
                             String.format("%s(): Invalid symbol '%s'", methodName, symbol));
                 }
             }

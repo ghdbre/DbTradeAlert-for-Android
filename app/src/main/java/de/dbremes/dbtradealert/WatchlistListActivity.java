@@ -76,7 +76,7 @@ public class WatchlistListActivity extends AppCompatActivity
             } else if (message.startsWith(
                     QuoteRefresherService.QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA)) {
                 Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
-                PlayStoreHelper.logAsError("BroadcastReceiver",
+                PlayStoreHelper.logError("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver error = '" + message + "'");
             }
         }
@@ -109,7 +109,7 @@ public class WatchlistListActivity extends AppCompatActivity
                 }
             }
         } catch (IOException e) {
-            PlayStoreHelper.reportException(e);
+            PlayStoreHelper.logError(e);
             Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
         }
         return bytesTransferred;
@@ -203,7 +203,7 @@ public class WatchlistListActivity extends AppCompatActivity
                 }
                 break;
             default:
-                PlayStoreHelper.logAsError(
+                PlayStoreHelper.logError(
                         CLASS_NAME, String.format("%s(): unexpected requestCode = %d",
                         methodName, requestCode));
                 break;
@@ -234,7 +234,7 @@ public class WatchlistListActivity extends AppCompatActivity
         boolean isDeveloperModeEnabled = true;
         RemoteConfigHelper.initialize(isDeveloperModeEnabled);
 
-//        PlayStoreHelper.logConnectionError(CLASS_NAME, "No worries, just a test");
+        PlayStoreHelper.logConnectionError(CLASS_NAME, "No worries, just a test");
 
         this.dbHelper = new DbHelper(this);
 

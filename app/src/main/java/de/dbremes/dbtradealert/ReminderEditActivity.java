@@ -109,7 +109,7 @@ public class ReminderEditActivity extends AppCompatActivity {
             Utils.setTextFromStringColumn(this, reminderCursor,
                     ReminderContract.Reminder.NOTES, R.id.notesEditText);
         } else {
-            PlayStoreHelper.logAsError(CLASS_NAME,
+            PlayStoreHelper.logError(CLASS_NAME,
                     String.format(
                             "%s: readReminder() found %d reminders with id = %d; expected 1!",
                             methodName, reminderCursor.getCount(), reminderId));

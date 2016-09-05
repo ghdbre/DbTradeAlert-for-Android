@@ -57,7 +57,7 @@ public class SecurityEditActivity extends AppCompatActivity {
             try {
                 result = Float.valueOf(text);
             } catch (NumberFormatException e) {
-                PlayStoreHelper.logAsDebugMessage(e);
+                PlayStoreHelper.logDebugMessage(e);
                 Toast.makeText(
                         this, "Error: '" + text + "' is not a valid number", Toast.LENGTH_SHORT)
                         .show();
@@ -190,7 +190,7 @@ public class SecurityEditActivity extends AppCompatActivity {
             setTextFromFloatColumn(securityCursor,
                     SecurityContract.Security.UPPER_TARGET, R.id.upperTargetEditText);
         } else {
-            PlayStoreHelper.logAsError(CLASS_NAME,
+            PlayStoreHelper.logError(CLASS_NAME,
                     String.format(
                             "%s: readSecurity() found %d securities with id = %d; expected 1!",
                             methodName, securityCursor.getCount(), securityId));

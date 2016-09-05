@@ -16,11 +16,15 @@ public class PlayStoreHelper {
         // Hide default construcor
     }
 
-    public static void logAsDebugMessage(String tag, String message) {
-        Log.d(tag, message);
-    } // logAsDebugMessage()
+    public static void logConnectionError(String tag, String message) {
+        logError(tag, message);
+    } // logConnectionError()
 
-    public static void logAsDebugMessage(Exception e) {
+    public static void logDebugMessage(String tag, String message) {
+        Log.d(tag, message);
+    } // logDebugMessage()
+
+    public static void logDebugMessage(Exception e) {
         String message = "";
         String stackTrace = "";
         if (e != null) {
@@ -28,29 +32,24 @@ public class PlayStoreHelper {
             stackTrace = Log.getStackTraceString(e);
             Log.d(message, stackTrace);
         }
-    } // logAsDebugMessage()
+    } // logDebugMessage()
 
-    public static void logAsError(String tag, String message) {
+    public static void logError(String tag, String message) {
         Log.e(tag, message);
-    } // logAsError()
+    } // logError()
 
-    public static void logConnectionError(String tag, String message) {
-        logAsError(tag, message);
-    } // logConnectionError()
-
+    public static void logError(Exception e) {
+        Log.e(CLASS_NAME, "Exception caught", e);
+    } // logError()
 
     public static void logParsingError(String tag, Exception e) {
-        reportException(e);
+        logError(e);
     } // logParsingError()
 
     public static void reportAction(
             @NotNull Context context, @NotNull String actionTitle, int actionId) {
         // NOP
     } // reportAction()
-
-    public static void reportException(Exception e) {
-        Log.e(CLASS_NAME, "Exception caught", e);
-    } // reportException()
 
     public static void setBooleanUserProperty(
             @NotNull Context context, @NotNull String propertyName, boolean propertyValue) {

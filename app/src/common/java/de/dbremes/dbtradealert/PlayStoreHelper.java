@@ -42,6 +42,8 @@ public class PlayStoreHelper {
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
                             FirebaseRemoteConfig.getInstance().activateFetched();
+                            Log.v(CLASS_NAME,
+                                    "fetchRemoteConfigValues(): Firebase Remote Config values have been fetched");
                         } else {
                             PlayStoreHelper.logError(task.getException());
                         }
@@ -75,13 +77,14 @@ public class PlayStoreHelper {
 
     public static void logConnectionError(String tag, String message) {
         if (isConnectionErrorLoggingEnabled()) {
-            logDebugMessage(tag, message);
+            logError(tag, message);
         } else {
             Log.e(tag, message);
         }
     } // logConnectionError()
 
     public static void logDebugMessage(String tag, String message) {
+        FirebaseCrash.log(message);
         FirebaseCrash.logcat(Log.DEBUG, tag, message);
     } // logDebugMessage()
 
@@ -96,6 +99,7 @@ public class PlayStoreHelper {
     } // logDebugMessage()
 
     public static void logError(String tag, String message) {
+        FirebaseCrash.log(message);
         FirebaseCrash.logcat(Log.ERROR, tag, message);
     } // logError()
 
@@ -106,7 +110,7 @@ public class PlayStoreHelper {
     public static void logParsingError(String tag, Exception e) {
         final String EXCEPTION_CAUGHT = "Exception caught";
         if (isParsingErrorLoggingEnabled()) {
-            logDebugMessage(e);
+            logError(e);
         } else {
             Log.e(tag, EXCEPTION_CAUGHT, e);
         }

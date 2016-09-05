@@ -206,7 +206,7 @@ public class WatchlistListActivity extends AppCompatActivity
             default:
                 PlayStoreHelper.logError(
                         CLASS_NAME, String.format("%s(): unexpected requestCode = %d",
-                        methodName, requestCode));
+                                methodName, requestCode));
                 break;
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -230,12 +230,13 @@ public class WatchlistListActivity extends AppCompatActivity
         boolean readAgain = false;
         PreferenceManager.setDefaultValues(this, R.xml.preferences, readAgain);
 
-        // This is needed to provide local default values until fetching remote config values
-        // is complete and to control cache expiration with isDeveloperModeEnabled
+        // This is needed to provide local default values until remote config values have
+        // been fetched and to control cache expiration with isDeveloperModeEnabled
         boolean isDeveloperModeEnabled = true;
         PlayStoreHelper.initialize(isDeveloperModeEnabled && BuildConfig.DEBUG);
 
-        // This will be called before fetching remote config values is complete
+        // This will be called before fetching remote config values have been fetched
+        Log.v(CLASS_NAME, "onCreate(): Logging errors for Firebase Remote Config test");
 //        PlayStoreHelper.logConnectionError(CLASS_NAME, "No worries, just a test");
 //        PlayStoreHelper.logParsingError(CLASS_NAME, new ParseException("ParseException-test", 0));
 

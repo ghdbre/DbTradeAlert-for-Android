@@ -12,9 +12,14 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigInfo;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigValue;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class PlayStoreHelper {
     private static final String CLASS_NAME = "PlayStoreHelper";
@@ -67,20 +72,15 @@ public class PlayStoreHelper {
         fetchRemoteConfigValues(firebaseRemoteConfig);
     } // initialize()
 
-    private static boolean isConnectionErrorLoggingEnabled() {
-        return FirebaseRemoteConfig.getInstance().getBoolean("is_connection_error_logging_enabled");
-    } // isConnectionErrorLoggingEnabled()
-
-    private static boolean isParsingErrorLoggingEnabled() {
-        return FirebaseRemoteConfig.getInstance().getBoolean("is_parsing_error_logging_enabled");
-    } // isParsingErrorLoggingEnabled()
-
     public static void logConnectionError(String tag, String message) {
-        if (isConnectionErrorLoggingEnabled()) {
+        boolean isConnectionErrorLoggingEnabled = FirebaseRemoteConfig.getInstance()
+                .getBoolean("is_connection_error_logging_enabled");
+        if (isConnectionErrorLoggingEnabled) {
             logError(tag, message);
         } else {
             Log.e(tag, message);
         }
+//        logFirebaseRemoteConfig();
     } // logConnectionError()
 
     public static void logDebugMessage(String tag, String message) {
@@ -107,13 +107,74 @@ public class PlayStoreHelper {
         FirebaseCrash.report(e);
     } // logError()
 
+    private static void logFirebaseRemoteConfig() {
+        final String methodName = "logFirebaseRemoteConfig";
+        FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
+        FirebaseRemoteConfigInfo remoteConfigInfo = remoteConfig.getInfo();
+        FirebaseRemoteConfigSettings frcs = remoteConfigInfo.getConfigSettings();
+        // isDeveloperModeEnabled
+        boolean isDeveloperModeEnabled = frcs.isDeveloperModeEnabled();
+        Log.v(CLASS_NAME, String.format(
+                "%s(): isDeveloperModeEnabled = %b", methodName, isDeveloperModeEnabled));
+        // fetchTimeMillis - timestamp in milliseconds of last successful fetch
+        long fetchTimeMillis = remoteConfigInfo.getFetchTimeMillis();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String fetchTimestamp = sdf.format(new Date(fetchTimeMillis));
+        Log.v(CLASS_NAME, String.format(
+                "%s(): fetchTimeMillis = %d (%s)", methodName, fetchTimeMillis, fetchTimestamp));
+        // lastFetchStatus
+        int lastFetchStatus = remoteConfigInfo.getLastFetchStatus();
+        String lastFetchStatusString = "?";
+        switch (lastFetchStatus) {
+            case FirebaseRemoteConfig.LAST_FETCH_STATUS_FAILURE:
+                lastFetchStatusString = "LAST_FETCH_STATUS_FAILURE";
+                break;
+            case FirebaseRemoteConfig.LAST_FETCH_STATUS_NO_FETCH_YET:
+                lastFetchStatusString = "LAST_FETCH_STATUS_NO_FETCH_YET";
+                break;
+            case FirebaseRemoteConfig.LAST_FETCH_STATUS_SUCCESS:
+                lastFetchStatusString = "LAST_FETCH_STATUS_SUCCESS";
+                break;
+            case FirebaseRemoteConfig.LAST_FETCH_STATUS_THROTTLED:
+                lastFetchStatusString = "LAST_FETCH_STATUS_THROTTLED";
+                break;
+        }
+        Log.v(CLASS_NAME, String.format(
+                "%s(): lastFetchStatus = %d (%s)",
+                methodName, lastFetchStatus, lastFetchStatusString));
+        // valueSource
+        FirebaseRemoteConfigValue v = remoteConfig.getValue("is_parsing_error_logging_enabled");
+        int valueSource = v.getSource();
+        String valueSourceString = "?";
+        switch (valueSource) {
+            case FirebaseRemoteConfig.VALUE_SOURCE_DEFAULT:
+                valueSourceString = "VALUE_SOURCE_DEFAULT";
+                break;
+            case FirebaseRemoteConfig.VALUE_SOURCE_REMOTE:
+                valueSourceString = "VALUE_SOURCE_REMOTE";
+                break;
+            case FirebaseRemoteConfig.VALUE_SOURCE_STATIC:
+                valueSourceString = "VALUE_SOURCE_STATIC";
+                break;
+        }
+        Log.v(CLASS_NAME, String.format(
+                "%s(): valueSource for is_parsing_error_logging_enabled = %d (%s)",
+                methodName, valueSource, valueSourceString));
+        Log.v(CLASS_NAME, String.format(
+                "%s(): value for is_parsing_error_logging_enabled = %b",
+                methodName, v.asBoolean()));
+    } // logFirebaseRemoteConfig()
+
     public static void logParsingError(String tag, Exception e) {
         final String EXCEPTION_CAUGHT = "Exception caught";
-        if (isParsingErrorLoggingEnabled()) {
+        boolean isParsingErrorLoggingEnabled = FirebaseRemoteConfig.getInstance()
+                .getBoolean("is_parsing_error_logging_enabled");
+        if (isParsingErrorLoggingEnabled) {
             logError(e);
         } else {
             Log.e(tag, EXCEPTION_CAUGHT, e);
         }
+        //logFirebaseRemoteConfig();
     } // logParsingError()
 
     public static void reportAction(
@@ -160,3 +221,4 @@ public class PlayStoreHelper {
                 "propertyName", propertyName, "propertyValue", propertyValue));
     } // setLongUserProperty()
 } // class PlayStoreHelper
+

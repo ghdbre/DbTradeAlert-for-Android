@@ -2,8 +2,11 @@ package de.dbremes.dbtradealert;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+
+import java.text.ParseException;
 
 public class AboutActivity extends AppCompatActivity {
 
@@ -22,6 +25,10 @@ public class AboutActivity extends AppCompatActivity {
         TextView editTextView = (TextView) findViewById(R.id.editTextView);
         editTextView.setText(s);
         setTitle("About");
+
+        //Log.v("AboutActivity", "onCreate(): Logging errors for Firebase Remote Config test");
+        //PlayStoreHelper.logConnectionError("AboutActivity", "No worries, just a test");
+        //PlayStoreHelper.logParsingError("AboutActivity", new ParseException("ParseException-test", 0));
     } // onCreate()
 
     public void onOkButtonClick(View view) {

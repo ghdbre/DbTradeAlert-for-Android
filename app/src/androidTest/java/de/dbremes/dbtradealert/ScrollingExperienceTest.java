@@ -10,14 +10,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.swipeLeft;
 import static android.support.test.espresso.action.ViewActions.swipeUp;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withParent;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
 @LargeTest
@@ -37,20 +35,5 @@ public class ScrollingExperienceTest {
 
         recyclerView.perform(actionOnItemAtPosition(0, swipeUp()));
         recyclerView.perform(actionOnItemAtPosition(0, swipeLeft()));
-
-        // Freezing the app to see if the test changed watchlists
-//        try {
-//            Thread.sleep(1000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-
-//        recyclerView.perform(swipeUp());
-//        recyclerView.perform(swipeLeft());
-//        recyclerView.perform(actionOnItemAtPosition(0, click()));
-//
-//        ViewInteraction appCompatButton = onView(
-//                allOf(withId(R.id.cancelButton), withText("Cancel"), isDisplayed()));
-//        appCompatButton.perform(click());
     }
 }

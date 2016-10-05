@@ -1213,35 +1213,28 @@ public class DbHelper extends SQLiteOpenHelper {
         // Split lines and parse each according to QuoteDownloadFormatParameter
         // This will break if values include commas, see QuoteDownloadFormatParameter!
         // endregion Example
+        String[][] quoteArrays = convertCsvToStringArrays(quoteCsv);
         SQLiteDatabase db = this.getWritableDatabase();
         try {
             db.beginTransaction();
-            String quoteCsvRow = null;
-            String[] quoteCsvRows = quoteCsv.split("\r?\n|\r");
-            for (int i = 0; i < quoteCsvRows.length; i++) {
-                quoteCsvRow = quoteCsvRows[i];
-                String[] values = quoteCsvRow.split(",");
-                // Delete any surrounding quotes
-                for (int j = 0; j < values.length; j++) {
-                    values[j] = values[j].replace("\"", "");
-                }
+            for (int rowIndex = 0; rowIndex < quoteArrays.length; rowIndex++) {
                 // Extract values (ordered by index of column in quoteCsv based on QuoteDownloadFormatParameter)
-                Float ask = getFloatFromString(values[0]); // a
-                Integer averageDailyVolume = getIntegerFromString(values[1]); // a2
-                Float bid = getFloatFromString(values[2]); // b
-                String currency = values[3]; // c4
-                String lastTradeDateTime
-                        = getDataTimeStringFromStrings(values[4], values[13]); // d1, t1
-                Float daysLow = getFloatFromString(values[5]); // g
-                Float daysHigh = getFloatFromString(values[6]); // h
-                Float lastTrade = getFloatFromString(values[7]); // l1
-                String name = values[8]; // n
-                Float open = getFloatFromString(values[9]); // 0
-                Float previousClose = getFloatFromString(values[10]); // p
-                Float percentChange = getFloatFromPercentString(values[11]); // p2
-                String symbol = values[12]; // s
-                Integer volume = getIntegerFromString(values[14]); // v
-                String stockExchangeName = values[15]; // x
+                Float ask = getFloatFromString(quoteArrays[rowIndex][0]); // a
+                Integer averageDailyVolume = getIntegerFromString(quoteArrays[rowIndex][1]); // a2
+                Float bid = getFloatFromString(quoteArrays[rowIndex][2]); // b
+                String currency = quoteArrays[rowIndex][3]; // c4
+                String lastTradeDateTime = getDataTimeStringFromStrings(
+                        quoteArrays[rowIndex][4], quoteArrays[rowIndex][13]); // d1, t1
+                Float daysLow = getFloatFromString(quoteArrays[rowIndex][5]); // g
+                Float daysHigh = getFloatFromString(quoteArrays[rowIndex][6]); // h
+                Float lastTrade = getFloatFromString(quoteArrays[rowIndex][7]); // l1
+                String name = quoteArrays[rowIndex][8]; // n
+                Float open = getFloatFromString(quoteArrays[rowIndex][9]); // 0
+                Float previousClose = getFloatFromString(quoteArrays[rowIndex][10]); // p
+                Float percentChange = getFloatFromPercentString(quoteArrays[rowIndex][11]); // p2
+                String symbol = quoteArrays[rowIndex][12]; // s
+                Integer volume = getIntegerFromString(quoteArrays[rowIndex][14]); // v
+                String stockExchangeName = quoteArrays[rowIndex][15]; // x
                 if (Float.isNaN(lastTrade) == false) {
                     long securityId = getSecurityIdFromSymbol(db, symbol);
                     // Store values (ordered alphabetically)

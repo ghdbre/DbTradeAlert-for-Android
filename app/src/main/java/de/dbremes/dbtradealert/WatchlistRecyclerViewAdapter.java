@@ -212,6 +212,7 @@ public class WatchlistRecyclerViewAdapter
         // Symbol
         viewHolder.Symbol = this.cursor.getString(
                 this.cursor.getColumnIndex(SecurityContract.Security.SYMBOL));
+        //Log.d(CLASS_NAME, "onBindViewHolder(): symbol = " + viewHolder.Symbol);
         // SymbolTextView
         viewHolder.SymbolTextView.setText(this.cursor.getString(
                 this.cursor.getColumnIndex(SecurityContract.Security.SYMBOL)));

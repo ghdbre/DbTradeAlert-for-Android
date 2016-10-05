@@ -14,6 +14,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -99,6 +100,24 @@ public class DbHelper extends SQLiteOpenHelper {
 //            db.close();
 //        }
 //    } // closeDb()
+
+    private String[][] convertCsvToStringArrays(String csvData) {
+        String[][] result = null;
+        String[] csvRows = csvData.split("\r?\n|\r");
+        int rowCount = csvRows.length;
+        int fieldCount = csvRows[0].split(",").length;
+        result = new String[rowCount][fieldCount];
+        String csvRow = null;
+        for (int rowIndex = 0; rowIndex < csvRows.length; rowIndex++) {
+            csvRow = csvRows[rowIndex];
+            result[rowIndex] = csvRow.split(",");
+            // Delete any surrounding quotes
+            for (int fieldIndex = 0; fieldIndex < result[rowIndex].length; fieldIndex++) {
+                result[rowIndex][fieldIndex] = result[rowIndex][fieldIndex].replace("\"", "");
+            }
+        }
+        return result;
+    } // convertCsvToStringArrays()
 
     private void createQuoteTable(SQLiteDatabase db) {
         String columnDefinitions = (Quote.ASK + " REAL, ") +
@@ -451,6 +470,39 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     } // deleteSecurity()
 
+
+    /**
+     * Caution: deleteTestSecurities() deletes any securities with Id > 4!
+     * Logic as deleteSecurity()
+     */
+    public void deleteTestSecurities() {
+        final String methodName = "deleteTestSecurities";
+        Log.v(CLASS_NAME, String.format("%s(): securityId > 4", methodName));
+        String[] whereArgs = new String[]{String.valueOf(4)};
+        int deleteResult = 0;
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.beginTransaction();
+            // Delete security's quotes
+            deleteResult = db.delete(Quote.TABLE, Quote.SECURITY_ID + " > ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+                    Quote.TABLE, deleteResult));
+            // Delete security's existing connections to watchlists
+            deleteResult = db.delete(SecuritiesInWatchlists.TABLE,
+                    SecuritiesInWatchlists.SECURITY_ID + " > ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+                    SecuritiesInWatchlists.TABLE, deleteResult));
+            // Delete security
+            deleteResult = db.delete(Security.TABLE, Security.ID + " > ?", whereArgs);
+            Log.v(CLASS_NAME, String.format(DELETE_RESULT_FORMAT, methodName,
+                    Security.TABLE, deleteResult));
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, methodName + "(): success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // deleteTestSecurities()
+
     public void deleteWatchlist(long watchlistId) {
         final String methodName = "deleteWatchlist";
         Log.v(CLASS_NAME,
@@ -739,6 +791,35 @@ public class DbHelper extends SQLiteOpenHelper {
         closeCursor(cursor);
         return result;
     } // getWatchlistIdByPosition()
+
+    public void importTestSecurities(String csvData, long watchlistId) {
+        final String METHOD_NAME = "importTestSecurities";
+        final String addSecurityToWatchlistSql = "INSERT INTO " + SecuritiesInWatchlists.TABLE
+                + "(" + SecuritiesInWatchlists.SECURITY_ID
+                + "," + SecuritiesInWatchlists.WATCHLIST_ID + ") VALUES(?,?)";
+        final String insertSecuritySql = "INSERT INTO " + Security.TABLE
+                + "(" + Security.SYMBOL + ") VALUES(?)";
+        String[][] csvArrays = convertCsvToStringArrays(csvData);
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.beginTransaction();
+            SQLiteStatement addSecurityToWatchlistStatement
+                    = db.compileStatement(addSecurityToWatchlistSql);
+            SQLiteStatement insertSecurityStatement = db.compileStatement(insertSecuritySql);
+            for (int rowIndex = 0; rowIndex < csvArrays.length; rowIndex++) {
+                // 1-based index for bindString()!
+                insertSecurityStatement.bindString(1, csvArrays[rowIndex][0]);
+                long securityId = insertSecurityStatement.executeInsert();
+                addSecurityToWatchlistStatement.bindLong(1, securityId);
+                addSecurityToWatchlistStatement.bindLong(2, watchlistId);
+                addSecurityToWatchlistStatement.executeInsert();
+            }
+            db.setTransactionSuccessful();
+            Log.d(CLASS_NAME, METHOD_NAME + "(): success!");
+        } finally {
+            db.endTransaction();
+        }
+    } // importTestSecurities()
 
     private String insertSelectionArgs(String selection, String[] selectionArgs) {
         final String methodName = "insertSelectionArgs";

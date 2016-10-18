@@ -138,7 +138,7 @@ public class QuoteRefresherService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         String baseUrl = "http://" + BuildConfig.HOST + ":" + BuildConfig.PORT + "/d/quotes.csv";
         String url = baseUrl
-                + "?f=" + DbHelper.QuoteDownloadFormatParameter
+                + "?f=" + DbHelper.QUOTE_DOWNLOAD_FORMAT_PARAMETER
                 + "&s=" + getSymbolParameterValue();
         try {
             boolean isManualRefresh = intent.getBooleanExtra(

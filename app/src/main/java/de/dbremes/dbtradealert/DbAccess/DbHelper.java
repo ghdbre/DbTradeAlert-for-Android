@@ -71,12 +71,12 @@ public class DbHelper extends SQLiteOpenHelper {
     // t1=Last Trade Time (13)
     // v, v0, v6=Volume (14)
     // x, x0=Stock Exchange (15)
-    // (n) = index of column in resulting .csv based on QuoteDownloadFormatParameter
+    // (n) = index of column in resulting .csv based on QUOTE_DOWNLOAD_FORMAT_PARAMETER
     // watch out for parameters like b6 (Bid Size)!
     // They might return groups of numbers separated by
     // commas which will trip up parseFromQuoteCsvRow()
     // endregion
-    public final static String QuoteDownloadFormatParameter = "aa2bc4d1ghl1nopp2st1vx";
+    public final static String QUOTE_DOWNLOAD_FORMAT_PARAMETER = "aa2bc4d1ghl1nopp2st1vx";
     // NewItemId is used as a temporary ID until the database has stored the item
     // and issued an ID for it
     public final static long NewItemId = -1L;
@@ -1210,15 +1210,15 @@ public class DbHelper extends SQLiteOpenHelper {
         // 74.45,5109847,74.40,"CHF","5/27/2016",73.85,74.50,74.40,"NESTLE N",74.05,74.25,"+0.20%","NESN.VX","10:40am",1360058,"VTX"
         // 79.55,5053093,79.50,"CHF","5/27/2016",79.20,79.80,79.50,"NOVARTIS N",79.30,79.35,"+0.19%","NOVN.VX","10:40am",1263633,"VTX"
         // 97.80,2098357,97.79,"EUR","5/27/2016",97.25,97.94,97.80,"SIEMENS N",97.44,97.70,"+0.10%","SIE.DE","10:40am",308498,"GER"
-        // Split lines and parse each according to QuoteDownloadFormatParameter
-        // This will break if values include commas, see QuoteDownloadFormatParameter!
+        // Split lines and parse each according to QUOTE_DOWNLOAD_FORMAT_PARAMETER
+        // This will break if values include commas, see QUOTE_DOWNLOAD_FORMAT_PARAMETER!
         // endregion Example
         String[][] quoteArrays = convertCsvToStringArrays(quoteCsv);
         SQLiteDatabase db = this.getWritableDatabase();
         try {
             db.beginTransaction();
             for (int rowIndex = 0; rowIndex < quoteArrays.length; rowIndex++) {
-                // Extract values (ordered by index of column in quoteCsv based on QuoteDownloadFormatParameter)
+                // Extract values (ordered by index of column in quoteCsv based on QUOTE_DOWNLOAD_FORMAT_PARAMETER)
                 Float ask = getFloatFromString(quoteArrays[rowIndex][0]); // a
                 Integer averageDailyVolume = getIntegerFromString(quoteArrays[rowIndex][1]); // a2
                 Float bid = getFloatFromString(quoteArrays[rowIndex][2]); // b

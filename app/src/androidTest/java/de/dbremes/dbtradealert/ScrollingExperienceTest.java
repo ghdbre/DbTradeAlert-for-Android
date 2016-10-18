@@ -77,7 +77,6 @@ public class ScrollingExperienceTest {
         Context targetContext = InstrumentationRegistry.getTargetContext();
         DbHelper dbHelper = new DbHelper(targetContext);
         dbHelper.deleteTestSecurities();
-        logRequests();
     } // deleteTestData()
 
     private void logRequests() {
@@ -180,6 +179,7 @@ public class ScrollingExperienceTest {
             Log.v(CLASS_NAME, METHOD_NAME + "(): swipeUp" + i);
             recyclerView.perform(actionOnItemAtPosition(i, swipeUp()));
         }
+        logRequests();
         Log.v(CLASS_NAME, METHOD_NAME + "(): the End");
     } // scrollingExperienceTest()
 } // class ScrollingExperienceTest

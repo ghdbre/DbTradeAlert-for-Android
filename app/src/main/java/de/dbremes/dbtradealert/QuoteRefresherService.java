@@ -15,6 +15,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -44,7 +45,6 @@ public class QuoteRefresherService extends IntentService {
             = "Refresh completed";
     public static final String QUOTE_REFRESHER_BROADCAST_IS_MANUAL_REFRESH_INTENT_EXTRA
             = "isManualRefresh";
-    private static final String exceptionMessage = "Exception caught";
 
     public QuoteRefresherService() {
         super("QuoteRefresherService");
@@ -136,25 +136,27 @@ public class QuoteRefresherService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        String baseUrl = "http://download.finance.yahoo.com/d/quotes.csv";
+        String baseUrl = "http://" + BuildConfig.HOST + ":" + BuildConfig.PORT + "/d/quotes.csv";
         String url = baseUrl
                 + "?f=" + DbHelper.QuoteDownloadFormatParameter
                 + "&s=" + getSymbolParameterValue();
-        String quoteCsv = "";
         try {
             boolean isManualRefresh = intent.getBooleanExtra(
                     QUOTE_REFRESHER_BROADCAST_IS_MANUAL_REFRESH_INTENT_EXTRA, false);
             if (isManualRefresh || areExchangesOpenNow()) {
                 if (isConnected()) {
-                    quoteCsv = downloadQuotes(url);
-                    DbHelper dbHelper = new DbHelper(this);
-                    dbHelper.updateOrCreateQuotes(quoteCsv);
-                    // Notify user of triggered signals and reminders even if app is sleeping
-                    dbHelper.updateSecurityMaxPrice();
-                    sendNotification(dbHelper);
-                    Log.d(CLASS_NAME,
-                            "onHandleIntent(): quotes updated - initiating screen refresh");
-                    sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA);
+                    String quoteCsv = downloadQuotes(url);
+                    if (TextUtils.isEmpty(quoteCsv) == false) {
+                        DbHelper dbHelper = new DbHelper(this);
+                        dbHelper.updateOrCreateQuotes(quoteCsv);
+                        // Notify user of triggered signals and reminders even if app is sleeping
+                        dbHelper.updateSecurityMaxPrice();
+                        sendNotification(dbHelper);
+                        Log.d(CLASS_NAME,
+                                "onHandleIntent(): quotes updated - initiating screen refresh");
+                        sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA);
+                    }
+                    // Otherwise downloadQuotes() will report the error
                 } else {
                     sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
                     PlayStoreHelper.logConnectionError(
@@ -193,16 +195,16 @@ public class QuoteRefresherService extends IntentService {
             conn.setConnectTimeout(15000 /* milliseconds */);
             conn.setRequestMethod("GET");
             conn.setDoInput(true);
-            // Starts the query
-            conn.connect();
             int responseCode = -1;
             try {
+                // Starts the query
+                conn.connect();
                 responseCode = conn.getResponseCode();
             } catch (SocketTimeoutException e) {
                 sendLocalBroadcast(
-                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "connection timed out!");
                 Log.d(CLASS_NAME,
-                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "connection timed out!");
             }
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 inputStream = conn.getInputStream();

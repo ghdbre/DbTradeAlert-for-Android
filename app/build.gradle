@@ -1,4 +1,3 @@
-
 apply plugin: 'com.android.application'
 
 android {
@@ -12,12 +11,25 @@ android {
         versionCode 2
         versionName "1.1"
         archivesBaseName = "${parent.name}-${android.defaultConfig.versionName}"
-        // Ad unit Id for sample ads from
+        // Ad unit Id for sample adverts from
         // https://firebase.google.com/docs/admob/android/google-services.json
         buildConfigField "String", "AD_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\""
+        // Prepare rerouting of quote download requests to WireMock for tests
+        buildConfigField "String", "HOST", "download.finance.yahoo.com"
+        buildConfigField "String", "PORT", "\"80\""
         testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
+        mock {
+            initWith(buildTypes.debug)
+            // Without enhanced google-services.json his leads to the error
+            // "No matching client found for package name 'de.dbremes.dbtradealert.playStore.mock'":
+            //applicationIdSuffix ".mock"
+            buildConfigField "String", "HOST", "\"127.0.0.1\""
+            buildConfigField "String", "PORT", "\"8080\""
+            // Multidex only needed for WireMock
+            multiDexEnabled true
+        }
         release {
             minifyEnabled false
             // ProGuard is off
@@ -41,6 +53,19 @@ android {
         playStore.java.srcDirs = ['src/common/java', 'src/playStore/java']
         withAds.java.srcDirs = ['src/common/java', 'src/withAds/java']
     }
+    variantFilter { variant ->
+        def names = variant.flavors*.name
+        // Only ...-playStore-debug.apk needed of the mocks
+        if (variant.buildType.name.equals("mock") && names.contains("playStore") == false) {
+            variant.ignore = true
+        }
+    }
+    packagingOptions {
+        // Keep only 1 license from 3* com.fasterxml.jackson.core + 1* org.apache.httpcomponents
+        // All 4 are Apache 2.0 licenses
+        pickFirst  'META-INF/LICENSE'
+    }
+    testBuildType "mock"
 }
 
 dependencies {
@@ -58,17 +83,30 @@ dependencies {
     withAdsCompile 'com.google.firebase:firebase-crash:9.4.0'
     withAdsCompile 'com.google.firebase:firebase-config:9.4.0'
     compile 'org.jetbrains:annotations-java5:15.0'
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2', {
+    mockCompile 'com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     }
-    androidTestCompile 'com.android.support.test.espresso:espresso-contrib:2.2.2', {
+    mockCompile 'com.android.support.test.espresso:espresso-contrib:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.android.support', module: 'support-v4'
         exclude group: 'com.android.support', module: 'design'
         exclude group: 'com.android.support', module: 'recyclerview-v7'
     }
+    mockCompile 'com.github.tomakehurst:wiremock:2.2.1', {
+        // Allows us to use the Android version of Apache httpclient instead
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+        // Resolves the Duplicate Class Exception
+        // duplicate entry: org/objectweb/asm/AnnotationVisitor.class
+        exclude group: 'org.ow2.asm', module: 'asm'
+        // Fixes Warning conflict with Android's version of org.json
+        // org.json:json:20090211 is ignored for debugAndroidTest as it may be conflicting
+        // with the internal version provided by Android.
+        exclude group: 'org.json', module: 'json'
+    }
+    // Android compatible version of Apache httpclient.
+    mockCompile 'org.apache.httpcomponents:httpclient-android:4.3.5.1'
+    mockCompile 'com.android.support:multidex:1.0.0'
 }
-
 // Remove apply plugin: 'com.google.gms.google-services' when building naked variants.
 // Those have no google-services.json file and applying the plugin would produce an error:
 // "File google-services.json is missing. The Google Services Plugin cannot function without it."

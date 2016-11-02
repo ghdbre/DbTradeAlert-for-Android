@@ -15,7 +15,7 @@ android {
         // https://firebase.google.com/docs/admob/android/google-services.json
         buildConfigField "String", "AD_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\""
         // Prepare rerouting of quote download requests to WireMock for tests
-        buildConfigField "String", "HOST", "download.finance.yahoo.com"
+        buildConfigField "String", "HOST", "\"download.finance.yahoo.com\""
         buildConfigField "String", "PORT", "\"80\""
         testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
@@ -83,6 +83,9 @@ dependencies {
     withAdsCompile 'com.google.firebase:firebase-crash:9.4.0'
     withAdsCompile 'com.google.firebase:firebase-config:9.4.0'
     compile 'org.jetbrains:annotations-java5:15.0'
+    mockCompile 'com.google.firebase:firebase-core:9.4.0'
+    mockCompile 'com.google.firebase:firebase-crash:9.4.0'
+    mockCompile 'com.google.firebase:firebase-config:9.4.0'
     mockCompile 'com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     }

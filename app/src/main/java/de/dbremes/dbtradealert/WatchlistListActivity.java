@@ -245,7 +245,11 @@ public class WatchlistListActivity extends AppCompatActivity
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(watchlistListPagerAdapter);
         // Request user to whitelist app from Doze and App Standby
-        ensureExemptionFromBatteryOptimizations();
+        // Skip for Espresso tests as the dialog shown to the user belongs to Android
+        // and Espresso cannot interact with it
+        if (BuildConfig.BUILD_TYPE.equals("mock") == false) {
+            ensureExemptionFromBatteryOptimizations();
+        }
         // Create initial quote refresh schedule (just overwrite existing ones)
         Log.d(CLASS_NAME, "onCreate(): creating quote refresh schedule");
         createQuoteRefreshSchedule();

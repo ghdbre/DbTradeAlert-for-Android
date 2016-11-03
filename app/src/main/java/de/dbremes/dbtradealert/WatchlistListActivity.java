@@ -76,7 +76,7 @@ public class WatchlistListActivity extends AppCompatActivity
                 updateTitle(addTimestamp);
             } else if (message.startsWith(
                     QuoteRefresherService.QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA)) {
-                Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_SHORT).show();
+                Toast.makeText(WatchlistListActivity.this, message, Toast.LENGTH_LONG).show();
                 PlayStoreHelper.logError("BroadcastReceiver",
                         "quotesRefreshedBroadcastReceiver error = '" + message + "'");
             }

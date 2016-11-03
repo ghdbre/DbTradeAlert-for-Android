@@ -136,19 +136,6 @@ public class ScrollingExperienceTest {
         return fileContent;
     } // readFileFromTestAssets()
 
-    private void setupWireMock() {
-        Log.v(CLASS_NAME, "setupWireMock(): start");
-        String quotesCsv = readFileFromTestAssets("quotes.csv");
-        wireMockRule.stubFor(get(urlPathMatching(".*"))
-                .withQueryParam("f", equalTo(DbHelper.QUOTE_DOWNLOAD_FORMAT_PARAMETER))
-                // Currently WireMock fails to match URL encoded parameters
-                // See https://github.com/tomakehurst/wiremock/issues/515
-                //.withQueryParam("s", equalTo(symbolParameterValue))
-                .willReturn(aResponse()
-                        .withStatus(HttpURLConnection.HTTP_OK)
-                        .withBody(quotesCsv)));
-    } // setupWireMock()
-
     @Test
     public void scrollingExperienceTest() throws VerificationException {
         final String METHOD_NAME = "scrollingExperienceTest";
@@ -182,4 +169,17 @@ public class ScrollingExperienceTest {
         logRequests();
         Log.v(CLASS_NAME, METHOD_NAME + "(): the End");
     } // scrollingExperienceTest()
+
+    private void setupWireMock() {
+        Log.v(CLASS_NAME, "setupWireMock(): start");
+        String quotesCsv = readFileFromTestAssets("quotes.csv");
+        wireMockRule.stubFor(get(urlPathMatching(".*"))
+                .withQueryParam("f", equalTo(DbHelper.QUOTE_DOWNLOAD_FORMAT_PARAMETER))
+                // Currently WireMock fails to match URL encoded parameters
+                // See https://github.com/tomakehurst/wiremock/issues/515
+                //.withQueryParam("s", equalTo(symbolParameterValue))
+                .willReturn(aResponse()
+                        .withStatus(HttpURLConnection.HTTP_OK)
+                        .withBody(quotesCsv)));
+    } // setupWireMock()
 } // class ScrollingExperienceTest

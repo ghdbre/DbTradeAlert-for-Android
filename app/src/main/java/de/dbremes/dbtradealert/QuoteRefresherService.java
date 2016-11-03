@@ -117,7 +117,15 @@ public class QuoteRefresherService extends IntentService {
             }
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 inputStream = conn.getInputStream();
-                result = getStringFromStream(inputStream);
+                try {
+                    result = getStringFromStream(inputStream);
+                } catch (IOException x) {
+                    sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
+                            + "could not read response!");
+                    PlayStoreHelper.logError(CLASS_NAME,
+                            QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA
+                                    + "could not read response!");
+                }
                 Log.d(CLASS_NAME, "downloadQuotes(): got " + result.length() + " characters");
             } else {
                 sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA

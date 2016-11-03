@@ -94,97 +94,6 @@ public class QuoteRefresherService extends IntentService {
         return result;
     } // buildNotificationFromTriggeredSignal()
 
-    private boolean isBusinessDay(Calendar now) {
-        boolean result = false;
-        int thisDayOfWeek = now.get(Calendar.DAY_OF_WEEK);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        Set businessDays = sharedPreferences.getStringSet(
-                "business_days_preference", Collections.<String>emptySet());
-        Utils.BusinessTimesPreferenceExtremes
-                btpe = Utils.getBusinessTimesPreferenceExtremes(businessDays);
-        result = (btpe.getFirstBusinessTime() <= thisDayOfWeek
-                && btpe.getLastBusinessTime() >= thisDayOfWeek);
-        // Log result details
-        String s = String.valueOf(thisDayOfWeek) + (result ? " is" : " is not")
-                + String.format(" in business days (%d - %d)",
-                btpe.getFirstBusinessTime(),
-                btpe.getLastBusinessTime()
-        );
-        Log.v(CLASS_NAME, s);
-        return result;
-    } // isBusinessDay()
-
-    private boolean isBusinessHour(Calendar now) {
-        boolean result = false;
-        int hourOfDay = now.get(Calendar.HOUR_OF_DAY);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        Set businessHours = sharedPreferences.getStringSet(
-                "business_hours_preference", Collections.<String>emptySet());
-        Utils.BusinessTimesPreferenceExtremes
-                btpe = Utils.getBusinessTimesPreferenceExtremes(businessHours);
-        result = (btpe.getFirstBusinessTime() <= hourOfDay
-                && btpe.getLastBusinessTime() >= hourOfDay);
-        // Log result details
-        String s = String.valueOf(hourOfDay) + (result ? " is" : " is not")
-                + String.format(" in business hours (%02d - %02d)",
-                btpe.getFirstBusinessTime(),
-                btpe.getLastBusinessTime()
-        );
-        Log.v(CLASS_NAME, s);
-        return result;
-    } // isBusinessHour()
-
-    @Override
-    protected void onHandleIntent(Intent intent) {
-        String baseUrl = "http://" + BuildConfig.HOST + ":" + BuildConfig.PORT + "/d/quotes.csv";
-        String url = baseUrl
-                + "?f=" + DbHelper.QUOTE_DOWNLOAD_FORMAT_PARAMETER
-                + "&s=" + getSymbolParameterValue();
-        try {
-            boolean isManualRefresh = intent.getBooleanExtra(
-                    QUOTE_REFRESHER_BROADCAST_IS_MANUAL_REFRESH_INTENT_EXTRA, false);
-            if (isManualRefresh || areExchangesOpenNow()) {
-                if (isConnected()) {
-                    String quoteCsv = downloadQuotes(url);
-                    if (TextUtils.isEmpty(quoteCsv) == false) {
-                        DbHelper dbHelper = new DbHelper(this);
-                        dbHelper.updateOrCreateQuotes(quoteCsv);
-                        // Notify user of triggered signals and reminders even if app is sleeping
-                        dbHelper.updateSecurityMaxPrice();
-                        sendNotification(dbHelper);
-                        Log.d(CLASS_NAME,
-                                "onHandleIntent(): quotes updated - initiating screen refresh");
-                        sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA);
-                    }
-                    // Otherwise downloadQuotes() will report the error
-                } else {
-                    sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
-                    PlayStoreHelper.logConnectionError(
-                            CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
-                }
-            } else {
-                Log.d(CLASS_NAME,
-                        "onHandleIntent(): exchanges closed and not a manual refresh - skipping alarm");
-            }
-        } catch (IOException e) {
-            // To reduce the amount of log spew that apps do in the non-error condition of the
-            // network being unavailable Log.e() doesn't print UnknownHostException.
-            if (e instanceof UnknownHostException) {
-                // java.net.UnknownHostException:
-                // Unable to resolve host "download.finance.yahoo.com":
-                // No address associated with hostname
-                sendLocalBroadcast(
-                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
-                PlayStoreHelper.logConnectionError(CLASS_NAME,
-                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
-            } else {
-                PlayStoreHelper.logError(e);
-            }
-        } finally {
-            QuoteRefreshAlarmReceiver.completeWakefulIntent(intent);
-        }
-    } // onHandleIntent()
-
     private String downloadQuotes(String urlString) throws IOException {
         String result = "";
         InputStream inputStream = null;
@@ -261,12 +170,103 @@ public class QuoteRefresherService extends IntentService {
         return result;
     } // getSymbolParameterValue()
 
+    private boolean isBusinessDay(Calendar now) {
+        boolean result = false;
+        int thisDayOfWeek = now.get(Calendar.DAY_OF_WEEK);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        Set businessDays = sharedPreferences.getStringSet(
+                "business_days_preference", Collections.<String>emptySet());
+        Utils.BusinessTimesPreferenceExtremes
+                btpe = Utils.getBusinessTimesPreferenceExtremes(businessDays);
+        result = (btpe.getFirstBusinessTime() <= thisDayOfWeek
+                && btpe.getLastBusinessTime() >= thisDayOfWeek);
+        // Log result details
+        String s = String.valueOf(thisDayOfWeek) + (result ? " is" : " is not")
+                + String.format(" in business days (%d - %d)",
+                btpe.getFirstBusinessTime(),
+                btpe.getLastBusinessTime()
+        );
+        Log.v(CLASS_NAME, s);
+        return result;
+    } // isBusinessDay()
+
+    private boolean isBusinessHour(Calendar now) {
+        boolean result = false;
+        int hourOfDay = now.get(Calendar.HOUR_OF_DAY);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        Set businessHours = sharedPreferences.getStringSet(
+                "business_hours_preference", Collections.<String>emptySet());
+        Utils.BusinessTimesPreferenceExtremes
+                btpe = Utils.getBusinessTimesPreferenceExtremes(businessHours);
+        result = (btpe.getFirstBusinessTime() <= hourOfDay
+                && btpe.getLastBusinessTime() >= hourOfDay);
+        // Log result details
+        String s = String.valueOf(hourOfDay) + (result ? " is" : " is not")
+                + String.format(" in business hours (%02d - %02d)",
+                btpe.getFirstBusinessTime(),
+                btpe.getLastBusinessTime()
+        );
+        Log.v(CLASS_NAME, s);
+        return result;
+    } // isBusinessHour()
+
     private boolean isConnected() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) this.getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return (networkInfo != null && networkInfo.isConnected());
     } // isConnected()
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        String baseUrl = "http://" + BuildConfig.HOST + ":" + BuildConfig.PORT + "/d/quotes.csv";
+        String url = baseUrl
+                + "?f=" + DbHelper.QUOTE_DOWNLOAD_FORMAT_PARAMETER
+                + "&s=" + getSymbolParameterValue();
+        try {
+            boolean isManualRefresh = intent.getBooleanExtra(
+                    QUOTE_REFRESHER_BROADCAST_IS_MANUAL_REFRESH_INTENT_EXTRA, false);
+            if (isManualRefresh || areExchangesOpenNow()) {
+                if (isConnected()) {
+                    String quoteCsv = downloadQuotes(url);
+                    if (TextUtils.isEmpty(quoteCsv) == false) {
+                        DbHelper dbHelper = new DbHelper(this);
+                        dbHelper.updateOrCreateQuotes(quoteCsv);
+                        // Notify user of triggered signals and reminders even if app is sleeping
+                        dbHelper.updateSecurityMaxPrice();
+                        sendNotification(dbHelper);
+                        Log.d(CLASS_NAME,
+                                "onHandleIntent(): quotes updated - initiating screen refresh");
+                        sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_REFRESH_COMPLETED_EXTRA);
+                    }
+                    // Otherwise downloadQuotes() will report the error
+                } else {
+                    sendLocalBroadcast(QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
+                    PlayStoreHelper.logConnectionError(
+                            CLASS_NAME, QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "no Internet!");
+                }
+            } else {
+                Log.d(CLASS_NAME,
+                        "onHandleIntent(): exchanges closed and not a manual refresh - skipping alarm");
+            }
+        } catch (IOException e) {
+            // To reduce the amount of log spew that apps do in the non-error condition of the
+            // network being unavailable Log.e() doesn't print UnknownHostException.
+            if (e instanceof UnknownHostException) {
+                // java.net.UnknownHostException:
+                // Unable to resolve host "download.finance.yahoo.com":
+                // No address associated with hostname
+                sendLocalBroadcast(
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+                PlayStoreHelper.logConnectionError(CLASS_NAME,
+                        QUOTE_REFRESHER_BROADCAST_ERROR_EXTRA + "broken Internet connection!");
+            } else {
+                PlayStoreHelper.logError(e);
+            }
+        } finally {
+            QuoteRefreshAlarmReceiver.completeWakefulIntent(intent);
+        }
+    } // onHandleIntent()
 
     private void sendLocalBroadcast(String message) {
         Intent intent = new Intent(QUOTE_REFRESHER_BROADCAST);

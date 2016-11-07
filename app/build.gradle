@@ -113,6 +113,7 @@ dependencies {
 // Remove apply plugin: 'com.google.gms.google-services' when building naked variants.
 // Those have no google-services.json file and applying the plugin would produce an error:
 // "File google-services.json is missing. The Google Services Plugin cannot function without it."
+// or "No matching client found for de.dbremes.dbtradealert"
 // Building the R class would fail too and produce "cannot resolve symbol R" errors.
 apply plugin: 'com.google.gms.google-services'
 // Non-naked variants on the other hand will throw an exception when started after being build

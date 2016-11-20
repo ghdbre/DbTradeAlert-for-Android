@@ -110,7 +110,8 @@ public class DbHelper extends SQLiteOpenHelper {
         String csvRow = null;
         for (int rowIndex = 0; rowIndex < csvRows.length; rowIndex++) {
             csvRow = csvRows[rowIndex];
-            result[rowIndex] = csvRow.split(",");
+            // Split at commas but only if not inside quotes
+            result[rowIndex] = csvRow.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
             // Delete any surrounding quotes
             for (int fieldIndex = 0; fieldIndex < result[rowIndex].length; fieldIndex++) {
                 result[rowIndex][fieldIndex] = result[rowIndex][fieldIndex].replace("\"", "");

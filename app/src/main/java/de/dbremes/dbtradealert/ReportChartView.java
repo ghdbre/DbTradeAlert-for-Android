@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -69,25 +70,21 @@ public class ReportChartView extends View {
                           int currentY, float lastPrice, String marker, Float price, int width) {
         // boundsRectTemp.top is < 0 because measured from font's base line
         int originalCurrentY = currentY;
-        String valueString = "";
         if (price.isNaN() == false) {
             // Draw prices or their markers centered on their percentage of lastPrice
             float percent = getPercent(lastPrice, price);
             float currentX = getXPositionFromPercentage(extremes, percent, width);
-            // Draw lastPrice above chart line
-            valueString = String.format("%01.2f", price);
-            this.textPaint.getTextBounds(
-                    valueString, 0, valueString.length(), this.boundsRectTemp);
+            // Draw tick for lastPrice above chart line
+            this.textPaint.getTextBounds("I", 0, 1, this.boundsRectTemp);
             if (price == lastPrice) {
-                float priceWidth = this.boundsRectTemp.width();
-                float priceXPosition = currentX - priceWidth / 2;
-                priceXPosition = ensureTextIsNotCutOff(priceXPosition, priceWidth, width);
-                canvas.drawText(valueString,
-                        priceXPosition, currentY - this.boundsRectTemp.top, this.textPaint);
+                // textPaint.descent() needed to make tick meet chart line as "I" has no descent
+                // boundsRectTemp.bottom == 0
+                canvas.drawLine(currentX, currentY - this.boundsRectTemp.top + textPaint.descent(),
+                        currentX, currentY, this.textPaint);
             }
             currentY += -this.boundsRectTemp.top + 2 * this.paddingY;
             // Draw marker below chart line
-            if (marker.isEmpty() == false) {
+            if (TextUtils.isEmpty(marker) == false) {
                 float markerWidth = this.textPaint.measureText(marker);
                 float markerXPosition = currentX - markerWidth / 2;
                 markerXPosition = ensureTextIsNotCutOff(markerXPosition, markerWidth, width);
@@ -169,6 +166,7 @@ public class ReportChartView extends View {
         this.textLossPaint.setTextSize(30);
         this.textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.textPaint.setColor(Color.BLACK);
+        this.textPaint.setStrokeWidth(3f);
         this.textPaint.setTextSize(30);
         this.textWinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.textWinPaint.setColor(Color.GREEN);
@@ -202,7 +200,7 @@ public class ReportChartView extends View {
         int width = getWidth();
         int currentY = this.paddingY;
         // Upper chart shows quote data:
-        // - for lastPrice its value is printed above the chart line
+        // - for lastPrice a tick is printed above the chart line
         // - for all other prices a marker is printed below the chart line
         // - spread marked with black rectangle on chart line
         drawPrice(canvas, this.quoteExtremes, currentY, this.lastPrice, "a", this.ask, width);

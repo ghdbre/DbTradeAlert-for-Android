@@ -155,24 +155,27 @@ public class ReportChartView extends View {
     } // getXPositionFromPercentage()
 
     private void init() {
+        // Standard colors from https://material.io/guidelines/style/color.html#color-color-palette
+        int standardGreen = Color.parseColor("#4CAF50");
+        int standardRed = Color.parseColor("#F44336");
         this.linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.linePaint.setColor(Color.BLACK);
         this.linePaint.setStrokeWidth(2);
         this.lossPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        this.lossPaint.setColor(Color.RED);
+        this.lossPaint.setColor(standardRed);
         this.lossPaint.setStrokeWidth(2);
         this.textLossPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        this.textLossPaint.setColor(Color.RED);
+        this.textLossPaint.setColor(standardRed);
         this.textLossPaint.setTextSize(30);
         this.textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         this.textPaint.setColor(Color.BLACK);
         this.textPaint.setStrokeWidth(3f);
         this.textPaint.setTextSize(30);
         this.textWinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        this.textWinPaint.setColor(Color.GREEN);
+        this.textWinPaint.setColor(standardGreen);
         this.textWinPaint.setTextSize(30);
         this.winPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        this.winPaint.setColor(Color.GREEN);
+        this.winPaint.setColor(standardGreen);
         this.winPaint.setStrokeWidth(2);
     } // init()
 
